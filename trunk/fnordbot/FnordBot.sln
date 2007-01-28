@@ -1,0 +1,83 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FnordBotService", "FnordBotService\FnordBotService.csproj", "{D9F1AAEF-261C-47AD-AD76-36505CDBFB1E}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Fnordbot Setup", "Fnordbot Setup\Fnordbot Setup.vdproj", "{C4F32054-239B-40E2-B7F9-C0C62F4DD650}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VocabularyBuilder", "VocabularyBuilder\VocabularyBuilder.csproj", "{A89FF233-4FD0-43A0-80CD-9266ACC09803}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibIrc2", "LibIrc2\LibIrc2.csproj", "{7C8B4F84-4003-4230-983F-915E0681431A}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wordgame", "Wordgame\Wordgame.csproj", "{534C6DCE-9C1A-4D2F-8591-E9E880726E57}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SortSnak", "SortSnak\SortSnak.csproj", "{8C24E7C8-08D2-49D9-962E-C8263E44E1BC}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FnordBot2", "FnordBot2\FnordBot2.csproj", "{C841E838-D150-4BF3-A001-61996ED81377}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FnordBotWinApp", "FnordBot\FnordBotWinApp.csproj", "{591A5E29-F9C2-4F65-9AB1-80083AE3369E}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csproj", "{7A5A0EE1-0495-4D5F-A01A-76D82B5A0967}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{D9F1AAEF-261C-47AD-AD76-36505CDBFB1E}.Debug.ActiveCfg = Debug|.NET
+		{D9F1AAEF-261C-47AD-AD76-36505CDBFB1E}.Debug.Build.0 = Debug|.NET
+		{D9F1AAEF-261C-47AD-AD76-36505CDBFB1E}.Release.ActiveCfg = Release|.NET
+		{D9F1AAEF-261C-47AD-AD76-36505CDBFB1E}.Release.Build.0 = Release|.NET
+		{C4F32054-239B-40E2-B7F9-C0C62F4DD650}.Debug.ActiveCfg = Debug
+		{C4F32054-239B-40E2-B7F9-C0C62F4DD650}.Release.ActiveCfg = Release
+		{A89FF233-4FD0-43A0-80CD-9266ACC09803}.Debug.ActiveCfg = Debug|.NET
+		{A89FF233-4FD0-43A0-80CD-9266ACC09803}.Debug.Build.0 = Debug|.NET
+		{A89FF233-4FD0-43A0-80CD-9266ACC09803}.Release.ActiveCfg = Release|.NET
+		{A89FF233-4FD0-43A0-80CD-9266ACC09803}.Release.Build.0 = Release|.NET
+		{7C8B4F84-4003-4230-983F-915E0681431A}.Debug.ActiveCfg = Debug|.NET
+		{7C8B4F84-4003-4230-983F-915E0681431A}.Debug.Build.0 = Debug|.NET
+		{7C8B4F84-4003-4230-983F-915E0681431A}.Release.ActiveCfg = Release|.NET
+		{7C8B4F84-4003-4230-983F-915E0681431A}.Release.Build.0 = Release|.NET
+		{534C6DCE-9C1A-4D2F-8591-E9E880726E57}.Debug.ActiveCfg = Debug|.NET
+		{534C6DCE-9C1A-4D2F-8591-E9E880726E57}.Debug.Build.0 = Debug|.NET
+		{534C6DCE-9C1A-4D2F-8591-E9E880726E57}.Release.ActiveCfg = Release|.NET
+		{534C6DCE-9C1A-4D2F-8591-E9E880726E57}.Release.Build.0 = Release|.NET
+		{8C24E7C8-08D2-49D9-962E-C8263E44E1BC}.Debug.ActiveCfg = Debug|.NET
+		{8C24E7C8-08D2-49D9-962E-C8263E44E1BC}.Debug.Build.0 = Debug|.NET
+		{8C24E7C8-08D2-49D9-962E-C8263E44E1BC}.Release.ActiveCfg = Release|.NET
+		{8C24E7C8-08D2-49D9-962E-C8263E44E1BC}.Release.Build.0 = Release|.NET
+		{C841E838-D150-4BF3-A001-61996ED81377}.Debug.ActiveCfg = Debug|.NET
+		{C841E838-D150-4BF3-A001-61996ED81377}.Debug.Build.0 = Debug|.NET
+		{C841E838-D150-4BF3-A001-61996ED81377}.Release.ActiveCfg = Release|.NET
+		{C841E838-D150-4BF3-A001-61996ED81377}.Release.Build.0 = Release|.NET
+		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Debug.ActiveCfg = Debug|.NET
+		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Debug.Build.0 = Debug|.NET
+		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Release.ActiveCfg = Release|.NET
+		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Release.Build.0 = Release|.NET
+		{7A5A0EE1-0495-4D5F-A01A-76D82B5A0967}.Debug.ActiveCfg = Debug|.NET
+		{7A5A0EE1-0495-4D5F-A01A-76D82B5A0967}.Debug.Build.0 = Debug|.NET
+		{7A5A0EE1-0495-4D5F-A01A-76D82B5A0967}.Release.ActiveCfg = Release|.NET
+		{7A5A0EE1-0495-4D5F-A01A-76D82B5A0967}.Release.Build.0 = Release|.NET
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

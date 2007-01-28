@@ -1,0 +1,17 @@
+Todo:
+
+DONE: en winservice-launcher med setup til længere kørsler på eks orff
+IMPL: stærk logging af crashes til fil, eks i launcheren eller en logserver som launcheren kan bruge
+reconnect-logik til de længere kørsler
+
+fonrdbot todo:
+unit-tests
+flyt messagerate til config
+hent sortsnak answerrate til config
+logparser til sortsnak
+IMPL: event for bottens egen snak
+DONE: user skal indeholde current niockname
+IMPL: nick-change event
+private messages til botten logges i bimsebot.log? måske opstramning af parametre i events 
+undersøj hvorfor vi får channel/privmessages fra serveren - det skulle vel være servermessages
+DONE: command til at ændre nickname
