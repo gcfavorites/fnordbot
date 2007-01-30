@@ -117,6 +117,7 @@ namespace NielsRask.LibIrc
 			protocol.OnSetMode += new NielsRask.LibIrc.Protocol.BotMessageHandler(protocol_OnSetMode);
 			protocol.OnSendNotice += new NielsRask.LibIrc.Protocol.BotMessageHandler(protocol_OnSendNotice);
 			protocol.OnNickChange += new NielsRask.LibIrc.Protocol.NickChangeHandler(protocol_OnNickChange);
+			protocol.Network.OnDisconnect +=new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
 
 			protocol.OnLogMessage += new Protocol.LogMessageHandler( WriteLogMessage );
 		}
@@ -221,6 +222,20 @@ namespace NielsRask.LibIrc
 		private void protocol_OnNickChange(string newname, string oldname, string hostmask)
 		{
 			if (OnNickChange != null) OnNickChange( newname, oldname, hostmask );
+		}
+
+		private void Network_OnDisconnect()
+		{
+			System.Threading.Thread.Sleep(30*1000);
+			try 
+			{
+				Connect();
+			} 
+			catch (Exception) 
+			{
+				WriteLogMessage("Reconnect failed");
+			}
+			Network_OnDisconnect();	// holder det?
 		}
 	}
 
