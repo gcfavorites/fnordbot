@@ -246,7 +246,7 @@ namespace NielsRask.FnordBot
 //			client.GetChannelUsers("#craYon");
 		}
 
-		FnordBot bot;
+		NielsRask.FnordBot.FnordBot bot;
 		private void btnConnect2_Click(object sender, System.EventArgs e)
 		{
 			// HACK: There is an unresolved issue concerning finding the config files for the fnordbot assembly,
