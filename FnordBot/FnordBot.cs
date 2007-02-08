@@ -11,7 +11,7 @@ using System.Diagnostics;
 namespace NielsRask.FnordBot
 {
 	/// <summary>
-	/// Summary description for FnordBot.
+	/// The FbordBot irc-bot. supports flood-limiting, plugins and permissions. someday maybe even users :)
 	/// </summary>
 	public class FnordBot 
 	{
@@ -23,14 +23,20 @@ namespace NielsRask.FnordBot
 		string installationFolderPath;
 		XmlDocument xdoc = new XmlDocument();
 
+		#region logn logic
 		public delegate void LogMessageHandler(string message);
 		public LogMessageHandler OnLogMessage;
 		public void WriteLogMessage(string message) 
 		{
 			if ( OnLogMessage != null ) OnLogMessage( message );
 		}
+		#endregion
 
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FnordBot"/> class.
+		/// </summary>
+		/// <param name="installationFolderPath">The installation folder path.</param>
 		public FnordBot( string installationFolderPath )
 		{	
 			this.queues = new StringQueueHash( 10 ); // hent fra config
@@ -43,14 +49,18 @@ namespace NielsRask.FnordBot
 			AttachEvents();
 		}
 
+		/// <summary>
+		/// Inits this instance.
+		/// </summary>
 		public void Init() 
 		{
 			try 
 			{
-			// find vores configfil
 				WriteLogMessage("Fnordbot.init");
+				// load the config xml
 				LoadConfig();
 
+				// read config values
 				irc.Port = int.Parse( GetXPathValue(xdoc,"client/server/@port") );
 				irc.Server = GetXPathValue(xdoc,"client/server/text()");
 				irc.Username = GetXPathValue(xdoc,"client/username/text()");
@@ -58,11 +68,13 @@ namespace NielsRask.FnordBot
 				irc.Nickname = GetXPathValue(xdoc,"client/nickname/text()");
 				irc.AlternativeNick = GetXPathValue(xdoc,"client/altnick/text()");
 
+				// read a list o channels to join at startup
 				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("client/channels/channel/name/text()")) 
 				{
 					channelsToJoin.Add( node.Value );
 				}
 
+				// load the specified plugins
 				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("plugins/plugin")) 
 				{
 					string typename = node.SelectSingleNode("@typename").Value;
@@ -79,6 +91,7 @@ namespace NielsRask.FnordBot
 					LoadPlugin( typename, path, node );
 				}
 
+				// initiate a message-queue for each channel that specifies it
 				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("client/channels/channel[messagerate]") ) 
 				{
 					string name = node.SelectSingleNode( "name/text()" ).Value;
@@ -98,8 +111,10 @@ namespace NielsRask.FnordBot
 		{
 			try 
 			{
+				// connect to server
 				irc.Connect();
-				//			irc.Join("#craYon");
+				
+				// join each channel specified in config
 				foreach (string channel in channelsToJoin) 
 				{
 					Console.WriteLine("joining channel "+channel+"");
@@ -114,34 +129,55 @@ namespace NielsRask.FnordBot
 			
 		}
 
+		/// <summary>
+		/// Gets the channels.
+		/// </summary>
+		/// <value>The channels.</value>
 		public ChannelCollection Channels 
 		{
 			get { return irc.Channels; }
 		}
 
-//		public Client Irc 
-//		{
-//			get { return irc; }
-//		}
-
+		/// <summary>
+		/// Joins the specified channel.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
 		public void Join(string channel) 
 		{
 			irc.Join( channel );
 		}
+		/// <summary>
+		/// Parts the specified channel.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
 		public void Part(string channel) 
 		{
 			irc.Part( channel );
 		}
+		/// <summary>
+		/// Sends to user.
+		/// </summary>
+		/// <param name="user">The user.</param>
+		/// <param name="text">The text.</param>
 		public void SendToUser( string user, string text ) 
 		{
-
 			irc.SendToUser( user, text );
 		}
-//		[Obsolete("Denne metode er obsoleted - brug dens overload", false)]
+		/// <summary>
+		/// Sends a message to the specified channel. messages are only sent if flood-queue allows it
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="text"></param>
 		public void SendToChannel( string channel, string text ) 
 		{
-			SendToChannel( channel, text, true ); // HACK skal være false, evt skal metoden obsoletes?
+			SendToChannel( channel, text, false ); // HACK skal være false, evt skal metoden obsoletes?
 		}
+		/// <summary>
+		/// Sends a message to the specified channel. allows overriding of flood-queue
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="text"></param>
+		/// <param name="overrideQueue"></param>
 		public void SendToChannel( string channel, string text, bool overrideQueue ) 
 		{
 			try 
@@ -170,16 +206,31 @@ namespace NielsRask.FnordBot
 			}
 		}
 
+		/// <summary>
+		/// Sends a notice to a user or channel
+		/// </summary>
+		/// <param name="target">The target.</param>
+		/// <param name="message">The message.</param>
 		public void SendNotice( string target, string message ) 
 		{
 			irc.SendNotice( target, message );
 		}
 
+		/// <summary>
+		/// Gets the nickname of the bot
+		/// </summary>
 		public string NickName 
 		{
 			get { return irc.Nickname; }
 		}
 
+		#region permission logic
+		/// <summary>
+		/// Checks if a permission is set for a plugin
+		/// </summary>
+		/// <param name="asm"></param>
+		/// <param name="permission"></param>
+		/// <returns></returns>
 		private bool IsAllowed( Assembly asm, string permission ) 
 		{
 			string xpath = "";
@@ -204,15 +255,55 @@ namespace NielsRask.FnordBot
 			return false;
 		}
 
+		private Assembly GetCallingAssembly() 
+		{
+			try 
+			{
+				StackTrace st = new StackTrace( true );
+				int i=0;
+				bool found = false;
+				while ( !found && i<st.FrameCount) 
+				{
+					if (st.GetFrame(i).GetMethod().DeclaringType.Assembly.Location != Assembly.GetExecutingAssembly().Location) 
+					{
+						found = true;
+					}
+					else i++;
+				}
+
+				if (found) 
+				{
+					StackFrame sf = st.GetFrame( i );
+					Assembly asm = sf.GetMethod().DeclaringType.Assembly;
+					return asm;
+				} 
+				else 
+				{
+					WriteLogMessage("Cannot locate calling assembly?");
+					return null;
+				}
+			} 
+			catch (Exception e) 
+			{
+				WriteLogMessage("Error in GetcallingAssembly(): "+e);
+			}
+			return null;
+		}
+		#endregion
+
+		#region helper methods
 		/// <summary>
-		/// Returns true a given percentage of calls
+		/// Returns true a given percentage of calls.
 		/// </summary>
+		/// <remarks>For use in plugins</remarks>
 		/// <param name="percent"></param>
 		/// <returns></returns>
 		public bool TakeChance(int percent) 
 		{
 			return ( (rnd.Next(100)+1) <= percent );	
 		}
+
+		#endregion
 
 		#region config loading
 		private void LoadConfig() 
@@ -255,26 +346,26 @@ namespace NielsRask.FnordBot
 			Console.WriteLine("Attached plugin "+type);
 		}
 
-		public void PluginTest()
-		{
-			Assembly asm = Assembly.LoadFrom( @"c:\program files\nielsrask\fnordbot\plugins\wordgame\wordgame.dll" );
-			Console.WriteLine("CodeBase: "+asm.CodeBase);
-			Console.WriteLine("EscapedCodeBase: "+asm.EscapedCodeBase);
-			Console.WriteLine("FullName: "+asm.FullName);
-			Console.WriteLine("Location: "+asm.Location);
-			Type[] types = asm.GetTypes();
-			foreach (Type t in types) 
-			{
-				Console.WriteLine("");
-				Console.WriteLine("assembly defines type: "+t.Name);
-				Console.WriteLine("namespace: "+t.Namespace);
-				Console.WriteLine("basetype: "+t.BaseType.Name );
-				foreach (Type i in t.GetInterfaces())
-					Console.WriteLine("-interface: "+i.Name );
-			}
-			Console.WriteLine("plugin-search yielded: "+GetPluginNamespace( asm ) );
-			
-		}
+//		public void PluginTest()
+//		{
+//			Assembly asm = Assembly.LoadFrom( @"c:\program files\nielsrask\fnordbot\plugins\wordgame\wordgame.dll" );
+//			Console.WriteLine("CodeBase: "+asm.CodeBase);
+//			Console.WriteLine("EscapedCodeBase: "+asm.EscapedCodeBase);
+//			Console.WriteLine("FullName: "+asm.FullName);
+//			Console.WriteLine("Location: "+asm.Location);
+//			Type[] types = asm.GetTypes();
+//			foreach (Type t in types) 
+//			{
+//				Console.WriteLine("");
+//				Console.WriteLine("assembly defines type: "+t.Name);
+//				Console.WriteLine("namespace: "+t.Namespace);
+//				Console.WriteLine("basetype: "+t.BaseType.Name );
+//				foreach (Type i in t.GetInterfaces())
+//					Console.WriteLine("-interface: "+i.Name );
+//			}
+//			Console.WriteLine("plugin-search yielded: "+GetPluginNamespace( asm ) );
+//			
+//		}
 
 		/// <summary>
 		/// Returns he Fullname of the first class in the assembly that implements IPlugin
@@ -318,41 +409,7 @@ namespace NielsRask.FnordBot
 		}
 		#endregion
 
-		private Assembly GetCallingAssembly() 
-		{
-			try 
-			{
-				StackTrace st = new StackTrace( true );
-				int i=0;
-				bool found = false;
-				while ( !found && i<st.FrameCount) 
-				{
-					if (st.GetFrame(i).GetMethod().DeclaringType.Assembly.Location != Assembly.GetExecutingAssembly().Location) 
-					{
-						found = true;
-					}
-					else i++;
-				}
-
-				if (found) 
-				{
-					StackFrame sf = st.GetFrame( i );
-					Assembly asm = sf.GetMethod().DeclaringType.Assembly;
-					return asm;
-				} 
-				else 
-				{
-					WriteLogMessage("Cannot locate calling assembly?");
-					return null;
-				}
-			} 
-			catch (Exception e) 
-			{
-				WriteLogMessage("Error in GetcallingAssembly(): "+e);
-			}
-			return null;
-		}
-
+		#region methods for test
 //		private void DumpCallStack() 
 //		{
 //			StackTrace st = new StackTrace( true );
@@ -379,7 +436,7 @@ namespace NielsRask.FnordBot
 		{
 //			Console.WriteLine("-> "+message);
 		}
-
+		#endregion
 
 		#region event forwarding
 
@@ -516,13 +573,10 @@ namespace NielsRask.FnordBot
 			if( OnNickChange != null ) 
 				OnNickChange( newname, oldname, GetUser(newname, hostmask) );
 		}		
-		#endregion
-
 		private void Network_OnDisconnect()
 		{
 			WriteLogMessage("Ooops, seems we lost our connection!");
 		}
-
 		private void Protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
 			if (message == "!whoami") 
@@ -536,8 +590,8 @@ namespace NielsRask.FnordBot
 			{
 				SendToUser(senderNick, "pong");
 			}
-		}
-
+		}		
+		#endregion
 
 	}
 
@@ -555,6 +609,7 @@ namespace NielsRask.FnordBot
 		void Attach( FnordBot bot );
 	}
 
+	// en hashtable med [channelname, stringqueue]
 	public class StringQueueHash : Hashtable 
 	{
 		int queueLength; // kun en default
@@ -584,6 +639,7 @@ namespace NielsRask.FnordBot
 		}
 
 	}
+	// a queue for flood-limiting
 	public class StringQueue : Queue
 	{
 		string name;
@@ -626,6 +682,7 @@ namespace NielsRask.FnordBot
 		}
 	}
 
+	// an item in  the stringqueue
 	public class StringQueueItem 
 	{
 		string text;
