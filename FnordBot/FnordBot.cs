@@ -389,10 +389,10 @@ namespace NielsRask.FnordBot
 			irc.Channels.OnChannelListChange += new ChannelCollection.ChannelEvent(Channels_OnChannelListChange);
 			irc.Protocol.Network.OnServerMessage += new NielsRask.LibIrc.Network.ServerMessageHandler(Client_OnServerMessage);
 			irc.Protocol.Network.OnDisconnect += new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
-			irc.OnPublicMessage += new NielsRask.LibIrc.Client.MessageHandler(irc_OnPublicMessage);
-			irc.OnPrivateMessage += new NielsRask.LibIrc.Client.MessageHandler(irc_OnPrivateMessage);
-			irc.OnPrivateNotice += new NielsRask.LibIrc.Client.MessageHandler(irc_OnPrivateNotice);
-			irc.OnPublicNotice += new NielsRask.LibIrc.Client.MessageHandler(irc_OnPublicNotice);
+			irc.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicMessage);
+			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
+			irc.OnPrivateNotice += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateNotice);
+			irc.OnPublicNotice += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicNotice);
 			irc.OnSendNotice +=new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendNotice);
 			irc.OnSendToChannel += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendToChannel);
 			irc.OnSendToUser += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendToUser);
@@ -418,10 +418,6 @@ namespace NielsRask.FnordBot
 			}
 			return user;
 		}
-		private NielsRask.FnordBot.Users.User GetUser( NielsRask.LibIrc.MessageEventArgs mea ) 
-		{
-			return GetUser( mea.Sender, mea.Hostmask );
-		}
 
 		public event MessageHandler OnPublicMessage;
 		public event MessageHandler OnPrivateMessage;
@@ -441,70 +437,84 @@ namespace NielsRask.FnordBot
 		public delegate void MessageHandler(NielsRask.FnordBot.Users.User user, string channel, string message);
 		public delegate void ChannelTopicHandler(NielsRask.FnordBot.Users.User user, string channel, string topic);
 		public delegate void ChannelUserListHandler(string channel, string[] list);
-		public delegate void ChannelActionHandler(Object bot, ChannelActionEventArgs cea);
+		public delegate void ChannelActionHandler(string text, string channel, string target, string senderNick, string senderHost);
 		public delegate void NickChangeHandler(  string newname, string oldname, NielsRask.FnordBot.Users.User user );
 		public delegate void BotMessageHandler( string botName, string target, string text );
 
-		private void irc_OnPublicMessage(object bot, NielsRask.LibIrc.MessageEventArgs mea)
+		private void irc_OnPublicMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPublicMessage != null ) OnPublicMessage( GetUser(mea), mea.Channel, mea.Message );
+			if( OnPublicMessage != null ) 
+				OnPublicMessage( GetUser(senderNick, senderHost), target, message );
 		}
-		private void irc_OnPrivateMessage(object bot, MessageEventArgs mea)
+		private void irc_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPrivateMessage != null ) OnPrivateMessage( GetUser(mea), mea.Channel, mea.Message );
+			if( OnPrivateMessage != null ) 
+				OnPrivateMessage( GetUser(senderNick, senderHost), target, message );
 		}
-		private void irc_OnPublicNotice(object bot, MessageEventArgs mea)
+		private void irc_OnPublicNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPublicNotice != null ) OnPublicNotice( GetUser(mea), mea.Channel, mea.Message );
+			if( OnPublicNotice != null ) 
+				OnPublicNotice( GetUser(senderNick, senderHost), target, message );
 		}
-		private void irc_OnPrivateNotice(object bot, MessageEventArgs mea)
+		private void irc_OnPrivateNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPrivateNotice != null ) OnPrivateNotice( GetUser(mea), mea.Channel, mea.Message );
+			if( OnPrivateNotice != null ) 
+				OnPrivateNotice( GetUser(senderNick, senderHost), target, message );
 		}
-		private void Protocol_OnChannelJoin(object bot, ChannelActionEventArgs cea)
+		private void Protocol_OnChannelJoin(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			if( OnChannelJoin != null ) OnChannelJoin(bot, cea );
+			if( OnChannelJoin != null ) 
+				OnChannelJoin( text, channel, target, senderNick, senderHost );
 		}
-		private void Protocol_OnChannelKick(object bot, ChannelActionEventArgs cea)
+		private void Protocol_OnChannelKick(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			if( OnChannelKick != null ) OnChannelKick( bot, cea );
+			if( OnChannelKick != null ) 
+				OnChannelKick( text, channel, target, senderNick, senderHost );
 		}
-		private void Protocol_OnChannelMode(object bot, ChannelActionEventArgs cea)
+		private void Protocol_OnChannelMode(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			if( OnChannelMode != null ) OnChannelMode(bot, cea);
+			if( OnChannelMode != null ) 
+				OnChannelMode( text, channel, target, senderNick, senderHost );
 		}
-		private void Protocol_OnChannelPart(object bot, ChannelActionEventArgs cea)
+		private void Protocol_OnChannelPart(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			if( OnChannelPart != null ) OnChannelPart( bot, cea );
+			if( OnChannelPart != null ) 
+				OnChannelPart( text, channel, target, senderNick, senderHost );
 		}
-		private void Protocol_OnTopicChange(object bot, MessageEventArgs mea)
+		private void Protocol_OnTopicChange(string newTopic, string channel, string changerNick, string changerHost)
 		{
-			if( OnTopicChange != null ) OnTopicChange( GetUser(mea), mea.Channel, mea.Message );
+			if( OnTopicChange != null ) 
+				OnTopicChange( GetUser(changerNick, changerHost), channel, newTopic );
 		}
 
 		private void irc_OnSendNotice(string botName, string target, string text)
 		{
-			if( OnSendNotice != null ) OnSendNotice( botName, target, text );
+			if( OnSendNotice != null ) 
+				OnSendNotice( botName, target, text );
 		}
 
 		private void irc_OnSendToChannel(string botName, string target, string text)
 		{
-			if( OnSendToChannel != null ) OnSendToChannel( botName, target, text );
+			if( OnSendToChannel != null ) 
+				OnSendToChannel( botName, target, text );
 		}
 
 		private void irc_OnSendToUser(string botName, string target, string text)
 		{
-			if( OnSendToUser != null ) OnSendToUser( botName, target, text );
+			if( OnSendToUser != null ) 
+				OnSendToUser( botName, target, text );
 		}
 
 		private void irc_OnSetMode(string botName, string target, string text)
 		{
-			if( OnSetMode != null ) OnSetMode( botName, target, text );
+			if( OnSetMode != null ) 
+				OnSetMode( botName, target, text );
 		}
 
 		private void irc_OnNickChange(string newname, string oldname, string hostmask)
 		{
-			if( OnNickChange != null ) OnNickChange( newname, oldname, GetUser(newname, hostmask) );
+			if( OnNickChange != null ) 
+				OnNickChange( newname, oldname, GetUser(newname, hostmask) );
 		}		
 		#endregion
 
@@ -513,15 +523,19 @@ namespace NielsRask.FnordBot
 			WriteLogMessage("Ooops, seems we lost our connection!");
 		}
 
-		private void Protocol_OnPrivateMessage(object bot, MessageEventArgs mea)
+		private void Protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if (mea.Message == "!whoami") 
+			if (message == "!whoami") 
 			{
-				NielsRask.FnordBot.Users.User user = userModule.Users.GetByHostMatch( mea.Hostmask );
+				NielsRask.FnordBot.Users.User user = userModule.Users.GetByHostMatch( senderHost );
 				if (user != null)
-					SendToUser( mea.Sender, "you appear to be "+user.Name+" (citizen: "+user.IsCitizen+")");
-				else SendToUser( mea.Sender, "i dont know you.." );
-			} else if (mea.Message == "!ping") SendToUser(mea.Sender, "pong");
+					SendToUser( senderNick, "you appear to be "+user.Name+" (citizen: "+user.IsCitizen+")");
+				else SendToUser( senderNick, "i dont know you.." );
+			} 
+			else if (message == "!ping") 
+			{
+				SendToUser(senderNick, "pong");
+			}
 		}
 
 

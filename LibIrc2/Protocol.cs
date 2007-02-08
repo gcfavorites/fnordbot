@@ -79,12 +79,31 @@ namespace NielsRask.LibIrc
 		/// Occurs when we set the mode for a channel
 		/// </summary>
 		public event BotMessageHandler OnSetMode;
-
-		// these delegates need to be re-thought for greater ease-of-use - get rid of the eventargs-stuff and screw the best practices
-		public delegate void MessageHandler(Object bot, MessageEventArgs mea);
-		public delegate void ChannelTopicHandler(Object bot, MessageEventArgs mea);
-		public delegate void ChannelActionHandler(Object bot, ChannelActionEventArgs cea);
-
+		/// <summary>
+		/// Delegate for messages from server
+		/// </summary>
+		/// <param name="senderNick">Nickname of the user sending the message</param>
+		/// <param name="senderHost">Host of the user sending the message</param>
+		/// <param name="message">The message</param>
+		/// <param name="target">The recipient of the message</param>
+		public delegate void MessageHandler(string message, string target, string senderNick, string senderHost);
+		/// <summary>
+		/// delegate for channel actions from server
+		/// </summary>
+		/// <param name="senderNick">Nickname of the user that initiated the action</param>
+		/// <param name="senderHost">Host of the user that initiated the action</param>
+		/// <param name="text">Text for the action, such as reason for a kick</param>
+		/// <param name="channel">The channel the action occurred in</param>
+		/// <param name="target">Target of the action, if applicable</param>
+		public delegate void ChannelActionHandler(string text, string channel, string target, string senderNick, string senderHost);
+		/// <summary>
+		/// Delegate for topic changes from server
+		/// </summary>
+		/// <param name="changerNick">Nickname of the user changing topic</param>
+		/// <param name="changerHost">Host of the user changing topic</param>
+		/// <param name="channel">The channel whose topic was changed</param>
+		/// <param name="newTopic">The new topic of the channel</param>
+		public delegate void ChannelTopicHandler(string newTopic, string channel, string changerNick, string changerHost);
 		/// <summary>
 		/// Delegate for receiving the userlist for a channel
 		/// </summary>
@@ -137,6 +156,10 @@ namespace NielsRask.LibIrc
 			set { versionReply = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the alternative nick.
+		/// </summary>
+		/// <value>The alternative nick.</value>
 		public string AlternativeNick  
 		{
 			get { return altNick; }
@@ -170,6 +193,12 @@ namespace NielsRask.LibIrc
 			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
 		} 
 
+		/// <summary>
+		/// Registers on the server after logon
+		/// </summary>
+		/// <param name="nickname">The nickname.</param>
+		/// <param name="username">The username.</param>
+		/// <param name="realname">The realname.</param>
 		public void Register(string nickname, string username, string realname) 
 		{
 			Thread.Sleep(1000);
@@ -245,14 +274,24 @@ namespace NielsRask.LibIrc
 			network.SendToServer("PRIVMSG "+user+" :"+text);
 		}
 
+		/// <summary>
+		/// Set the topic for a channel
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="topic"></param>
 		public void SetTopic(string channel, string topic) 
 		{
 			if (OnTopicChange != null) 
-				OnTopicChange(this, new MessageEventArgs(topic,"","",channel));
+				OnTopicChange(topic, channel,"","");	//TODO: get nick and host of the bot
 
 			network.SendToServer("TOPIC "+channel+" "+topic);
 		}
 
+		/// <summary>
+		/// Sets the mode fior a channel.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="mode">The mode.</param>
 		public void SetMode(string channel, string mode) 
 		{
 			if (OnSetMode != null) 
@@ -261,22 +300,38 @@ namespace NielsRask.LibIrc
 			network.SendToServer("MODE "+channel+" "+mode);
 		}
 
+		/// <summary>
+		/// Kick someone from a channel without a reason
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="user">The user.</param>
 		public void Kick(string channel, string user ) 
 		{
 			if (OnChannelKick != null) 
-				OnChannelKick(this, new ChannelActionEventArgs(channel,user, "",user+" was kicked"));
+				OnChannelKick("", channel, user, "","");
 			
 			network.SendToServer("KICK "+channel+" "+user);
 		}
 
+		/// <summary>
+		/// kicks someone from a channel with the specified reason
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="user">The user.</param>
+		/// <param name="reason">The reason.</param>
 		public void Kick(string channel, string user, string reason) 
 		{
 			if (OnChannelKick != null)
-				OnChannelKick(this, null);	//HACK: denne pender en udskiftning af event-formatet
+				OnChannelKick(reason,channel,user,"","");
 
 			network.SendToServer("KICK "+channel+" "+user+" :"+reason);
 		}
 
+		/// <summary>
+		/// Sends a notice to a user or channel.
+		/// </summary>
+		/// <param name="target">The target.</param>
+		/// <param name="message">The message.</param>
 		public void SendNotice( string target, string message ) 
 		{
 			OnSendNotice( target, message );
@@ -376,7 +431,8 @@ namespace NielsRask.LibIrc
 			}
 			string target = parts[2].Substring(1);
 
-			if (OnChannelJoin != null) OnChannelJoin(this, new ChannelActionEventArgs(target, user, hostmask, "") );
+			if (OnChannelJoin != null) 
+				OnChannelJoin("", target, "", user, hostmask);
 		}
 
 		private void ParseChannelPart(string line) 
@@ -398,7 +454,8 @@ namespace NielsRask.LibIrc
 			}
 			string target = parts[2];
 
-			if (OnChannelPart != null) OnChannelPart(this, new ChannelActionEventArgs(target, user, hostmask, "") );
+			if (OnChannelPart != null) 
+				OnChannelPart("", target,"",user, hostmask);
 		}
 
 		private void ParseChannelMode(string line) 
@@ -421,7 +478,8 @@ namespace NielsRask.LibIrc
 			string target = parts[2];
 			string mode = parts[3];
 
-			if (OnChannelMode != null) OnChannelMode(this, new ChannelActionEventArgs(target, user, hostmask, mode) );
+			if (OnChannelMode != null) 
+				OnChannelMode(mode, target, "",user, hostmask);
 		}
 
 		private void ParseChannelKick(string line) 
@@ -431,9 +489,11 @@ namespace NielsRask.LibIrc
 
 			ReplyData rd = ReplyData.GetFromArray( parts );
 
-			string target = parts[2];
+			string channel = parts[2];
+			string victim = parts[3];
 
-			if (OnChannelKick != null) OnChannelKick(this, new ChannelActionEventArgs(target, rd.Username, rd.Hostmask, parts[3]+"was kicked") ); // mangler en reason
+			if (OnChannelKick != null) 
+				OnChannelKick("",channel,victim, rd.Username, rd.Hostmask); // TODO: mangler en reason
 		}
 
 		private void ParseChannelTopic(string line) 
@@ -447,7 +507,8 @@ namespace NielsRask.LibIrc
 			string topic = parts[3];
 			if ( topic.Length > 0) topic = topic.Substring(1); // fjern kolon før topic
 
-			if (OnTopicChange != null) OnTopicChange(this, new MessageEventArgs(topic, rd.Username, rd.Hostmask, channel ) ); // mangler en reason
+			if (OnTopicChange != null) 
+				OnTopicChange(topic, channel, rd.Username, rd.Hostmask);
 		}
 
 		// håndterer tekstsvar
@@ -466,11 +527,13 @@ namespace NielsRask.LibIrc
 			} 
 			else if (target.StartsWith("#")) 
 			{
-				if (OnPublicMessage != null) OnPublicMessage(this, new MessageEventArgs(message,rd.Username,rd.Hostmask,target));
+				if (OnPublicMessage != null) 
+					OnPublicMessage(message, target, rd.Username, rd.Hostmask);
 			} 
 			else 
 			{
-				if (OnPrivateMessage != null) OnPrivateMessage(this, new MessageEventArgs(message,rd.Username,rd.Hostmask,target));
+				if (OnPrivateMessage != null) 
+					OnPrivateMessage(message, target, rd.Username, rd.Hostmask);
 			}
 		}
 
@@ -489,11 +552,13 @@ namespace NielsRask.LibIrc
 			} 
 			else if (target.StartsWith("#")) 
 			{
-				if (OnPublicNotice != null) OnPublicNotice(this, new MessageEventArgs(message,rd.Username,rd.Hostmask,target));
+				if (OnPublicNotice != null) 
+					OnPublicNotice(message, target, rd.Username, rd.Hostmask);
 			} 
 			else 
 			{
-				if (OnPrivateNotice != null) OnPrivateNotice(this, new MessageEventArgs(message,rd.Username,rd.Hostmask,target));
+				if (OnPrivateNotice != null) 
+					OnPrivateNotice(message, target, rd.Username, rd.Hostmask);
 			}
 		}
 
@@ -531,18 +596,20 @@ namespace NielsRask.LibIrc
 			else if (reply == ReplyCode.RPL_TOPIC ) 
 			{
 				// :koala.droso.net 332 BimseBot #bottest :dingeling
-				if (OnTopicChange != null) OnTopicChange( this, new MessageEventArgs( parts[4].Substring(1), "", "", parts[3] ) ); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
+				if (OnTopicChange != null) 
+					OnTopicChange(parts[4].Substring(1),parts[3],"",""); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
 			}
 			else if (reply == ReplyCode.RPL_NOTOPIC ) 
 			{
-				if (OnTopicChange != null) OnTopicChange( this, new MessageEventArgs( "", "", "", parts[3] ) );
+				if (OnTopicChange != null) 
+					OnTopicChange("",parts[3],"","" );
 			} 
 			else if (reply == ReplyCode.ERR_NICKINUSE ) 
 			{
 				if (altNick.Length > 0) 
 				{
 					network.SendToServer( "NICK "+altNick );
-					altNick = "";
+					altNick = "";	// next time we get this message, we'll generate a new nick
 				} 
 				else 
 				{
@@ -607,17 +674,40 @@ namespace NielsRask.LibIrc
 		#endregion
 	}
 
+	/// <summary>
+	/// Struct for parsing replies
+	/// </summary>
 	public struct ReplyData 
 	{
+		/// <summary>
+		/// The name of the user
+		/// </summary>
 		public string Username;
+		/// <summary>
+		/// The host of the user
+		/// </summary>
 		public string Hostmask;
+		/// <summary>
+		/// The command
+		/// </summary>
 		public string Command;
 
+		/// <summary>
+		/// parse a string
+		/// </summary>
+		/// <param name="line"></param>
+		/// <returns></returns>
 		public static ReplyData GetFromString(string line) 
 		{
 			string[] parts = line.Split(new Char[] {' '},4);
 			return GetFromArray( parts );
 		}
+
+		/// <summary>
+		/// parse an array
+		/// </summary>
+		/// <param name="parts"></param>
+		/// <returns></returns>
 		public static ReplyData GetFromArray( string[] parts ) 
 		{
 
@@ -640,93 +730,93 @@ namespace NielsRask.LibIrc
 		}
 	}
 
-	public class MessageEventArgs : EventArgs 
-	{
-		internal MessageEventArgs(string message, string sender, string hostmask, string channel) 
-		{
-			this.message = message;
-			this.sender = sender;
-			this.hostmask = hostmask;
-			this.channel = channel;
-		}
-		private string message;
-		private string sender;
-		private string hostmask;
-		private string channel;
-
-		/// <summary>
-		/// the message recieved
-		/// </summary>
-		public string Message 
-		{
-			get { return message; }
-		}
-		/// <summary>
-		/// the sender of the message
-		/// </summary>
-		public string Sender 
-		{
-			get { return sender; }
-		}
-		/// <summary>
-		/// hostmask of the sender
-		/// </summary>
-		public string Hostmask 
-		{
-			get { return hostmask; }
-		}
-		/// <summary>
-		/// channel the message was sent to
-		/// </summary>
-		public string Channel 
-		{
-			get { return channel; }
-		}
-	}
-	public class ChannelActionEventArgs : EventArgs 
-	{
-		internal ChannelActionEventArgs(string channel, string nickname,  string hostmask, string text) 
-		{
-			this.channel = channel;
-			this.nickname = nickname;
-			this.hostmask = hostmask;
-			this.text = text;
-		}
-		private string channel;
-		private string nickname;
-		private string hostmask;
-		private string text;
-
-		/// <summary>
-		/// Channel the action occurred on
-		/// </summary>
-		public string Channel 
-		{
-			get { return channel; }
-		}
-
-		/// <summary>
-		/// who initiated the action
-		/// </summary>
-		public string Nickname 
-		{
-			get { return nickname; }
-		}
-		/// <summary>
-		/// Hostmask of the user that initiated the action
-		/// </summary>
-		public string Hostmask 
-		{
-			get { return hostmask; }
-		}
-		/// <summary>
-		/// Text of the action
-		/// </summary>
-		public string Text 
-		{
-			get { return text; }
-		}
-	}
+//	public class MessageEventArgs : EventArgs 
+//	{
+//		internal MessageEventArgs(string message, string sender, string hostmask, string channel) 
+//		{
+//			this.message = message;
+//			this.sender = sender;
+//			this.hostmask = hostmask;
+//			this.channel = channel;
+//		}
+//		private string message;
+//		private string sender;
+//		private string hostmask;
+//		private string channel;
+//
+//		/// <summary>
+//		/// the message recieved
+//		/// </summary>
+//		public string Message 
+//		{
+//			get { return message; }
+//		}
+//		/// <summary>
+//		/// the sender of the message
+//		/// </summary>
+//		public string Sender 
+//		{
+//			get { return sender; }
+//		}
+//		/// <summary>
+//		/// hostmask of the sender
+//		/// </summary>
+//		public string Hostmask 
+//		{
+//			get { return hostmask; }
+//		}
+//		/// <summary>
+//		/// channel the message was sent to
+//		/// </summary>
+//		public string Channel 
+//		{
+//			get { return channel; }
+//		}
+//	}
+//	public class ChannelActionEventArgs : EventArgs 
+//	{
+//		internal ChannelActionEventArgs(string channel, string nickname,  string hostmask, string text) 
+//		{
+//			this.channel = channel;
+//			this.nickname = nickname;
+//			this.hostmask = hostmask;
+//			this.text = text;
+//		}
+//		private string channel;
+//		private string nickname;
+//		private string hostmask;
+//		private string text;
+//
+//		/// <summary>
+//		/// Channel the action occurred on
+//		/// </summary>
+//		public string Channel 
+//		{
+//			get { return channel; }
+//		}
+//
+//		/// <summary>
+//		/// who initiated the action
+//		/// </summary>
+//		public string Nickname 
+//		{
+//			get { return nickname; }
+//		}
+//		/// <summary>
+//		/// Hostmask of the user that initiated the action
+//		/// </summary>
+//		public string Hostmask 
+//		{
+//			get { return hostmask; }
+//		}
+//		/// <summary>
+//		/// Text of the action
+//		/// </summary>
+//		public string Text 
+//		{
+//			get { return text; }
+//		}
+//	}
 
 
 

@@ -61,25 +61,25 @@ namespace Logger
 			WriteToFile( channel, "<"+user.Name+"> "+message );
 		}
 
-		private void bot_OnChannelJoin(object bot, NielsRask.LibIrc.ChannelActionEventArgs cea)
+		private void bot_OnChannelJoin(string text, string channel, string target, string senderNick, string senderHost)
 		{
 			// *** Pornoting (tingeling@0x50c4070d.hrnxx2.adsl-dhcp.tele.dk) has joined #craYon
-			WriteToFile( cea.Channel, "*** "+cea.Nickname+" ("+cea.Hostmask+") has joined "+cea.Channel );
+			WriteToFile( channel, "*** "+senderNick+" ("+senderHost+") has joined "+channel );
 		}
 
-		private void bot_OnChannelPart(object bot, NielsRask.LibIrc.ChannelActionEventArgs cea)
+		private void bot_OnChannelPart(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			WriteToFile( cea.Channel, "*** "+cea.Nickname+" ("+cea.Hostmask+") has left "+cea.Channel );
+			WriteToFile( channel, "*** "+senderNick+" ("+senderHost+") has left "+channel );
 		}
 
-		private void bot_OnChannelMode(object bot, NielsRask.LibIrc.ChannelActionEventArgs cea)
+		private void bot_OnChannelMode(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			WriteToFile( cea.Channel, "***"+cea.Nickname+" sets mode "+cea.Text );
+			WriteToFile( channel, "***"+senderNick+" sets mode "+text );
 		}
 
-		private void bot_OnChannelKick(object bot, NielsRask.LibIrc.ChannelActionEventArgs cea)
+		private void bot_OnChannelKick(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			WriteToFile( cea.Channel, "*** "+cea.Nickname+" kicked "+cea.Text );
+			WriteToFile( channel, "*** "+senderNick+" kicked "+target +(text.Length>0?" ("+text+")":"") );
 		}
 
 		private void bot_OnPrivateNotice(NielsRask.FnordBot.Users.User user, string channel, string message)
