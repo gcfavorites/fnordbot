@@ -19,78 +19,161 @@ namespace NielsRask.LibIrc
 		string fingerInfo = "fnord";
 		string versionInfo = "LibIrc "+System.Reflection.Assembly.GetCallingAssembly().GetName().Version;
 
+		/// <summary>
+		/// Gets or sets the server.
+		/// </summary>
+		/// <value>The server.</value>
 		public string Server 
 		{
 			get { return server; }
 			set { server = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the port.
+		/// </summary>
+		/// <value>The port.</value>
 		public int Port 
 		{
 			get { return port; }
 			set { port = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the nickname.
+		/// </summary>
+		/// <value>The nickname.</value>
 		public string Nickname 
 		{
 			get { return nickname; }
 			set { nickname = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the username.
+		/// </summary>
+		/// <value>The username.</value>
 		public string Username 
 		{
 			get { return username; }
 			set { username = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the realname.
+		/// </summary>
+		/// <value>The realname.</value>
 		public string Realname 
 		{
 			get { return realname; }
 			set { realname = value; }
 		}
+		/// <summary>
+		/// Gets or sets the alternative nick.
+		/// </summary>
+		/// <value>The alternative nick.</value>
 		public string AlternativeNick 
 		{
 			get { return altNick; }
 			set { altNick = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the finger info.
+		/// </summary>
+		/// <value>The finger info.</value>
 		public string FingerInfo 
 		{
 			get { return fingerInfo; }
 			set { fingerInfo = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets the version info.
+		/// </summary>
+		/// <value>The version info.</value>
 		public string VersionInfo 
 		{
 			get { return versionInfo; }
 			set { versionInfo = value; }
 		}
 
+		/// <summary>
+		/// Gets the channels.
+		/// </summary>
+		/// <value>The channels.</value>
 		public ChannelCollection Channels 
 		{
 			get { return channels; }
 		}
 
+		/// <summary>
+		/// Gets the protocol layer.
+		/// </summary>
+		/// <value>The protocol.</value>
 		public Protocol Protocol 
 		{
 			get { return protocol; }
 		}
 
-		public event MessageHandler OnPublicMessage;
-		public event MessageHandler OnPrivateMessage;
-		public event MessageHandler OnPublicNotice;
-		public event MessageHandler OnPrivateNotice;
+		/// <summary>
+		/// Occurs when a public message is received
+		/// </summary>
+		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicMessage;
+		/// <summary>
+		/// Occurs when a private message is received
+		/// </summary>
+		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateMessage;
+		/// <summary>
+		/// Occurs when a public notice is received
+		/// </summary>
+		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicNotice;
+		/// <summary>
+		/// Occurs when a private notice is received
+		/// </summary>
+		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateNotice;
+		/// <summary>
+		/// Occurs when a user changes nickname
+		/// </summary>
 		public event NickChangeHandler OnNickChange;
 		//bot-actions
+		/// <summary>
+		/// Occurs when we send a public message
+		/// </summary>
 		public event BotMessageHandler OnSendToChannel;
+		/// <summary>
+		/// Occurs when we send a private message
+		/// </summary>
 		public event BotMessageHandler OnSendToUser;
-		public event BotMessageHandler OnSendNotice;
+		/// <summary>
+		/// Occurs when we send a notice
+		/// </summary>
+		public event BotMessageHandler OnSendNotice;	//TODO: seperat private/public
+		/// <summary>
+		/// Occurs when we set the mode of a channel
+		/// </summary>
 		public event BotMessageHandler OnSetMode;
 
-		public delegate void MessageHandler(Object bot, MessageEventArgs mea);
+		// her mangler vist et par ting? topicchanger f.eks?
+		// skulle vi evt. bruge dem der er defineret i protocol?
+		// gør vi allerede det, er dette bare ekstra? tjek op!
+//		public delegate void MessageHandler(string message, string target, string senderNick, string senderHost);
+		
+		/// <summary>
+		/// Delegate for nickname changes
+		/// </summary>
 		public delegate void NickChangeHandler(string newname, string oldname, string hostmask);
+		/// <summary>
+		/// Delegate for messages from ourselves
+		/// </summary>
 		public delegate void BotMessageHandler( string botName, string target, string text ); // bottens eget navn kendes ikke her, det sættes på i client
+		/// <summary>
+		/// Delegate for logmessages
+		/// </summary>
 		public delegate void LogMessageHandler(string message);
+		/// <summary>
+		/// Occurs when we want to log a message
+		/// </summary>
 		public event LogMessageHandler OnLogMessage;
 
 		private void WriteLogMessage(string message) 
@@ -99,7 +182,9 @@ namespace NielsRask.LibIrc
 		}
 
 
-
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Client"/> class.
+		/// </summary>
 		public Client()
 		{
 			protocol = new Protocol();
@@ -124,6 +209,9 @@ namespace NielsRask.LibIrc
 
 		#region control
 
+		/// <summary>
+		/// Connects to the server.
+		/// </summary>
 		public void Connect() 
 		{
 			protocol.FingerInfo = fingerInfo;
@@ -132,22 +220,45 @@ namespace NielsRask.LibIrc
 			protocol.Register( nickname, username, realname );
 		}
 
+		/// <summary>
+		/// Joins a channel
+		/// </summary>
+		/// <param name="channel"></param>
 		public void Join(string channel) 
 		{
 			protocol.Join( channel );
 		}
+		/// <summary>
+		/// leave a channel
+		/// </summary>
+		/// <param name="channel"></param>
 		public void Part(string channel) 
 		{
 			protocol.Part( channel );
 		}
+		/// <summary>
+		/// Send message to user
+		/// </summary>
+		/// <param name="user"></param>
+		/// <param name="text"></param>
 		public void SendToUser( string user, string text ) 
 		{
 			protocol.SendToUser( user, text );
 		}
+		/// <summary>
+		/// send message to channel
+		/// </summary>
+		/// <param name="channel"></param>
+		/// <param name="text"></param>
 		public void SendToChannel( string channel, string text ) 
 		{
 			protocol.SendToChannel( channel, text );
 		}
+		/// <summary>
+		/// Send notice to user or channel
+		/// </summary>
+		/// <param name="target"></param>
+		/// <param name="message"></param>
 		public void SendNotice( string target, string message ) 
 		{
 			protocol.SendNotice( target, message );
@@ -160,9 +271,9 @@ namespace NielsRask.LibIrc
 			GetChannel(channel).SetUserList( list );
 		}
 
-		private void OnTopicChange(Object bot, MessageEventArgs mea)
+		private void OnTopicChange(string newTopic, string channel, string changerNick, string changerHost)
 		{
-			GetChannel(mea.Channel).SetTopic( mea.Message );
+			GetChannel(channel).SetTopic( newTopic );
 		}
 
 		private Channel GetChannel(string name) 
@@ -176,28 +287,29 @@ namespace NielsRask.LibIrc
 			return chn;
 		}
 
-		private void protocol_OnPrivateMessage(Object bot, MessageEventArgs mea)
+		private void protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if (OnPrivateMessage != null) OnPrivateMessage( bot, mea );
+			if (OnPrivateMessage != null) 
+				OnPrivateMessage( message, target, senderNick, senderHost );
 		}
 
-		private void protocol_OnPublicMessage(Object bot, MessageEventArgs mea)
+		private void protocol_OnPublicMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if (OnPublicMessage != null) OnPublicMessage( bot, mea );
+			if (OnPublicMessage != null) 
+				OnPublicMessage( message, target, senderNick, senderHost );
 		}
 
-		private void protocol_OnPublicNotice(Object bot, MessageEventArgs mea)
+		private void protocol_OnPublicNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if (OnPublicNotice != null) OnPublicNotice( bot, mea );
+			if (OnPublicNotice != null) 
+				OnPublicNotice( message, target, senderNick, senderHost );
 		}
 
-		private void protocol_OnPrivateNotice(Object bot, MessageEventArgs mea)
+		private void protocol_OnPrivateNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if (OnPrivateNotice != null) OnPrivateNotice( bot, mea );
+			if (OnPrivateNotice != null) 
+				OnPrivateNotice( message, target, senderNick, senderHost );
 		}
-		#endregion
-
-
 
 		private void protocol_OnSendToUser(string target, string text)
 		{
@@ -237,8 +349,13 @@ namespace NielsRask.LibIrc
 			}
 			Network_OnDisconnect();	// holder det?
 		}
+		#endregion
+
 	}
 
+	/// <summary>
+	/// Represents a joined channnel
+	/// </summary>
 	public class Channel 
 	{
 		string name;
@@ -246,58 +363,109 @@ namespace NielsRask.LibIrc
 		Protocol protocol;
 		UserCollection users;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Channel"/> class.
+		/// </summary>
+		/// <param name="protocol">The protocol.</param>
+		/// <param name="name">The name.</param>
 		public Channel(Protocol protocol, string name) 
 		{
 			this.name = name;
 			this.protocol = protocol;
 			users = new UserCollection();
 		}
+		/// <summary>
+		/// Gets the name.
+		/// </summary>
+		/// <value>The name.</value>
 		public string Name 
 		{
 			get { return name; }
 		}
 
+		/// <summary>
+		/// Gets the topic.
+		/// </summary>
+		/// <value>The topic.</value>
 		public string Topic 
 		{
 			get { return topic; }
 		}
 
+		/// <summary>
+		/// Sets the topic.
+		/// </summary>
+		/// <param name="value">The value.</param>
 		internal void SetTopic(string value) 
 		{
 			Console.WriteLine(""+name+" has new topic: "+value);
 			topic = value;
 		}
 
+		/// <summary>
+		/// Sets the user list.
+		/// </summary>
+		/// <param name="list">The list.</param>
 		public void SetUserList(string[] list) 
 		{
 			users.SetUserCollection( list );
 		}
 
+		/// <summary>
+		/// Gets the users.
+		/// </summary>
+		/// <value>The users.</value>
 		public UserCollection Users 
 		{
 			get { return users; }
 		}
 
 		#region channel control
+		/// <summary>
+		/// Sends to channel.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="text">The text.</param>
 		public void SendToChannel( string channel, string text ) 
 		{
 			protocol.SendToChannel( channel, text );
 		}
 
+		/// <summary>
+		/// Sets the topic.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="topic">The topic.</param>
 		public void SetTopic(string channel, string topic) 
 		{
 			protocol.SetTopic( channel, topic );
 		}
 
+		/// <summary>
+		/// Sets the mode.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="mode">The mode.</param>
 		public void SetMode(string channel, string mode) 
 		{
 			protocol.SetMode( channel, mode );;
 		}
 
+		/// <summary>
+		/// Kicks the user from the specified channel.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="user">The user.</param>
 		public void Kick(string channel, string user ) 
 		{
 			protocol.Kick( channel, user );
 		}
+		/// <summary>
+		/// Kicks the user from the specified channel.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <param name="user">The user.</param>
+		/// <param name="reason">The reason.</param>
 		public void Kick(string channel, string user, string reason) 
 		{
 			protocol.Kick( channel, user, reason );
@@ -306,40 +474,78 @@ namespace NielsRask.LibIrc
 
 	}
 
+	/// <summary>
+	/// A collection of channels
+	/// </summary>
 	public class ChannelCollection : CollectionBase 
 	{
 		Protocol protocol;
 
+		/// <summary>
+		/// Occurs when the channel list changes
+		/// </summary>
 		public event ChannelEvent OnChannelListChange;
+		/// <summary>
+		/// Delegate for channel list events
+		/// </summary>
 		public delegate void ChannelEvent();
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="ChannelCollection"/> class.
+		/// </summary>
+		/// <param name="protocol">The protocol.</param>
 		public ChannelCollection(Protocol protocol) 
 		{
 			this.protocol = protocol;
 		}
 
+		/// <summary>
+		/// Adds the specified CHN.
+		/// </summary>
+		/// <param name="chn">The CHN.</param>
 		public void Add(Channel chn) 
 		{
-			if (OnChannelListChange != null) OnChannelListChange();
+			if (OnChannelListChange != null) 
+				OnChannelListChange();
 			List.Add( chn );
 		}
 
+		/// <summary>
+		/// Adds the specified name.
+		/// </summary>
+		/// <param name="name">The name.</param>
 		public void Add(string name) 
 		{
 			Add( new Channel( protocol, name ) );
 		}
 
+		/// <summary>
+		/// Removes the specified CHN.
+		/// </summary>
+		/// <param name="chn">The CHN.</param>
 		public void Remove(Channel chn) 
 		{
-			if (OnChannelListChange != null) OnChannelListChange();
+			if (OnChannelListChange != null) 
+				OnChannelListChange();
 			List.Remove( chn );
 		}
 
+		/// <summary>
+		/// Gets the <see cref="Channel"/> with the specified i.
+		/// </summary>
+		/// <value></value>
 		public Channel this[int i] 
 		{
 			get { return (Channel)List[i]; }
 		}
 		
+		/// <summary>
+		/// Determines whether the specified channel contains channel.
+		/// </summary>
+		/// <param name="channel">The channel.</param>
+		/// <returns>
+		/// 	<c>true</c> if the specified channel contains channel; otherwise, <c>false</c>.
+		/// </returns>
 		public bool ContainsChannel(string channel) 
 		{
 			bool found = false;
@@ -358,6 +564,11 @@ namespace NielsRask.LibIrc
 			return found;
 		}
 
+		/// <summary>
+		/// Gets the name of the channel by.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <returns></returns>
 		public Channel GetChannelByName(string name) 
 		{
 			bool found = false;
@@ -378,6 +589,9 @@ namespace NielsRask.LibIrc
 		}
 	}
 
+	/// <summary>
+	/// Represents a user in a joined channel
+	/// </summary>
 	public class User 
 	{
 		string nickName;
@@ -385,28 +599,54 @@ namespace NielsRask.LibIrc
 		bool isOperator;
 		bool hasVoice;
 
+		/// <summary>
+		/// Gets the name of the nick.
+		/// </summary>
+		/// <value>The name of the nick.</value>
 		public string NickName 
 		{
 			get { return nickName; }
 		}
+		/// <summary>
+		/// Gets the hostmask.
+		/// </summary>
+		/// <value>The hostmask.</value>
 		public string Hostmask 
 		{
 			get { return hostmask; }
 		}
+		/// <summary>
+		/// Gets a value indicating whether this instance is operator.
+		/// </summary>
+		/// <value>
+		/// 	<c>true</c> if this instance is operator; otherwise, <c>false</c>.
+		/// </value>
 		public bool IsOperator 
 		{
 			get { return isOperator; }
 		}
+		/// <summary>
+		/// Gets a value indicating whether this instance has voice.
+		/// </summary>
+		/// <value><c>true</c> if this instance has voice; otherwise, <c>false</c>.</value>
 		public bool HasVoice 
 		{
 			get { return hasVoice; }
 		}
 
+		/// <summary>
+		/// Sets the hostmask.
+		/// </summary>
+		/// <param name="value">The value.</param>
 		internal void SetHostmask(string value) 
 		{
 			hostmask = value;
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="User"/> class.
+		/// </summary>
+		/// <param name="line">The line.</param>
 		public User(string line)
 		{
 			if ( line.StartsWith("@") ) 
@@ -426,6 +666,12 @@ namespace NielsRask.LibIrc
 			nickName = line;
 		}
 
+		/// <summary>
+		/// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
+		/// </summary>
+		/// <returns>
+		/// A <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
+		/// </returns>
 		public override string ToString()
 		{
 			if (IsOperator) return "@"+NickName;
@@ -435,24 +681,44 @@ namespace NielsRask.LibIrc
 
 	}
 
+	/// <summary>
+	/// A collectio of users
+	/// </summary>
 	public class UserCollection : CollectionBase
 	{
+		/// <summary>
+		/// Adds the specified user.
+		/// </summary>
+		/// <param name="user">The user.</param>
 		public void Add(User user) 
 		{
 			List.Add( user );
 		}
 
+		/// <summary>
+		/// Removes the specified user.
+		/// </summary>
+		/// <param name="user">The user.</param>
 		public void Remove(User user) 
 		{
 			List.Remove( user );
 		}
 
+		/// <summary>
+		/// Gets or sets the <see cref="User"/> with the specified i.
+		/// </summary>
+		/// <value></value>
 		public User this[int i] 
 		{
 			get { return (User)List[i]; }
 			set { List[i] = value; }
 		}
 
+		/// <summary>
+		/// Gets the name of the user by nick.
+		/// </summary>
+		/// <param name="nickname">The nickname.</param>
+		/// <returns></returns>
 		public User GetUserByNickName( string nickname ) 
 		{
 			bool found = false;
@@ -466,6 +732,11 @@ namespace NielsRask.LibIrc
 			else return null;
 		}
 
+		/// <summary>
+		/// Gets the users by hostmask.
+		/// </summary>
+		/// <param name="hostmask">The hostmask.</param>
+		/// <returns></returns>
 		public UserCollection GetUsersByHostmask( string hostmask ) 
 		{
 			UserCollection outcol = new UserCollection();
@@ -476,6 +747,10 @@ namespace NielsRask.LibIrc
 			return outcol;
 		}
 
+		/// <summary>
+		/// Gets the operators.
+		/// </summary>
+		/// <returns></returns>
 		public UserCollection GetOperators() 
 		{
 			UserCollection outcol = new UserCollection();
@@ -487,12 +762,17 @@ namespace NielsRask.LibIrc
 
 		}
 
+		/// <summary>
+		/// Sets the user collection.
+		/// </summary>
+		/// <param name="users">The users.</param>
 		public void SetUserCollection(string[] users) 
 		{
 			List.Clear();
 			for (int i=0; i<users.Length; i++) Add( new User( users[i] ) );
 		}
 
+		//compare med wildcards, til brug i hostname matching
 		private bool wildcmp(string wild, string str, bool case_sensitive)
 		{
 			int cp=0, mp=0;
