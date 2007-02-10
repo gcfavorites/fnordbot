@@ -8,6 +8,4 @@ FnordBot.Init needs refactoring so the config can be reloaded during execution
 
 check up on plugin-configs
 
-plugins need access to some user-data. check if ancient code exists for this
-
-user-code needs reworking
+wordgame needs !score command to list top10
