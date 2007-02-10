@@ -2,18 +2,28 @@ using System;
 using System.Collections;
 using System.Xml;
 
-namespace NielsRask.FnordBot.Users
+namespace NielsRask.FnordBot
 {
+	/// <summary>
+	/// This class represents a hostmask of a user
+	/// </summary>
 	public class Hostmask 
 	{
-
 		string mask;
 
+		/// <summary>
+		/// Gets the mask.
+		/// </summary>
+		/// <value>The mask.</value>
 		public string Mask 
 		{
 			get  { return mask; }
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Hostmask"/> class.
+		/// </summary>
+		/// <param name="mask">The mask.</param>
 		public Hostmask( string mask ) 
 		{
 			this.mask = mask;
@@ -24,6 +34,15 @@ namespace NielsRask.FnordBot.Users
 			mask = node.SelectSingleNode("./text()").Value;
 		}
 
+		/// <summary>
+		/// Determines whether the specified host is match.
+		/// </summary>
+		/// <param name="host">The host.</param>
+		/// <param name="exact">if set to <c>true</c> [exact].</param>
+		/// <param name="caseSensitive">if set to <c>true</c> [case sensitive].</param>
+		/// <returns>
+		/// 	<c>true</c> if the specified host is match; otherwise, <c>false</c>.
+		/// </returns>
 		public bool IsMatch(string host, bool exact, bool caseSensitive) 
 		{
 			if (exact) 
@@ -36,6 +55,10 @@ namespace NielsRask.FnordBot.Users
 			}
 		}
 
+		/// <summary>
+		/// Returns this hostmask as xml
+		/// </summary>
+		/// <returns></returns>
 		public string ToXmlString() 
 		{
 			return "<hostmask>"+mask+"</hostmask>";
@@ -97,8 +120,14 @@ namespace NielsRask.FnordBot.Users
 		}
 	}
 
+	/// <summary>
+	/// A collection of hostmasks
+	/// </summary>
 	public class HostmaskCollection : CollectionBase
 	{
+		/// <summary>
+		/// Initializes a new instance of the <see cref="HostmaskCollection"/> class.
+		/// </summary>
 		public HostmaskCollection() {}
 
 		internal static HostmaskCollection UnpackHostmasks( XmlNodeList masks ) 
@@ -113,6 +142,10 @@ namespace NielsRask.FnordBot.Users
 			return mskcol;
 		}
 
+		/// <summary>
+		/// Adds the specified mask.
+		/// </summary>
+		/// <param name="mask">The mask.</param>
 		public void Add(Hostmask mask) 
 		{
 			List.Add(mask);
@@ -123,17 +156,34 @@ namespace NielsRask.FnordBot.Users
 			Add( new Hostmask( node ) );
 		}
 
+		/// <summary>
+		/// Removes the specified mask.
+		/// </summary>
+		/// <param name="mask">The mask.</param>
 		public void Remove(Hostmask mask) 
 		{
 			List.Remove(mask);
 		}
 
+		/// <summary>
+		/// Gets or sets the <see cref="Hostmask"/> with the specified i.
+		/// </summary>
+		/// <value></value>
 		public Hostmask this[int i] 
 		{
 			get { return (Hostmask)List[i]; }
 			set { List[i] = value; }
 		}
 
+		/// <summary>
+		/// Determines whether the specified host is match.
+		/// </summary>
+		/// <param name="host">The host.</param>
+		/// <param name="exact">if set to <c>true</c> [exact].</param>
+		/// <param name="caseSensitive">if set to <c>true</c> [case sensitive].</param>
+		/// <returns>
+		/// 	<c>true</c> if the specified host is match; otherwise, <c>false</c>.
+		/// </returns>
 		public bool IsMatch(string host, bool exact, bool caseSensitive) 
 		{
 			bool found = false;
@@ -152,6 +202,10 @@ namespace NielsRask.FnordBot.Users
 			return found;
 		}
 		
+		/// <summary>
+		/// Returns this hostmaskcollection as xml
+		/// </summary>
+		/// <returns></returns>
 		public string ToXmlString() 
 		{
 			string xml = "<hostmasks>";
