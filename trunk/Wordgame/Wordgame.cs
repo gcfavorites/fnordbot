@@ -42,7 +42,7 @@ namespace NielsRask.Wordgame
 
 		#endregion
 
-		private void bot_OnPublicMessage(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
 			if (message == "!wordgame") 
 			{
@@ -257,7 +257,7 @@ namespace NielsRask.Wordgame
 //			Dispose();
 		}
 
-		private void bot_OnPublicMessage(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
 			if (!done) {
 				if (string.Compare(this.channel, channel, true)==0)

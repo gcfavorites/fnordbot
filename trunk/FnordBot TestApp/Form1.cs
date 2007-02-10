@@ -275,7 +275,7 @@ namespace NielsRask.FnordBot
 		private void btnConnect_Click(object sender, System.EventArgs e)
 		{
 			bot = new FnordBot("..\\..\\..\\FnordBot2\\");
-			bot.PluginTest();
+//			bot.PluginTest();
 			Close();
 		}
 	}

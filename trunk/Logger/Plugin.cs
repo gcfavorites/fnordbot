@@ -51,12 +51,12 @@ namespace Logger
 
 		#endregion
 
-		private void bot_OnPublicMessage(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
 			WriteToFile( channel, "<"+user.Name+"> "+message );
 		}
 
-		private void bot_OnPrivateMessage(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPrivateMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
 			WriteToFile( channel, "<"+user.Name+"> "+message );
 		}
@@ -82,17 +82,17 @@ namespace Logger
 			WriteToFile( channel, "*** "+senderNick+" kicked "+target +(text.Length>0?" ("+text+")":"") );
 		}
 
-		private void bot_OnPrivateNotice(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPrivateNotice(NielsRask.FnordBot.User user, string channel, string message)
 		{
 			WriteToFile( user.Name, "[Notice] "+message );
 		}
 
-		private void bot_OnPublicNotice(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPublicNotice(NielsRask.FnordBot.User user, string channel, string message)
 		{
 			WriteToFile( channel, "[Notice] "+message );
 		}
 
-		private void bot_OnTopicChange(NielsRask.FnordBot.Users.User user, string channel, string topic)
+		private void bot_OnTopicChange(NielsRask.FnordBot.User user, string channel, string topic)
 		{
 			WriteToFile( channel, "*** "+user.Name+" sets new topic: "+topic );
 		}

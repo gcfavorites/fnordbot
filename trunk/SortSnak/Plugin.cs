@@ -185,7 +185,7 @@ namespace NielsRask.SortSnak
 
 		#endregion
 
-		private void bot_OnPublicMessage(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
 			if (!message.StartsWith("!") && message.Split(' ').Length > 2) ParseLine(message);
 
@@ -257,7 +257,7 @@ namespace NielsRask.SortSnak
 
 		}
 
-		private void bot_OnPrivateMessage(NielsRask.FnordBot.Users.User user, string channel, string message)
+		private void bot_OnPrivateMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{ //try omkring
 			if ( message.StartsWith("!set_sortsnak_answerchance") ) 
 			{

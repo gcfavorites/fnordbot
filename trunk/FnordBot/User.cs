@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Xml;
 
-namespace NielsRask.FnordBot.Users
+namespace NielsRask.FnordBot
 {
 	/// <summary>
 	/// Summary description for User.
@@ -15,31 +15,48 @@ namespace NielsRask.FnordBot.Users
 		HostmaskCollection hostmasks;
 		CustomSettingCollection customSettings;
 		bool isCitizen = false;
-		Module mdl;
+		UserCollection.SaveUsersDelegate saveUsers;
+//		Module mdl;
 
+		/// <summary>
+		/// RealName of the user
+		/// </summary>
+		/// <value>The name.</value>
 		public string Name 
 		{
 			get { return name; }
 			set { name = value; }
 		}
 
+		/// <summary>
+		/// Nickname of the user
+		/// </summary>
 		public string NickName 
 		{
 			get { return nickName; }
 			set { nickName = value; }
 		}
 
+		/// <summary>
+		/// Password of the user
+		/// </summary>
 		public string Password  
 		{
 			get { return password; }
 			set { password = value; }
 		}
 
+		/// <summary>
+		/// Valid hostmasks for this user
+		/// </summary>
 		public HostmaskCollection Hostmasks
 		{
 			get { return hostmasks; }
 		}
 
+		/// <summary>
+		/// Custom settings or this user
+		/// </summary>
 		public CustomSettingCollection CustomSettings
 		{
 			get { return customSettings; }
@@ -53,30 +70,44 @@ namespace NielsRask.FnordBot.Users
 			get{ return isCitizen; }
 		}
 
-		public User( string name ) 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="User"/> class.
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <param name="saveUsers">The save users.</param>
+		public User( string name, UserCollection.SaveUsersDelegate saveUsers ) 
 		{
 			this.name = name;
 			this.nickName = name;
 			this.password = name;
+			this.saveUsers = saveUsers;
 			hostmasks = new	HostmaskCollection();
-			customSettings = new CustomSettingCollection( null );
+			customSettings = new CustomSettingCollection( saveUsers );
 		}
 
+		/// <summary>
+		/// Makes the user a citizen.
+		/// </summary>
 		public void MakeCitizen() 
 		{
 			isCitizen = true;
 		}
 
-		internal User(XmlNode node, Module mdl)
+		internal User(XmlNode node, UserCollection.SaveUsersDelegate saveUsers )
 		{
+			this.saveUsers = saveUsers;
 			isCitizen = true; // a registered user, loaded from the userfile
 			name = node.SelectSingleNode("name/text()").Value;
 			password = node.SelectSingleNode("password/text()").Value;
 			hostmasks = HostmaskCollection.UnpackHostmasks( node.SelectNodes("hostmasks/hostmask") );
-			customSettings = CustomSettingCollection.UnpackSettings( node.SelectNodes("custom/*"), mdl );
-			this.mdl = mdl;
+			customSettings = CustomSettingCollection.UnpackSettings( node.SelectNodes("custom/*"), saveUsers );
+//			this.mdl = mdl;
 		}
 
+		/// <summary>
+		/// Returns an xml representation of the user
+		/// </summary>
+		/// <returns></returns>
 		public string ToXmlString() 
 		{
 			string xml = "<user>";
@@ -87,49 +118,96 @@ namespace NielsRask.FnordBot.Users
 			return xml;
 		}
 
+		/// <summary>
+		/// Saves all users
+		/// </summary>
 		public void Save() 
 		{
-			if (mdl!= null) mdl.Save();
+			saveUsers();
 		}
 
 	}
 
+	/// <summary>
+	/// A collecton of known users
+	/// </summary>
 	public class UserCollection : CollectionBase
 	{
-		public UserCollection() {}
-
-		internal static UserCollection UnpackUsers( XmlNodeList usrs, Module mdl ) 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="UserCollection"/> class.
+		/// </summary>
+		/// <param name="saveUsers">The saveusers delgate.</param>
+		public UserCollection(SaveUsersDelegate saveUsers) 
 		{
-			UserCollection usrcol = new UserCollection();
+			this.saveUsers = saveUsers;
+		}
+		/// <summary>
+		/// Delegate for saving the users.xml
+		/// </summary>
+		public delegate void SaveUsersDelegate();
+		SaveUsersDelegate saveUsers;
+
+		/// <summary>
+		/// Unpacks the users.
+		/// </summary>
+		/// <param name="usrs">The usrs.</param>
+		/// <param name="saveUsers">The save users.</param>
+		/// <returns></returns>
+		internal static UserCollection UnpackUsers( XmlNodeList usrs, SaveUsersDelegate saveUsers ) 
+		{
+			UserCollection usrcol = new UserCollection(saveUsers);
 			for (int i=0; i<usrs.Count; i++) 
 			{
 				Console.WriteLine("Unpacking a user");
-				usrcol.Add( usrs[i], mdl );
+				usrcol.Add( usrs[i], saveUsers );
 			}
 			return usrcol;
 		}
 
+		/// <summary>
+		/// Adds the specified user.
+		/// </summary>
+		/// <param name="user">The user.</param>
 		public void Add(User user) 
 		{
 			List.Add(user);
 		}
 
-		internal void Add( XmlNode userNode, Module mdl ) 
+		/// <summary>
+		/// Adds the specified user node.
+		/// </summary>
+		/// <param name="userNode">The user node.</param>
+		/// <param name="saveUsers">The delegate for saving the users file.</param>
+		internal void Add( XmlNode userNode, SaveUsersDelegate saveUsers ) 
 		{
-			Add( new User( userNode, mdl ) );
+			Add( new User( userNode, saveUsers ) );
 		}
 
+		/// <summary>
+		/// Removes the specified user.
+		/// </summary>
+		/// <param name="user">The user.</param>
 		public void Remove(User user) 
 		{
 			List.Remove(user);
 		}
 
+		/// <summary>
+		/// Gets or sets the <see cref="User"/> with the specified i.
+		/// </summary>
+		/// <value></value>
 		public User this[int i] 
 		{
 			get { return (User)List[i]; }
 			set { List[i] = value; }
 		}
 
+		/// <summary>
+		/// Gets the user by name
+		/// </summary>
+		/// <param name="name">The name.</param>
+		/// <param name="ignoreCase">if set to <c>true</c> [ignore case].</param>
+		/// <returns></returns>
 		public User GetByName(string name, bool ignoreCase) 
 		{
 			bool found = false;
@@ -155,6 +233,11 @@ namespace NielsRask.FnordBot.Users
 			}
 		}
 
+		/// <summary>
+		/// Gets the user by host match.
+		/// </summary>
+		/// <param name="host">The host.</param>
+		/// <returns></returns>
 		public User GetByHostMatch( string host ) 
 		{
 			bool found = false;
@@ -180,6 +263,10 @@ namespace NielsRask.FnordBot.Users
 			}
 		}
 
+		/// <summary>
+		/// Returns an xml representation of the collection.
+		/// </summary>
+		/// <returns></returns>
 		public string ToXmlString() 
 		{
 			string xml = "<users>";
@@ -188,6 +275,13 @@ namespace NielsRask.FnordBot.Users
 			xml += "</users>";
 			return xml;
 		}
-	}
 
+		/// <summary>
+		/// Saves the usercollection.
+		/// </summary>
+		public void Save() 
+		{
+			saveUsers();
+		}
+	}
 }

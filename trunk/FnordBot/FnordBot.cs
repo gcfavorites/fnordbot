@@ -15,17 +15,30 @@ namespace NielsRask.FnordBot
 	/// </summary>
 	public class FnordBot 
 	{
+		// the client layer
 		NielsRask.LibIrc.Client irc;
+		// channels to join at startup
 		StringCollection channelsToJoin;
-		NielsRask.FnordBot.Users.Module userModule;
+//		NielsRask.FnordBot.Users.Module userModule;
+		UserCollection users;
 		Random rnd;
 		StringQueueHash queues;
 		string installationFolderPath;
 		XmlDocument xdoc = new XmlDocument();
 
-		#region logn logic
+		#region log logic
+		/// <summary>
+		/// Delegate for logging
+		/// </summary>
 		public delegate void LogMessageHandler(string message);
-		public LogMessageHandler OnLogMessage;
+		/// <summary>
+		/// Occurs when the bot wants to log a message
+		/// </summary>
+		public event LogMessageHandler OnLogMessage;
+		/// <summary>
+		/// Write a message to the log
+		/// </summary>
+		/// <param name="message"></param>
 		public void WriteLogMessage(string message) 
 		{
 			if ( OnLogMessage != null ) OnLogMessage( message );
@@ -39,19 +52,51 @@ namespace NielsRask.FnordBot
 		/// <param name="installationFolderPath">The installation folder path.</param>
 		public FnordBot( string installationFolderPath )
 		{	
-			this.queues = new StringQueueHash( 10 ); // hent fra config
+			this.queues = new StringQueueHash(); // hent fra config
 			this.installationFolderPath = installationFolderPath;
-			if ( !installationFolderPath.EndsWith("\\") ) installationFolderPath += "\\";	
+			// fix the install-path
+			if ( !installationFolderPath.EndsWith("\\") ) 
+				installationFolderPath += "\\";	
+			// init the random number god
 			rnd = new Random();
 			channelsToJoin = new StringCollection();
-			userModule = new NielsRask.FnordBot.Users.Module( installationFolderPath+"Users.xml" ); // devel-sti, den skal også kigge i ./users.xml
+			// initialize the user logic
+//			userModule = new NielsRask.FnordBot.Users.Module( installationFolderPath+"Users.xml" ); // devel-sti, den skal også kigge i ./users.xml
+
+			// load the userlist
+			usersFilePath = installationFolderPath+"Users.xml";
+			users = LoadUsers();
+			
+			// initialize the client layer - maybe we should use the protocol layer directly?
 			irc = new Client();
+			// attach to the events that the client layer can throw
 			AttachEvents();
+		}
+		string usersFilePath = "";
+
+		private UserCollection LoadUsers() 
+		{
+			XmlDocument xdoc = new XmlDocument();
+			xdoc.Load( usersFilePath );
+
+			XmlNodeList usrlst = xdoc.DocumentElement.SelectNodes("user");
+			Console.WriteLine("found "+usrlst.Count+" usernodes");
+			
+			return UserCollection.UnpackUsers( usrlst, new UserCollection.SaveUsersDelegate( SaveUsers ) );		
+		}
+
+		
+		private void SaveUsers() 
+		{
+			XmlDocument xdoc = new XmlDocument();
+			xdoc.LoadXml( users.ToXmlString() );
+			xdoc.Save( usersFilePath );
 		}
 
 		/// <summary>
 		/// Inits this instance.
 		/// </summary>
+		/// <remarks>Configures the client layer, loads config and plugins</remarks>
 		public void Init() 
 		{
 			try 
@@ -68,10 +113,20 @@ namespace NielsRask.FnordBot
 				irc.Nickname = GetXPathValue(xdoc,"client/nickname/text()");
 				irc.AlternativeNick = GetXPathValue(xdoc,"client/altnick/text()");
 
-				// read a list o channels to join at startup
-				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("client/channels/channel/name/text()")) 
+				// process the list of channels to load at startup
+				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("client/channels/channel[name/text()]")) 
 				{
-					channelsToJoin.Add( node.Value );
+					string name = node.SelectSingleNode("name/text()").Value;
+					channelsToJoin.Add( name );
+					int dMsg = 5;	// defasult values
+					int dMin = 60;	// max 5 msg/hr
+					if (node.SelectSingleNode("messagerate") != null) 
+					{
+						dMsg = int.Parse( node.SelectSingleNode("messagerate/@messages").Value );
+						dMin = int.Parse( node.SelectSingleNode("messagerate/@minutes").Value );
+					}
+					queues.Add(name, dMsg, dMin); // initiate the antiflood queue
+
 				}
 
 				// load the specified plugins
@@ -82,23 +137,15 @@ namespace NielsRask.FnordBot
 					if (!Path.IsPathRooted( path )) 
 					{
 						path = Path.Combine(installationFolderPath, path);
-						Console.WriteLine("Relative path combined to "+path);
-					} 
-					else 
-					{
-						Console.WriteLine("path is absolute: "+path);
+//						Console.WriteLine("Relative path combined to "+path);
+//					} 
+//					else 
+//					{
+//						Console.WriteLine("path is absolute: "+path);
 					}
 					LoadPlugin( typename, path, node );
 				}
 
-				// initiate a message-queue for each channel that specifies it
-				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("client/channels/channel[messagerate]") ) 
-				{
-					string name = node.SelectSingleNode( "name/text()" ).Value;
-					int dmsg = int.Parse( node.SelectSingleNode( "messagerate/@messages" ).Value );
-					int dmin = int.Parse( node.SelectSingleNode( "messagerate/@minutes" ).Value );
-					queues.Add( name, new StringQueue(name, dmsg, dmin) );
-				}
 				WriteLogMessage("Fnordbot started");
 			} 
 			catch (Exception e) 
@@ -107,6 +154,9 @@ namespace NielsRask.FnordBot
 			}
 		}
 
+		/// <summary>
+		/// Connects to the server, joins requested channels
+		/// </summary>
 		public void Connect() 
 		{
 			try 
@@ -124,6 +174,7 @@ namespace NielsRask.FnordBot
 			} 
 			catch ( Exception e ) 
 			{
+				// TODO: need some reconnect logic
 				WriteLogMessage("Exception in Fnordbot.Connect(): "+e);
 			}
 			
@@ -164,34 +215,44 @@ namespace NielsRask.FnordBot
 			irc.SendToUser( user, text );
 		}
 		/// <summary>
-		/// Sends a message to the specified channel. messages are only sent if flood-queue allows it
+		/// Sends a message to the specified channel. overrides the queue if allowed
 		/// </summary>
 		/// <param name="channel"></param>
 		/// <param name="text"></param>
 		public void SendToChannel( string channel, string text ) 
 		{
-			SendToChannel( channel, text, false ); // HACK skal være false, evt skal metoden obsoletes?
+			SendToChannel( channel, text, true ); 
 		}
 		/// <summary>
 		/// Sends a message to the specified channel. allows overriding of flood-queue
 		/// </summary>
-		/// <param name="channel"></param>
-		/// <param name="text"></param>
-		/// <param name="overrideQueue"></param>
+		/// <param name="channel">thannel to send to</param>
+		/// <param name="text">text to send</param>
+		/// <param name="overrideQueue">Override the anti-flood queue, for priority messages. only possible if the config allows it</param>
 		public void SendToChannel( string channel, string text, bool overrideQueue ) 
 		{
 			try 
 			{
-				if (channel.Length == 0 || text.Length == 0) {}
-				else if (overrideQueue && IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) irc.SendToChannel( channel, text );
+				// channel or message is empty - call will be ignored
+				if (channel.Length == 0 || text.Length == 0) 
+				{
+					// someone made an error, dont send. maybe we should throw something :)
+				}
+				// override requested and is allowed - send to channel
+				else if (overrideQueue && IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) 
+				{
+					irc.SendToChannel( channel, text );
+				}
+				// override not requested or not allowed - send if queues allow it
 				else 
 				{
+					// if we're allowed to send
 					if ( queues[channel].CanEnqueue() ) 
 					{
-						queues[channel].Enqueue( new StringQueueItem(text, DateTime.Now) );
-						//					queues[channel].Dequeue();
+						queues[channel].Enqueue( text ); // auto-dequeues if too long
 						irc.SendToChannel( channel, text );
 					} 
+					// we're not alowed to send - maybe we should signal that somehow
 					else 
 					{
 						Console.WriteLine("message to "+channel+" was blocked by floodqueue");
@@ -213,6 +274,7 @@ namespace NielsRask.FnordBot
 		/// <param name="message">The message.</param>
 		public void SendNotice( string target, string message ) 
 		{
+			// maybe we should include some anti-flood logic here ..
 			irc.SendNotice( target, message );
 		}
 
@@ -246,7 +308,8 @@ namespace NielsRask.FnordBot
 //				xpath = "plugins/plugin[@path='"+asm.Location.ToLower()+"']/permissions/permission[@name='"+permission+"']/@value";
 				xpath = "plugins/plugin[@typename='"+typename+"']/permissions/permission[@name='"+permission+"']/@value";
 				XmlNode node = xdoc.DocumentElement.SelectSingleNode( xpath );
-				return bool.Parse( node.Value );
+				if (node != null) 
+					return bool.Parse( node.Value );
 			} 
 			catch (Exception e)
 			{
@@ -409,42 +472,11 @@ namespace NielsRask.FnordBot
 		}
 		#endregion
 
-		#region methods for test
-//		private void DumpCallStack() 
-//		{
-//			StackTrace st = new StackTrace( true );
-//			for(int i=0; i<st.FrameCount; i++) 
-//			{
-//				StackFrame sf = st.GetFrame(i);
-//				Console.WriteLine("frame "+i+": method "+sf.GetMethod().Name+" in "+sf.GetMethod().DeclaringType.Assembly.Location);
-//			}
-//		}
-
-		private void Channels_OnChannelListChange()
-		{
-			foreach (Channel chn in irc.Channels) 
-			{
-				Console.WriteLine(""+chn.Name+" ("+chn.Topic+")");
-				foreach (NielsRask.FnordBot.Users.User usr in chn.Users) 
-				{
-					Console.WriteLine("  "+usr.ToString());
-				}
-			}
-		}
-
-		private void Client_OnServerMessage(string message)
-		{
-//			Console.WriteLine("-> "+message);
-		}
-		#endregion
-
 		#region event forwarding
 
 		private void AttachEvents() 
 		{
 			irc.OnLogMessage += new Client.LogMessageHandler(WriteLogMessage);
-			irc.Channels.OnChannelListChange += new ChannelCollection.ChannelEvent(Channels_OnChannelListChange);
-			irc.Protocol.Network.OnServerMessage += new NielsRask.LibIrc.Network.ServerMessageHandler(Client_OnServerMessage);
 			irc.Protocol.Network.OnDisconnect += new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
 			irc.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicMessage);
 			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
@@ -464,38 +496,105 @@ namespace NielsRask.FnordBot
 		}
 
 
-		private NielsRask.FnordBot.Users.User GetUser( string nickName, string hostMask ) 
+		private NielsRask.FnordBot.User GetUser( string nickName, string hostMask ) 
 		{
-			NielsRask.FnordBot.Users.User user = userModule.Users.GetByHostMatch( hostMask );
+			User user = users.GetByHostMatch( hostMask );
 			if (user == null) // no user was found, make a pseudouser
 			{
-				user = new NielsRask.FnordBot.Users.User( nickName ); // this ctor wont make citizens
+				user = new User( nickName, new UserCollection.SaveUsersDelegate( SaveUsers ) ); // this ctor wont make citizens
 				user.Hostmasks.Add( new Hostmask( hostMask ) );
-				// TODO: save evt den nye user - evt tilføj learning mode
+				bool learningMode = false;
+				if (learningMode)// registrer alle users vi ser
+				{
+					// TODO: save evt den nye user - evt tilføj learning mode
+					user.MakeCitizen();
+					users.Add( user );
+					users.Save();
+				}
 			}
 			return user;
 		}
 
+		/// <summary>
+		/// Occurs when a public message is received
+		/// </summary>
 		public event MessageHandler OnPublicMessage;
+		/// <summary>
+		/// Occurs when a private message is received
+		/// </summary>
 		public event MessageHandler OnPrivateMessage;
+		/// <summary>
+		/// Occurs when a private notice is received
+		/// </summary>
 		public event MessageHandler OnPublicNotice;
+		/// <summary>
+		/// Occurs when a private notice is received
+		/// </summary>
 		public event MessageHandler OnPrivateNotice;
+		/// <summary>
+		/// Occurs when a channel changes topic
+		/// </summary>
 		public event ChannelTopicHandler OnTopicChange;
+		/// <summary>
+		/// Occurs when someone joins a channel
+		/// </summary>
 		public event ChannelActionHandler OnChannelJoin;
+		/// <summary>
+		/// Occurs when someone leaves a channel
+		/// </summary>
 		public event ChannelActionHandler OnChannelPart;
+		/// <summary>
+		/// Occurs when someone changes the mode of a channel
+		/// </summary>
 		public event ChannelActionHandler OnChannelMode;
+		/// <summary>
+		/// Occurs when someone is kicked from a channel
+		/// </summary>
 		public event ChannelActionHandler OnChannelKick;
+		/// <summary>
+		/// Occurs when someone changes their nickname
+		/// </summary>
 		public event NickChangeHandler OnNickChange;
+		/// <summary>
+		/// Occurs when the bot talks to a channel
+		/// </summary>
 		public event BotMessageHandler OnSendToChannel;
+		/// <summary>
+		/// Occurs when the bot talks to a user
+		/// </summary>
 		public event BotMessageHandler OnSendToUser;
+		/// <summary>
+		/// Occurs when the bot sends a notice
+		/// </summary>
 		public event BotMessageHandler OnSendNotice;
+		/// <summary>
+		/// Occurs when the bot changes channel mode
+		/// </summary>
 		public event BotMessageHandler OnSetMode;
 
-		public delegate void MessageHandler(NielsRask.FnordBot.Users.User user, string channel, string message);
-		public delegate void ChannelTopicHandler(NielsRask.FnordBot.Users.User user, string channel, string topic);
+		/// <summary>
+		/// Delegate or received messages
+		/// </summary>
+		public delegate void MessageHandler(NielsRask.FnordBot.User user, string channel, string message);
+		/// <summary>
+		/// Delegate for topic changes
+		/// </summary>
+		public delegate void ChannelTopicHandler(NielsRask.FnordBot.User user, string channel, string topic);
+		/// <summary>
+		/// Delegate for userlist events
+		/// </summary>
 		public delegate void ChannelUserListHandler(string channel, string[] list);
+		/// <summary>
+		/// delegate for channel actions
+		/// </summary>
 		public delegate void ChannelActionHandler(string text, string channel, string target, string senderNick, string senderHost);
-		public delegate void NickChangeHandler(  string newname, string oldname, NielsRask.FnordBot.Users.User user );
+		/// <summary>
+		/// Delegate for nickname changes
+		/// </summary>
+		public delegate void NickChangeHandler(  string newname, string oldname, NielsRask.FnordBot.User user );
+		/// <summary>
+		/// Delegate for Messages from the bot itself
+		/// </summary>
 		public delegate void BotMessageHandler( string botName, string target, string text );
 
 		private void irc_OnPublicMessage(string message, string target, string senderNick, string senderHost)
@@ -581,7 +680,7 @@ namespace NielsRask.FnordBot
 		{
 			if (message == "!whoami") 
 			{
-				NielsRask.FnordBot.Users.User user = userModule.Users.GetByHostMatch( senderHost );
+				User user = users.GetByHostMatch( senderHost );
 				if (user != null)
 					SendToUser( senderNick, "you appear to be "+user.Name+" (citizen: "+user.IsCitizen+")");
 				else SendToUser( senderNick, "i dont know you.." );
@@ -595,6 +694,9 @@ namespace NielsRask.FnordBot
 
 	}
 
+	/// <summary>
+	/// The plugin interface that all plugins must implement
+	/// </summary>
 	public interface IPlugin 
 	{
 		/// <summary>
@@ -610,65 +712,123 @@ namespace NielsRask.FnordBot
 	}
 
 	// en hashtable med [channelname, stringqueue]
+	/// <summary>
+	/// This holds a collection of stringqueues
+	/// </summary>
 	public class StringQueueHash : Hashtable 
 	{
-		int queueLength; // kun en default
-		public StringQueueHash(int queueLength): base() 
+		/// <summary>
+		/// Adds the specified queue.
+		/// </summary>
+		/// <param name="queueName">Name of the queue.</param>
+		/// <param name="value">The value.</param>
+		public void Add(string queueName, StringQueue value)
 		{
-			this.queueLength = queueLength;
-		}
-		public void Add(string key, StringQueue value)
-		{
-			base.Add (key, value);
-		}
-		public bool ContainsKey(string key)
-		{
-			return base.ContainsKey (key);
+			base.Add (queueName, value);
 		}
 
-		public StringQueue this[string key]
+		/// <summary>
+		/// Adds the specified queue.
+		/// </summary>
+		/// <param name="queueName">Name of the queue.</param>
+		/// <param name="deltaMsg">The delta MSG.</param>
+		/// <param name="deltaMin">The delta min.</param>
+		public void Add(string queueName, int deltaMsg, int deltaMin) 
+		{
+			base.Add(queueName, new StringQueue(deltaMsg, deltaMin));
+		}
+
+		/// <summary>
+		/// Determines whether the list contains the specifiec queue.
+		/// </summary>
+		/// <param name="queueName">Name of the queue.</param>
+		/// <returns>
+		/// 	<c>true</c> if the specified queue name contains key; otherwise, <c>false</c>.
+		/// </returns>
+		public bool ContainsKey(string queueName)
+		{
+			return base.ContainsKey (queueName);
+		}
+
+		/// <summary>
+		/// Gets or sets the <see cref="StringQueue"/> with the specified queuename.
+		/// </summary>
+		/// <value></value>
+		public StringQueue this[string queueName]
 		{
 			get
 			{
-				return (StringQueue)base[key.ToLower()];
-			}
-			set
-			{
-				base[key.ToLower()] = value;
+				return (StringQueue)base[queueName.ToLower()];
 			}
 		}
 
 	}
-	// a queue for flood-limiting
+	/// <summary>
+	/// This queue is for enforcing a specified messagerate. 
+	/// </summary>
+	/// <remarks>
+	/// For a requested rate of 5msg/hr, the queue will store 5 messages and only allow enqueueing of 
+	/// new messages if the oldest is at least one hour old. the oldest will then be dequeued.
+	/// </remarks>
 	public class StringQueue : Queue
 	{
 		string name;
 		int dmsg;
 		int dmin;
 
-		public StringQueue( string name, int dmsg, int dmin ) : base( dmsg )
+		/// <summary>
+		/// Initializes a new instance of the <see cref="StringQueue"/> class.
+		/// </summary>
+		/// <param name="dmsg">delta-msg. upper part of the messages/time rate</param>
+		/// <param name="dmin">delta-min. bottom part of he messages/time rate. specifie in minutes</param>
+		public StringQueue(int dmsg, int dmin ) : base( dmsg )
 		{
 			this.name = name;
 			this.dmsg = dmsg;
 			this.dmin = dmin;
 		}
 
+		/// <summary>
+		/// Dequeues the item at the front of the queue
+		/// </summary>
+		/// <returns></returns>
 		public new StringQueueItem Dequeue()
 		{
 			return (StringQueueItem)base.Dequeue ();
 		}
 
+		/// <summary>
+		/// Enqueues the specified item. Dequeues if the requested length is exceeded
+		/// </summary>
+		/// <param name="item">The item.</param>
 		public void Enqueue(StringQueueItem item)
 		{
 			base.Enqueue (item);
 			if (Count > dmsg) Dequeue();
 		}
 
+		/// <summary>
+		/// Enqueues the specified item. Dequeues if the requested length is exceeded
+		/// </summary>
+		/// <param name="message">The message to enqueue.</param>
+		public void Enqueue(string message) 
+		{
+			Enqueue( new StringQueueItem(message, DateTime.Now) );
+		}
+
+		/// <summary>
+		/// Returns the item at the front of the queue without removing it
+		/// </summary>
+		/// <returns></returns>
 		public new StringQueueItem Peek()
 		{
 			return (StringQueueItem)base.Peek ();
 		}
 
+		/// <summary>
+		/// Check if we're allowed to send to this channel
+		/// </summary>
+		/// <returns>True if there is room in the queue or the specified amount of time has passed since first message in queue. Otherwise false</returns>
 		public bool CanEnqueue() 
 		{
 			if (Count < dmsg ) return true; // vi har ikke nået max endnu
@@ -678,31 +838,45 @@ namespace NielsRask.FnordBot
 				if (dt.TotalMinutes >= dmin) return true; // 
 				else return false;
 			}
-
 		}
 	}
 
-	// an item in  the stringqueue
+	/// <summary>
+	/// An item in a stringqueue. represents a messge and the time it was sent
+	/// </summary>
 	public class StringQueueItem 
 	{
 		string text;
 		DateTime timeStamp;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="StringQueueItem"/> class.
+		/// </summary>
+		/// <param name="text">The text.</param>
+		/// <param name="timeStamp">The time stamp.</param>
 		public StringQueueItem(string text, DateTime timeStamp) 
 		{
 			this.text = text;
 			this.timeStamp = timeStamp;
 		}
 
+		/// <summary>
+		/// Gets the text.
+		/// </summary>
+		/// <value>The text.</value>
 		public string Text 
 		{
 			get { return text; }
-			set { text = value; }
+//			set { text = value; }
 		}
+		/// <summary>
+		/// Gets the time stamp.
+		/// </summary>
+		/// <value>The time stamp.</value>
 		public DateTime TimeStamp 
 		{
 			get { return timeStamp; }
-			set { timeStamp = value; }
+//			set { timeStamp = value; }
 		}
 	}
 }
