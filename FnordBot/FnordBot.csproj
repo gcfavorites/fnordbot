@@ -119,18 +119,9 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "Module.cs"
-                    SubType = "Code"
-                    BuildAction = "Compile"
-                />
-                <File
                     RelPath = "Test.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
-                />
-                <File
-                    RelPath = "Todo.txt"
-                    BuildAction = "None"
                 />
                 <File
                     RelPath = "User.cs"

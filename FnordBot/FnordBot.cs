@@ -31,17 +31,20 @@ namespace NielsRask.FnordBot
 		/// Delegate for logging
 		/// </summary>
 		public delegate void LogMessageHandler(string message);
+
 		/// <summary>
 		/// Occurs when the bot wants to log a message
 		/// </summary>
 		public event LogMessageHandler OnLogMessage;
+
 		/// <summary>
 		/// Write a message to the log
 		/// </summary>
 		/// <param name="message"></param>
 		public void WriteLogMessage(string message) 
 		{
-			if ( OnLogMessage != null ) OnLogMessage( message );
+			if ( OnLogMessage != null ) 
+				OnLogMessage( message );
 		}
 		#endregion
 
