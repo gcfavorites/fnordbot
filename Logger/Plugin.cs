@@ -1,7 +1,6 @@
 using System;
 using NielsRask.FnordBot;
 using System.IO;
-//using System.
 
 namespace Logger
 {
@@ -15,11 +14,8 @@ namespace Logger
 		string logFolderPath = "c:\\";
 
 		public Logger()
-		{
-			//
-			// TODO: Add constructor logic here
-			//
-		}
+		{}
+
 		#region IPlugin Members
 
 		public void Attach(FnordBot bot)
@@ -39,7 +35,6 @@ namespace Logger
 
 		public void Init(System.Xml.XmlNode pluginNode)
 		{
-			// TODO:  Add Logger.Init implementation
 			try 
 			{
 				logFolderPath = pluginNode.SelectSingleNode("logfolderpath/text()").Value;
@@ -63,7 +58,6 @@ namespace Logger
 
 		private void bot_OnChannelJoin(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			// *** Pornoting (tingeling@0x50c4070d.hrnxx2.adsl-dhcp.tele.dk) has joined #craYon
 			WriteToFile( channel, "*** "+senderNick+" ("+senderHost+") has joined "+channel );
 		}
 
