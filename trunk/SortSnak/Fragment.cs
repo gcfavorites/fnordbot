@@ -83,18 +83,28 @@ namespace NielsRask.SortSnak
 		int simpleChance = 35; // procent chance for at vi enabler simple-motoren hvis lowerbound ikke er mødt
 		int ambientSimpleChance = 10; // chance der altid er for at få simple-options med
 
+		/// <summary>
+		/// we need at least this many fragments to choose from, to use normal 2-word matching.
+		/// </summary>
 		public int MinimumOverlap 
 		{
 			get { return lowerBound; }
 			set { lowerBound = value; }
 		}
 
+		/// <summary>
+		/// the chance, in % that we use simple (1-word) matching if MinimumOverlap isnt met
+		/// </summary>
 		public int SimpleMatchChance 
 		{
 			get { return simpleChance; }
 			set { simpleChance = value; }
 		}
 
+		/// <summary>
+		/// The chance, in %, that we use simple (1-word) matching for a given match
+		/// </summary>
+		/// <remarks>This property serves to inject some real randomness in the generated strings</remarks>
 		public int AmbientSimpleMatchChance 
 		{
 			get { return ambientSimpleChance; }

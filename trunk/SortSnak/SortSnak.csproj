@@ -99,10 +99,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "Config.xml"
-                    BuildAction = "Content"
-                />
-                <File
                     RelPath = "Fragment.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
