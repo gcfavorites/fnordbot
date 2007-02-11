@@ -20,26 +20,20 @@ namespace NielsRask.Wordgame
 		WordgameCollection gameList;
 		public Plugin()
 		{
-			//
-			// TODO: Add constructor logic here
-			//
 			gameList = new WordgameCollection();
 		}
 		#region IPlugin Members
-
-		public void Attach(FnordBot.FnordBot bot) {
-			// TODO:  Add WordgameMain.Attach implementation
+		public void Attach(FnordBot.FnordBot bot) 
+		{
 			this.bot = bot;
 			bot.WriteLogMessage("Wordgame say's hello");
-//			bot.
-//			fwd.OnPublicMessage +=new NielsRask.FnordBot.Forwarder.PublicMessageHandler(fwd_OnPublicMessage);
 			bot.OnPublicMessage +=new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
 		}
 
-		public void Init( XmlNode pluginNode) {
+		public void Init( XmlNode pluginNode) 
+		{
 			// TODO:  Add WordgameMain.Init implementation
 		}
-
 		#endregion
 
 		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
@@ -49,12 +43,10 @@ namespace NielsRask.Wordgame
 				Console.WriteLine("someone requested a game");
 				if (gameList.ChannelExists( channel ) ) 
 				{
-					Console.WriteLine("a game is already running, wait 'till it's finished");
 					// game is already running
 				} 
 				else 
 				{
-					Console.WriteLine("Now starting a new game");
 					Wordgame wg = new Wordgame(bot, channel, gameList);
 					gameList.Add( wg );
 					Thread gameThread = new Thread( new ThreadStart( wg.Start ) );
@@ -62,13 +54,13 @@ namespace NielsRask.Wordgame
 					gameThread.IsBackground = true;
 					gameThread.Start();
 				}
-
+			} 
+			else if (message == "!score") 
+			{
+				// list the top10 wordgamers
 			}
 		}
-
 	}
-
-
 
 	public class WordgameCollection : CollectionBase 
 	{
@@ -115,7 +107,7 @@ namespace NielsRask.Wordgame
 		}
 	}
 
-	public class Wordgame	: IDisposable	
+	public class Wordgame : IDisposable	
 	{
 		// tråd der styrer wordgame for en kanal 
 		// trigges af main-klassen. har begrænset levetid (spillets varighed..)
@@ -125,30 +117,41 @@ namespace NielsRask.Wordgame
 		Timer tmrFirstHint;
 		Timer tmrSecondHint;
 		Timer tmrGameEnd;
-		string secretWord = "hammer";
-		string wordHint = "tool";
+		string secretWord;
+		string wordHint;
 		bool done = false;
 		WordgameCollection gameList;
 		Random rnd;
 
+		/// <summary>
+		/// Gets the channel that this game is running in.
+		/// </summary>
+		/// <value>The channel.</value>
 		public string Channel 
 		{
 			get { return channel; }
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="Wordgame"/> class.
+		/// </summary>
+		/// <param name="bot">The bot.</param>
+		/// <param name="channel">The channel.</param>
+		/// <param name="gameList">The game list.</param>
 		public Wordgame(FnordBot.FnordBot bot, string channel, WordgameCollection gameList) 
 		{
 			this.bot = bot;
 			this.channel = channel;
 			this.gameList = gameList;
 			this.rnd = new Random();
-			// attach lytte-delegate 
 		}
 
+		/// <summary>
+		/// Starts this game.
+		/// </summary>
 		public void Start() 
 		{
 			bot.OnPublicMessage += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
-//			bot.OnPublicMessage += new NielsRask.FnordBot.FnordBot.Irc.PublicMessageHandler(fwd_OnPublicMessage);
 			// vælg et ord og scramble det
 			string[] word = SelectWord().Split(':');
 			secretWord = word[0];
@@ -174,12 +177,10 @@ namespace NielsRask.Wordgame
 			// ved halvvejs, giv hint
 
 			// ved slut, afslør ord
-			Console.WriteLine("starting sleep");
-			while (!done) 
+			while (!done) // wait till the game is complete
 			{
 				Thread.Sleep(100);
 			}
-			Console.WriteLine("ending sleep");
 			Dispose();
 		}
 
@@ -254,7 +255,6 @@ namespace NielsRask.Wordgame
 			Console.WriteLine("game has ended");
 			bot.SendToChannel( channel, "Nobody got it... losers!");
 			done = true;
-//			Dispose();
 		}
 
 		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
@@ -265,43 +265,22 @@ namespace NielsRask.Wordgame
 					if (string.Compare(message, secretWord, true) == 0) 
 					{
 						bot.SendToChannel( channel, "Woohoo "+user.Name+"!! You got it... "+secretWord+"" );
-//						user.CustomSettings.Add( new NielsRask.FnordBot.Users.CustomSetting("foo").
+						string strOldScore = user.CustomSettings.GetByName("wordgame").GetValue("score");
+						int oldScore = 0;
+						try 
+						{
+							if (strOldScore == null || strOldScore == "")
+								strOldScore = "0";
+							oldScore = int.Parse(strOldScore);
+						} 
+						catch {}
+						user.CustomSettings.GetByName("wordgame").SetValue("score", oldScore+1);
+						user.Save();
 						done = true;
-						//					Dispose();
 					}
 				}
 			}
 		}
-
-		#region log
-//		[15:30] <NetRanger> !word
-//
-//		[15:30] -Deep_Olga:#crayon- Unscramble ---> 6 cnaaleahv
-//
-//		[15:31] -Deep_Olga:#crayon- Clue ---> 12  pile
-//
-//		[15:31] -Deep_Olga:#crayon- First letter ---> 12  a
-//
-//		[15:31] <NordCore> avalanche
-//
-//		[15:31] -Deep_Olga:#crayon- Woohoo NordCore!! You got it... 4avalanche
-//
-//		[15:31] -Deep_Olga:#crayon- NordCore you've won 1 times today, baaaah!
-//
-//		[15:31] <NetRanger> hmm
-//
-//		[15:31] <NetRanger> !word
-//
-//		[15:31] -Deep_Olga:#crayon- Unscramble ---> 6 lbosasart
-//
-//		[15:31] -Deep_Olga:#crayon- Clue ---> 12  burden
-//
-//		[15:32] -Deep_Olga:#crayon- First letter ---> 12  a
-//
-//		[15:32] -Deep_Olga:#crayon- First two letters ---> 12  al
-//
-//		[15:32] -Deep_Olga:#crayon- Nobody got it... 4losers!
-		#endregion
 
 		#region IDisposable Members
 

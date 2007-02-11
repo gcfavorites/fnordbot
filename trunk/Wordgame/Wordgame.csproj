@@ -94,10 +94,6 @@
                     BuildAction = "Compile"
                 />
                 <File
-                    RelPath = "wordgame dump.txt"
-                    BuildAction = "None"
-                />
-                <File
                     RelPath = "Wordgame.cs"
                     SubType = "Code"
                     BuildAction = "Compile"
