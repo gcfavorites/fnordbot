@@ -26,6 +26,18 @@ namespace NielsRask.FnordBot
 		string installationFolderPath;
 		XmlDocument xdoc = new XmlDocument();
 
+		/// <summary>
+		/// Gets the installationfolder path.
+		/// </summary>
+		/// <value>The installation folder path.</value>
+		public string InstallationFolderPath 
+		{
+			get 
+			{
+				return installationFolderPath;
+			}
+		}
+
 		#region log logic
 		/// <summary>
 		/// Delegate for logging

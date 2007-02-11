@@ -14,9 +14,15 @@
 		</channels>
 	</client>
 	<plugins>
-		<!-- <plugin typename="TestPlugin.Class1" path="C:\Documents and Settings\Niels\My Documents\Visual Studio Projects\FnordBot\TestPlugin\bin\Debug\TestPlugin.dll" />-->
 		<plugin typename="NielsRask.SortSnak.Plugin" path="plugins\sortsnak\sortsnak.dll" >
-			<vocabularyfilepath>c:\vocabulary.dat</vocabularyfilepath>
+			<settings>
+				<vocabularyfilepath>plugins\sortsnak\vocabulary.dat</vocabularyfilepath>
+				<answerchance>15</answerchance>
+				<minimumoverlap>3</minimumoverlap>
+				<simplechance>35</simplechance>
+				<ambientsimplechance>10</ambientsimplechance>
+				<autosaving>5</autosaving>
+			</settings>
 			<permissions>
 				<permission name="CanOverrideSendToChannel" value="False" />
 			</permissions>
@@ -27,7 +33,9 @@
 			</permissions>
 		</plugin> 
 		<plugin typename="NielsRask.Logger" path="plugins\logger\logger.dll" >
-			<logfolderpath>c:\logs</logfolderpath>
+			<settings>
+				<logfolderpath>c:\logs</logfolderpath>
+			</settings>
 			<permissions>
 				<permission name="CanOverrideSendToChannel" value="False" />
 			</permissions>

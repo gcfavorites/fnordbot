@@ -12,6 +12,9 @@ namespace NielsRask.SortSnak
 		private Vocabulary vocab;
 		private FnordBot.FnordBot bot;
 		private XmlNode configNode;
+		private int sortSnakAnswerChance = 15; 
+		string vocabularyFilePath;
+		int saveInterval = 5;
 
 
 		public Plugin()
@@ -31,22 +34,19 @@ namespace NielsRask.SortSnak
 			string[] words = line.Split(' ');
 			if (words.Length > 3) 
 			{
-
-				//foreach (string word in words) {
 				bool canStart = true;
 				queue.Enqueue("START");	// lav en startnode
 				bool canTerminate = false;
-				for (int i=0; i<words.Length; i++) 
+				for (int i=0; i<words.Length; i++) // for each word in message
 				{
 					string word = words[i];
 					if (word.Trim().Length > 0) 
 					{
-						if (i == words.Length) canTerminate = true;
-						//					if (i == words.Length-1) canTerminate = true;
+						if (i == words.Length) // last word in message
+							canTerminate = true;
 						queue.Enqueue(word);
-						if (queue.Count == 3) 
+						if (queue.Count == 3) // 3 words are queued - lets make a fragment of them
 						{
-							//						triplist.Add( queue.CreateTriplet(canStart,canTerminate) );
 							queue.CreateFragment(canStart, canTerminate);
 
 							canStart = false;
@@ -69,18 +69,25 @@ namespace NielsRask.SortSnak
 		{
 			int minscore = 9999;
 			int minindex = 0;
-			string[] parts = line.Split(' ');
+			string[] parts = line.Split(' '); // split the message
 			for (int i=0; i<parts.Length; i++) 
 			{
-				Word wrd = vocab.Words[parts[i]];
-				if (wrd != null && wrd.Score < minscore) 
+				Word wrd = vocab.Words[parts[i]];			// get the word from wordlist
+				if (wrd != null && wrd.Score < minscore)	// if the word is known and is rare enough
 				{
 					minscore = vocab.Words[parts[i]].Score;
 					minindex = i;
 				}
 			}
-			Console.WriteLine("rarity: "+parts[minindex]+", score: "+minscore);
-			if (minscore == 9999) return "";
+			if (minscore == 9999) 
+			{
+				Console.WriteLine("GenerateAnswer(\""+line+"\"): No rare words found?");
+				return "";
+			}
+			else 
+			{
+				Console.WriteLine("GenerateAnswer(\""+line+"\"): rarest word is '"+parts[minindex]+"' with score "+minscore);
+			}
 			return GenerateReply( parts[minindex] );
 		}
 
@@ -99,9 +106,6 @@ namespace NielsRask.SortSnak
 				frag = vocab.GetNextFragment( frag );
 			}
 			sb.Append( frag.ThisWord.Value );
-			string wrd = sb.ToString().Split(' ')[0];
-			Console.WriteLine("ord: "+wrd);
-			Console.WriteLine("word: "+vocab.Words[wrd].Value+" score:"+vocab.Words[wrd].Score+"");
 
 			return sb.ToString();
 		}
@@ -111,56 +115,47 @@ namespace NielsRask.SortSnak
 			return vocab.KnowsWord(word);	// placeholder for old implementations
 		}
 
+		// generate a reply that contains the specified word
 		private string GenerateReply(string word)
 		{
 			StringBuilder sb = new StringBuilder(null);
 
-			Fragment frag = vocab.GetFragmentByWord(word); // hent random fragment med start-ord som thisword
+			// get a random fragment that contains the word
+			Fragment frag = vocab.GetFragmentByWord(word); 
 			if (frag != null) 
 			{
 				Fragment cur = frag;
+				// this word cannot end a message. 
+				// note: ends as soon as possible - maybe we shouldcontinue sometimes, if at all possible
 				while (!cur.CanEnd) 
 				{
-					sb.Append( cur.ThisWord.Value+" " );
-					cur = vocab.GetNextFragment( cur );
+					sb.Append( cur.ThisWord.Value+" " );	// append to our stringbuilder
+					cur = vocab.GetNextFragment( cur );		// get the next fragment
 				}
-				sb.Append( cur.ThisWord.Value );
+				sb.Append( cur.ThisWord.Value );			// add the message-ending word
 
 				cur = frag;
+				// loop until we find a word that can start a message
 				while (!cur.CanStart) 
 				{
-					cur = vocab.GetPreviousFragment( cur );
-					sb.Insert(0, cur.ThisWord.Value+" " );
+					cur = vocab.GetPreviousFragment( cur ); // get an random prevoius fragment
+					sb.Insert(0, cur.ThisWord.Value+" " );	// add to beginning of stringbuilder
 				}
 			}
 			else 
 			{
-				Console.WriteLine("kunne ikke generere svar til '"+word+"'");
+				Console.WriteLine("Unable to genearte reply based on '"+word+"'");
 				return "";
 			}
 			return sb.ToString();
 		}
 
-		public int Count()
-		{
-			return 0;
-		}
-
-		public void Dump() 
-		{
-			Console.WriteLine("-------------------------\ncontents of prev-col");
-			foreach (Fragment frg in vocab.PrevSortedFragments) Console.WriteLine("-> "+frg.ToString());
-			Console.WriteLine("-------------------------\ncontents of this-col");
-			foreach (Fragment frg in vocab.CenterSortedFragments) Console.WriteLine("-> "+frg.ToString());
-			Console.WriteLine("-------------------------\ncontents of next-col");
-			foreach (Fragment frg in vocab.NextSortedFragments) Console.WriteLine("-> "+frg.ToString());
-		}
 		#endregion
+
 		#region IPlugin Members
 
 		public void Attach(FnordBot.FnordBot bot)
 		{
-			// TODO:  Add Plugin.Attach implementation
 			this.bot = bot;
 			bot.OnPublicMessage += new FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
 			bot.OnPrivateMessage += new FnordBot.FnordBot.MessageHandler(bot_OnPrivateMessage);
@@ -169,49 +164,95 @@ namespace NielsRask.SortSnak
 		public void Init( XmlNode pluginNode )
 		{
 			this.configNode = pluginNode;
-			// TODO:  Add Plugin.Init implementation
-
 			Console.Write("loading vocabulary ... ");
-			LoadVocabulary();
+			LoadConfig();
+			if (saveInterval > 0)
+			{
+				Thread thrdVocabSave = new Thread( new ThreadStart( AutoSaveVocabulary ) );
+			}
 			Console.WriteLine("done");
-
-//			MircLogParser mlp = new MircLogParser(@"c:\data\#crayon.log", this, 15000);
-//			Thread thrdLogLoader = new Thread( new ThreadStart(mlp.StartParser) );
-//			thrdLogLoader.IsBackground = true;
-//			thrdLogLoader.Name = "Log loader thread";
-//			thrdLogLoader.Start();
-
 		}
 
 		#endregion
 
+		private void AutoSaveVocabulary() 
+		{
+			Thread.Sleep( TimeSpan.FromMinutes( saveInterval ) );
+
+			SaveVocabulary();
+		}
+
+		private void LoadConfig() 
+		{
+			vocabularyFilePath = configNode.SelectSingleNode("settings/vocabularyfilepath/text()").Value;
+			if (!Path.IsPathRooted( vocabularyFilePath )) 
+			{
+				vocabularyFilePath = Path.Combine(bot.InstallationFolderPath, vocabularyFilePath);
+			}
+
+			// start a thread for vocabulary loading
+			Thread threadVocabularyLoader = new Thread( new ThreadStart( LoadVocabulary ) );
+			threadVocabularyLoader.IsBackground = true;
+			threadVocabularyLoader.Name = "VocabularyLoader";
+			threadVocabularyLoader.Priority = ThreadPriority.BelowNormal;
+			threadVocabularyLoader.Start();
+
+			try 
+			{
+				sortSnakAnswerChance = int.Parse(configNode.SelectSingleNode("settings/answerchance/text()").Value);
+				vocab.SimpleMatchChance = int.Parse(configNode.SelectSingleNode("settings/simplechance/text()").Value);
+				vocab.AmbientSimpleMatchChance = int.Parse(configNode.SelectSingleNode("settings/ambientsimplechance/text()").Value);
+				vocab.MinimumOverlap = int.Parse(configNode.SelectSingleNode("settings/minimumoverlap/text()").Value);
+				saveInterval = int.Parse(configNode.SelectSingleNode("settings/autosaving/text()").Value);
+			} 
+			catch {}
+		}
+
+		// hmm ... this should really be a switch-case
 		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
-			if (!message.StartsWith("!") && message.Split(' ').Length > 2) ParseLine(message);
+			// message is not a command and is more than 2 words - add to vocabulary
+			if (!message.StartsWith("!") && message.Split(' ').Length > 2) 
+			{
+				ParseLine(message);
+			}
 
-			if (message == "!talk")	// tal på kommando ...
+			// make the bot say something random
+			if (message == "!talk")	
 			{
 				bot.SendToChannel( channel, GenerateLine() );
 			} 
-			else if (message == "!save")	// tal på kommando ...
+			// saves the vocabulary - need to trig it by a timer
+			else if (message == "!save")	
 			{
-				//				bot.SendToChannel( channel, GenerateLine() );
 				SaveVocabulary();
 			} 
-			else if (message == "!load")	// tal på kommando ...
+			// loads the vocabulary - why? we load it at startup
+			else if (message == "!load")
 			{
-				//				bot.SendToChannel( channel, GenerateLine() );
 				LoadVocabulary();
 			} 
-			else if ( message.StartsWith("!") ) {} // ignorer disse
-			else if (message.IndexOf( bot.NickName ) >= 0)	// de snakker om mig
+			// non-commands are ignored
+			else if ( message.StartsWith("!") ) 
 			{
-				string baseline = message.Replace(bot.NickName,"");	// forsøg på at undgå at den tager sit eget navn med 
-				baseline = message.Replace(bot.NickName+":","");		// derfor skal vi fjerne dens navn så det ikke trigger på popularitet
-				string line = GenerateAnswer(baseline);
-				while ( line.IndexOf( bot.NickName )>0 ) line = GenerateAnswer(message); // TODO nasty, den skal muligvis igennem ret mange
-				bot.SendToChannel( channel, line );
+			} 
+			// someone mentioned the bot by name - cant let that go unanswered
+			else if (message.ToLower().IndexOf( bot.NickName.ToLower() ) >= 0)	
+			{
+				string baseline;
+				// remove the bots name from the message
+				baseline = message.Replace( bot.NickName+":", "" );	
+				baseline = message.Replace( bot.NickName, "" );
+
+				// generate a reply based on the modified message
+				string line = GenerateAnswer( baseline );
+				// if reply contains the bot name, generate another one - potentially lots of tries here!
+				while ( line.ToLower().IndexOf( bot.NickName.ToLower() )>0 ) 
+					line = GenerateAnswer(message); 
+
+				bot.SendToChannel( channel, line ); 
 			}
+			// roll the dice to see if we'll answer
 			else if ( bot.TakeChance(sortSnakAnswerChance) )
 			{
 				string line = GenerateAnswer( message );
@@ -219,13 +260,11 @@ namespace NielsRask.SortSnak
 			}
 		}
 
-		private int sortSnakAnswerChance = 15; // TODO skal hentes fra config
 
 		internal void SaveVocabulary() 
 		{
-			string path = configNode.SelectSingleNode("vocabularyfilepath/text()").Value;
 			Console.WriteLine("saving vocabulary ...");
-			StreamWriter writer = new StreamWriter( path, false, Encoding.Default );
+			StreamWriter writer = new StreamWriter( vocabularyFilePath, false, Encoding.Default );
 			foreach (Fragment frag in vocab.CenterSortedFragments) 
 			{
 				writer.WriteLine( frag.ToString() );
@@ -236,9 +275,8 @@ namespace NielsRask.SortSnak
 
 		private void LoadVocabulary() 
 		{
-			string path = configNode.SelectSingleNode("vocabularyfilepath/text()").Value;
 			StreamReader reader = null;
-			reader = new StreamReader( path, Encoding.Default );
+			reader = new StreamReader( vocabularyFilePath, Encoding.Default );
 			string line;
 			try 
 			{
@@ -257,6 +295,7 @@ namespace NielsRask.SortSnak
 
 		}
 
+		// parse private messages
 		private void bot_OnPrivateMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{ //try omkring
 			if ( message.StartsWith("!set_sortsnak_answerchance") ) 
@@ -308,8 +347,6 @@ namespace NielsRask.SortSnak
 				bot.SendToUser(user.Name, "get/set_sortsnak_ambientsimplechance value");
 				bot.SendToUser(user.Name, "get_sortsnak_stat");
 			}
-			//simplechance
-			//ambientsimplechance
 		}
 	}
 

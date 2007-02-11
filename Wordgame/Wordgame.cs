@@ -274,7 +274,7 @@ namespace NielsRask.Wordgame
 							oldScore = int.Parse(strOldScore);
 						} 
 						catch {}
-						user.CustomSettings.GetByName("wordgame").SetValue("score", oldScore+1);
+						user.CustomSettings.GetByName("wordgame").SetValue("score", (oldScore+1)+"");
 						user.Save();
 						done = true;
 					}
