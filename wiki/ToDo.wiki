@@ -9,7 +9,3 @@ FnordBot.Init needs refactoring so the config can be reloaded during execution
 wordgame needs !score command to list top10
 
 sortsnak vocabulary propably needs some locking on the fragment lists
-
-Fnordbot needs to write its own config if none exists - cannot be included in projects as it will be deleted on uninstall
-
-logger plugin needs support for relative path to logfiles, just as sortsnak has
