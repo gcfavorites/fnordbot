@@ -18,6 +18,7 @@ namespace NielsRask.Wordgame
 	{
 		FnordBot.FnordBot bot;
 		WordgameCollection gameList;
+		string wordListPath;
 		public Plugin()
 		{
 			gameList = new WordgameCollection();
@@ -32,6 +33,12 @@ namespace NielsRask.Wordgame
 
 		public void Init( XmlNode pluginNode) 
 		{
+			wordListPath = pluginNode.SelectSingleNode("settings/wordlist/text()").Value;
+			if (!Path.IsPathRooted( wordListPath )) 
+			{
+				wordListPath = Path.Combine(bot.InstallationFolderPath, wordListPath);
+			}
+
 			// TODO:  Add WordgameMain.Init implementation
 		}
 		#endregion
@@ -47,7 +54,7 @@ namespace NielsRask.Wordgame
 				} 
 				else 
 				{
-					Wordgame wg = new Wordgame(bot, channel, gameList);
+					Wordgame wg = new Wordgame(bot, channel, gameList, wordListPath);
 					gameList.Add( wg );
 					Thread gameThread = new Thread( new ThreadStart( wg.Start ) );
 					gameThread.Name = "wordgame_"+channel;
@@ -122,6 +129,7 @@ namespace NielsRask.Wordgame
 		bool done = false;
 		WordgameCollection gameList;
 		Random rnd;
+		string wordListPath;
 
 		/// <summary>
 		/// Gets the channel that this game is running in.
@@ -138,12 +146,13 @@ namespace NielsRask.Wordgame
 		/// <param name="bot">The bot.</param>
 		/// <param name="channel">The channel.</param>
 		/// <param name="gameList">The game list.</param>
-		public Wordgame(FnordBot.FnordBot bot, string channel, WordgameCollection gameList) 
+		public Wordgame(FnordBot.FnordBot bot, string channel, WordgameCollection gameList, string wordListPath) 
 		{
 			this.bot = bot;
 			this.channel = channel;
 			this.gameList = gameList;
 			this.rnd = new Random();
+			this.wordListPath = wordListPath;
 		}
 
 		/// <summary>
@@ -204,10 +213,10 @@ namespace NielsRask.Wordgame
 
 		private string SelectWord() 
 		{
-			string path;
-			FileInfo fi = new FileInfo( System.Reflection.Assembly.GetExecutingAssembly().Location );
-			path = fi.DirectoryName+"\\";
-			Console.WriteLine("basepath: "+path);
+			string path = wordListPath;
+//			FileInfo fi = new FileInfo( System.Reflection.Assembly.GetExecutingAssembly().Location );
+//			path = fi.DirectoryName+"\\";
+//			Console.WriteLine("basepath: "+path);
 			if ( File.Exists(path+".\\wordlist.dat") ) path += ".\\wordlist.dat";
 			else if ( File.Exists(path+"..\\..\\wordlist.dat") ) path += "..\\..\\wordlist.dat";
 			else 
