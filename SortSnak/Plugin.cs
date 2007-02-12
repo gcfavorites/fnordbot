@@ -190,6 +190,7 @@ namespace NielsRask.SortSnak
 				vocabularyFilePath = Path.Combine(bot.InstallationFolderPath, vocabularyFilePath);
 			}
 
+
 			// start a thread for vocabulary loading
 			Thread threadVocabularyLoader = new Thread( new ThreadStart( LoadVocabulary ) );
 			threadVocabularyLoader.IsBackground = true;
