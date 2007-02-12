@@ -81,12 +81,12 @@ namespace NielsRask.SortSnak
 			}
 			if (minscore == 9999) 
 			{
-				Console.WriteLine("GenerateAnswer(\""+line+"\"): No rare words found?");
+				bot.WriteLogMessage("GenerateAnswer(\""+line+"\"): No rare words found?");
 				return "";
 			}
 			else 
 			{
-				Console.WriteLine("GenerateAnswer(\""+line+"\"): rarest word is '"+parts[minindex]+"' with score "+minscore);
+				bot.WriteLogMessage("GenerateAnswer(\""+line+"\"): rarest word is '"+parts[minindex]+"' with score "+minscore);
 			}
 			return GenerateReply( parts[minindex] );
 		}
@@ -107,6 +107,7 @@ namespace NielsRask.SortSnak
 			}
 			sb.Append( frag.ThisWord.Value );
 
+			bot.WriteLogMessage("Generated message '"+sb.ToString()+"'");
 			return sb.ToString();
 		}
 
@@ -144,7 +145,7 @@ namespace NielsRask.SortSnak
 			}
 			else 
 			{
-				Console.WriteLine("Unable to genearte reply based on '"+word+"'");
+				bot.WriteLogMessage("Unable to genearte reply based on '"+word+"'");
 				return "";
 			}
 			return sb.ToString();
@@ -264,14 +265,14 @@ namespace NielsRask.SortSnak
 
 		internal void SaveVocabulary() 
 		{
-			Console.WriteLine("saving vocabulary ...");
+			bot.WriteLogMessage("saving vocabulary ...");
 			StreamWriter writer = new StreamWriter( vocabularyFilePath, false, Encoding.Default );
 			foreach (Fragment frag in vocab.CenterSortedFragments) 
 			{
 				writer.WriteLine( frag.ToString() );
 			}
 			writer.Close();
-			Console.WriteLine("vocabulary saved.");
+			bot.WriteLogMessage("vocabulary saved.");
 		}
 
 		private void LoadVocabulary() 

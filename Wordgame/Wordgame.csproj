@@ -80,7 +80,7 @@
                     HintPath = "C:\WINDOWS\Microsoft.NET\Framework\v1.1.4322\System.XML.dll"
                 />
                 <Reference
-                    Name = "FnordBot2"
+                    Name = "FnordBot"
                     Project = "{C841E838-D150-4BF3-A001-61996ED81377}"
                     Package = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"
                 />

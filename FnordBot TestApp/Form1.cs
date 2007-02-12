@@ -22,6 +22,7 @@ namespace NielsRask.FnordBot
 		private System.Windows.Forms.Button button1;
 		private System.Windows.Forms.Button btnConnect2;
 		private System.Windows.Forms.Button btnShow;
+		private System.Windows.Forms.Button button2;
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
@@ -167,6 +168,7 @@ namespace NielsRask.FnordBot
 			this.button1 = new System.Windows.Forms.Button();
 			this.btnConnect2 = new System.Windows.Forms.Button();
 			this.btnShow = new System.Windows.Forms.Button();
+			this.button2 = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// btnConnect
@@ -201,10 +203,19 @@ namespace NielsRask.FnordBot
 			this.btnShow.Text = "Show";
 			this.btnShow.Click += new System.EventHandler(this.btnShow_Click);
 			// 
+			// button2
+			// 
+			this.button2.Location = new System.Drawing.Point(200, 200);
+			this.button2.Name = "button2";
+			this.button2.TabIndex = 4;
+			this.button2.Text = "button2";
+			this.button2.Click += new System.EventHandler(this.button2_Click);
+			// 
 			// Form1
 			// 
 			this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
 			this.ClientSize = new System.Drawing.Size(292, 266);
+			this.Controls.Add(this.button2);
 			this.Controls.Add(this.btnShow);
 			this.Controls.Add(this.btnConnect2);
 			this.Controls.Add(this.button1);
@@ -254,7 +265,7 @@ namespace NielsRask.FnordBot
 			// of the FnordBot2 project, as the assembly is copied to the launcher programs /bin directory
 			// the solution is to edit the following relative path (starts in the launcher directory)
 			// this should be resolved in the final releases
-			bot = new FnordBot("..\\..\\..\\FnordBot2\\");
+			bot = new NielsRask.FnordBot.FnordBot("..\\..\\..\\FnordBot2\\");
 			bot.Init();
 			bot.Connect();
 		}
@@ -274,9 +285,14 @@ namespace NielsRask.FnordBot
 
 		private void btnConnect_Click(object sender, System.EventArgs e)
 		{
-			bot = new FnordBot("..\\..\\..\\FnordBot2\\");
+			bot = new FnordBot();
 //			bot.PluginTest();
 			Close();
+		}
+
+		private void button2_Click(object sender, System.EventArgs e)
+		{
+			NielsRask.FnordBot.FnordBot bot = new NielsRask.FnordBot.FnordBot(".");
 		}
 	}
 }
