@@ -341,7 +341,10 @@ namespace NielsRask.LibIrc
 			System.Threading.Thread.Sleep(30*1000);
 			try 
 			{
+				WriteLogMessage("Reconnecting ...");
 				Connect();
+				WriteLogMessage("Reconnected.");
+
 			} 
 			catch (Exception) 
 			{

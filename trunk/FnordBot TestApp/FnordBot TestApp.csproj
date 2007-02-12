@@ -9,7 +9,7 @@
             <Settings
                 ApplicationIcon = "App.ico"
                 AssemblyKeyContainerName = ""
-                AssemblyName = "FnordBot"
+                AssemblyName = "FnordBotTest"
                 AssemblyOriginatorKeyFile = ""
                 DefaultClientScript = "JScript"
                 DefaultHTMLPageLayout = "Grid"
@@ -90,13 +90,13 @@
                     HintPath = "..\..\..\..\..\..\WINDOWS\Microsoft.NET\Framework\v1.1.4322\System.XML.dll"
                 />
                 <Reference
-                    Name = "FnordBot"
-                    Project = "{C841E838-D150-4BF3-A001-61996ED81377}"
+                    Name = "LibIrc2"
+                    Project = "{7C8B4F84-4003-4230-983F-915E0681431A}"
                     Package = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"
                 />
                 <Reference
-                    Name = "LibIrc2"
-                    Project = "{7C8B4F84-4003-4230-983F-915E0681431A}"
+                    Name = "FnordBot"
+                    Project = "{C841E838-D150-4BF3-A001-61996ED81377}"
                     Package = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"
                 />
             </References>

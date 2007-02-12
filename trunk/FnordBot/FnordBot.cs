@@ -61,6 +61,11 @@ namespace NielsRask.FnordBot
 		#endregion
 
 
+		public FnordBot() 
+		{
+
+		}
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FnordBot"/> class.
 		/// </summary>
