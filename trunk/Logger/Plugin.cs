@@ -37,7 +37,11 @@ namespace Logger
 		{
 			try 
 			{
-				logFolderPath = pluginNode.SelectSingleNode("settings/logfolderpath/text()").Value;
+				logFolderPath = configNode.SelectSingleNode("settings/logfolderpath/text()").Value;
+				if (!Path.IsPathRooted( logFolderPath )) 
+				{
+					logFolderPath = Path.Combine(bot.InstallationFolderPath, logFolderPath);
+				}
 			} 
 			catch {}
 			Directory.CreateDirectory( logFolderPath );
