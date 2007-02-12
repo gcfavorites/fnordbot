@@ -34,7 +34,7 @@
 		</plugin> 
 		<plugin typename="NielsRask.Logger" path="plugins\logger\logger.dll" >
 			<settings>
-				<logfolderpath>c:\logs</logfolderpath>
+				<logfolderpath>plugins\logger\logs</logfolderpath>
 			</settings>
 			<permissions>
 				<permission name="CanOverrideSendToChannel" value="False" />
