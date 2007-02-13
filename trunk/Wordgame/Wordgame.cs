@@ -249,21 +249,30 @@ namespace NielsRask.Wordgame
 
 		private void OnFirstHint(object obj) 
 		{
-			Console.WriteLine("sending first hint");
-			bot.SendToChannel( channel, "First letter ---> "+secretWord.Substring(0,1) );
+			if (!done) 
+			{
+				Console.WriteLine("sending first hint");
+				bot.SendToChannel( channel, "First letter ---> "+secretWord.Substring(0,1) );
+			}
 		}
 
 		private void OnSecondHint(object obj) 
 		{
-			Console.WriteLine("sending second hint");
-			bot.SendToChannel( channel, "First two letters ---> "+secretWord.Substring(0,2) );
+			if (!done) 
+			{
+				Console.WriteLine("sending second hint");
+				bot.SendToChannel( channel, "First two letters ---> "+secretWord.Substring(0,2) );
+			}
 		}
 
 		private void OnGameEnd(object obj) 
 		{
-			Console.WriteLine("game has ended");
-			bot.SendToChannel( channel, "Nobody got it... losers!");
-			done = true;
+			if (!done) 
+			{
+				Console.WriteLine("game has ended");
+				bot.SendToChannel( channel, "Nobody got it... losers!");
+				done = true;
+			}
 		}
 
 		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)

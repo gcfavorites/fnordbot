@@ -42,10 +42,13 @@ namespace Logger
 				{
 					logFolderPath = Path.Combine(bot.InstallationFolderPath, logFolderPath);
 				}
+				Directory.CreateDirectory( logFolderPath );
+				if ( !logFolderPath.EndsWith("\\") ) logFolderPath += "\\";
 			} 
-			catch {}
-			Directory.CreateDirectory( logFolderPath );
-			if ( !logFolderPath.EndsWith("\\") ) logFolderPath += "\\";
+			catch (Exception e) 
+			{
+				bot.WriteLogMessage("Error in logger init: "+e);
+			}
 		}
 
 		#endregion

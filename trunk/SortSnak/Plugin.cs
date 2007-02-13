@@ -170,6 +170,7 @@ namespace NielsRask.SortSnak
 			if (saveInterval > 0)
 			{
 				Thread thrdVocabSave = new Thread( new ThreadStart( AutoSaveVocabulary ) );
+				thrdVocabSave.Start();
 			}
 			Console.WriteLine("done");
 		}
@@ -185,19 +186,33 @@ namespace NielsRask.SortSnak
 
 		private void LoadConfig() 
 		{
-			vocabularyFilePath = configNode.SelectSingleNode("settings/vocabularyfilepath/text()").Value;
-			if (!Path.IsPathRooted( vocabularyFilePath )) 
+			if (configNode == null) 
 			{
-				vocabularyFilePath = Path.Combine(bot.InstallationFolderPath, vocabularyFilePath);
+				bot.WriteLogMessage("sortsnak got null confignode!");
+			}
+			if (configNode.SelectSingleNode("settings/vocabularyfilepath/text()") != null) 
+			{
+				vocabularyFilePath = configNode.SelectSingleNode("settings/vocabularyfilepath/text()").Value;
+				if (!Path.IsPathRooted( vocabularyFilePath )) 
+				{
+					vocabularyFilePath = Path.Combine(bot.InstallationFolderPath, vocabularyFilePath);
+				}
+				bot.WriteLogMessage("vocabulary found at "+vocabularyFilePath);
+			} 
+			else 
+			{
+				bot.WriteLogMessage("Error in LoadConfig: cannot read settings/vocabularyfilepath/text()");
 			}
 
-
-			// start a thread for vocabulary loading
-			Thread threadVocabularyLoader = new Thread( new ThreadStart( LoadVocabulary ) );
-			threadVocabularyLoader.IsBackground = true;
-			threadVocabularyLoader.Name = "VocabularyLoader";
-			threadVocabularyLoader.Priority = ThreadPriority.BelowNormal;
-			threadVocabularyLoader.Start();
+			if ( File.Exists(vocabularyFilePath) ) 
+			{
+				// start a thread for vocabulary loading
+				Thread threadVocabularyLoader = new Thread( new ThreadStart( LoadVocabulary ) );
+				threadVocabularyLoader.IsBackground = true;
+				threadVocabularyLoader.Name = "VocabularyLoader";
+				threadVocabularyLoader.Priority = ThreadPriority.BelowNormal;
+				threadVocabularyLoader.Start();
+			}
 
 			try 
 			{
@@ -207,7 +222,10 @@ namespace NielsRask.SortSnak
 				vocab.MinimumOverlap = int.Parse(configNode.SelectSingleNode("settings/minimumoverlap/text()").Value);
 				saveInterval = int.Parse(configNode.SelectSingleNode("settings/autosaving/text()").Value);
 			} 
-			catch {}
+			catch (Exception e) 
+			{
+				Console.WriteLine("error on sortsnak loadconfig: "+e);
+			}
 		}
 
 		// hmm ... this should really be a switch-case
@@ -277,6 +295,7 @@ namespace NielsRask.SortSnak
 
 		private void LoadVocabulary() 
 		{
+			bot.WriteLogMessage("loading vocabulary ...");
 			StreamReader reader = null;
 			reader = new StreamReader( vocabularyFilePath, Encoding.Default );
 			string line;
@@ -294,6 +313,7 @@ namespace NielsRask.SortSnak
 			{
 				if (reader!=null) reader.Close();
 			}
+			bot.WriteLogMessage("vocabulary loaded.");
 
 		}
 

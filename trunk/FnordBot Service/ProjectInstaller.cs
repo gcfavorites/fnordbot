@@ -46,82 +46,82 @@ namespace Sonate.Taskserver
 		//---
 		public override void Install(System.Collections.IDictionary stateSaver) {
 			base.Install(stateSaver);
-//			WriteInitialConfig();
+			WriteInitialConfig();
 		}
 
 		//---
 
 
-//		private void WriteInitialConfig() 
-//		{
-//			try  
-//			{
-//				string installpath = Context.Parameters["path"];
-//				if ( !installpath.EndsWith("\\") )
-//					installpath += "\\";
-//
-//				string filepath;
-//				if (!File.Exists(installpath+"Config.xml")) 
-//				{
-//					filepath = installpath+"Config.xml";
-//				}
-//				else 
-//				{
-//					filepath = installpath+"Config.foo";
-//				}
-//
-//				StreamWriter sw = new StreamWriter(filepath,false, System.Text.Encoding.Default);
-//				sw.WriteLine("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?> ");
-//				sw.WriteLine("<config>");
-//				sw.WriteLine("	<client>");
-//				sw.WriteLine("		<server port=\"6667\">irc.droso.net</server>");
-//				sw.WriteLine("		<nickname>BimseBot</nickname>");
-//				sw.WriteLine("		<altnick>BimmerBot</altnick>");
-//				sw.WriteLine("		<realname>B. Imse</realname>");
-//				sw.WriteLine("		<username>bimmerfooo</username>");
-//				sw.WriteLine("		<channels>");
-//				sw.WriteLine("			<channel>");
-//				sw.WriteLine("				<name>#bottest</name>");
-//				sw.WriteLine("				<messagerate messages=\"5\" minutes=\"15\"/>");
-//				sw.WriteLine("			</channel>");
-//				sw.WriteLine("		</channels>");
-//				sw.WriteLine("	</client>");
-//				sw.WriteLine("	<plugins>");
-//				sw.WriteLine("		<plugin typename=\"NielsRask.SortSnak.Plugin\" path=\"plugins\\sortsnak\\sortsnak.dll\" >");
-//				sw.WriteLine("			<settings>");
-//				sw.WriteLine("				<vocabularyfilepath>plugins\\sortsnak\\vocabulary.dat</vocabularyfilepath>");
-//				sw.WriteLine("				<answerchance>15</answerchance>");
-//				sw.WriteLine("				<minimumoverlap>3</minimumoverlap>");
-//				sw.WriteLine("				<simplechance>35</simplechance>");
-//				sw.WriteLine("				<ambientsimplechance>10</ambientsimplechance>");
-//				sw.WriteLine("				<autosaving>5</autosaving>");
-//				sw.WriteLine("			</settings>");
-//				sw.WriteLine("			<permissions>");
-//				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"False\" />");
-//				sw.WriteLine("			</permissions>");
-//				sw.WriteLine("		</plugin> ");
-//				sw.WriteLine("		<plugin typename=\"NielsRask.Wordgame.Plugin\" path=\"plugins\\wordgame\\wordgame.dll\" >");
-//				sw.WriteLine("			<settings>");
-//				sw.WriteLine("				<wordlist>plugins\\wordgame\\wordlist.dat</wordlist>");
-//				sw.WriteLine("			</settings>");
-//				sw.WriteLine("			<permissions>");
-//				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"True\" />");
-//				sw.WriteLine("			</permissions>");
-//				sw.WriteLine("		</plugin> ");
-//				sw.WriteLine("		<plugin typename=\"NielsRask.Logger\" path=\"plugins\\logger\\logger.dll\" >");
-//				sw.WriteLine("			<settings>");
-//				sw.WriteLine("				<logfolderpath>plugins\\logger\\logs</logfolderpath>");
-//				sw.WriteLine("			</settings>");
-//				sw.WriteLine("			<permissions>");
-//				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"False\" />");
-//				sw.WriteLine("			</permissions>");
-//				sw.WriteLine("		</plugin> ");
-//				sw.WriteLine("	</plugins>");
-//				sw.WriteLine("</config>");
-//				sw.Close();
-//			} 
-//			catch {}
-//		}
+		private void WriteInitialConfig() 
+		{
+			try  
+			{
+				string installpath = Context.Parameters["path"];
+				if ( !installpath.EndsWith("\\") )
+					installpath += "\\";
+
+				string filepath;
+				if (!File.Exists(installpath+"Config.xml")) 
+				{
+					filepath = installpath+"Config.xml";
+				}
+				else 
+				{
+					filepath = installpath+"Config.foo";
+				}
+
+				StreamWriter sw = new StreamWriter(filepath,true, System.Text.Encoding.Default);
+				sw.WriteLine("<?xml version=\"1.0\" encoding=\"iso-8859-1\" ?> ");
+				sw.WriteLine("<config>");
+				sw.WriteLine("	<client>");
+				sw.WriteLine("		<server port=\"6667\">irc.droso.net</server>");
+				sw.WriteLine("		<nickname>BimseBot</nickname>");
+				sw.WriteLine("		<altnick>BimmerBot</altnick>");
+				sw.WriteLine("		<realname>B. Imse</realname>");
+				sw.WriteLine("		<username>bimmerfooo</username>");
+				sw.WriteLine("		<channels>");
+				sw.WriteLine("			<channel>");
+				sw.WriteLine("				<name>#bottest</name>");
+				sw.WriteLine("				<messagerate messages=\"5\" minutes=\"15\"/>");
+				sw.WriteLine("			</channel>");
+				sw.WriteLine("		</channels>");
+				sw.WriteLine("	</client>");
+				sw.WriteLine("	<plugins>");
+				sw.WriteLine("		<plugin typename=\"NielsRask.SortSnak.Plugin\" path=\"plugins\\sortsnak\\sortsnak.dll\" >");
+				sw.WriteLine("			<settings>");
+				sw.WriteLine("				<vocabularyfilepath>plugins\\sortsnak\\vocabulary.dat</vocabularyfilepath>");
+				sw.WriteLine("				<answerchance>15</answerchance>");
+				sw.WriteLine("				<minimumoverlap>3</minimumoverlap>");
+				sw.WriteLine("				<simplechance>35</simplechance>");
+				sw.WriteLine("				<ambientsimplechance>10</ambientsimplechance>");
+				sw.WriteLine("				<autosaving>5</autosaving>");
+				sw.WriteLine("			</settings>");
+				sw.WriteLine("			<permissions>");
+				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"False\" />");
+				sw.WriteLine("			</permissions>");
+				sw.WriteLine("		</plugin> ");
+				sw.WriteLine("		<plugin typename=\"NielsRask.Wordgame.Plugin\" path=\"plugins\\wordgame\\wordgame.dll\" >");
+				sw.WriteLine("			<settings>");
+				sw.WriteLine("				<wordlist>plugins\\wordgame\\wordlist.dat</wordlist>");
+				sw.WriteLine("			</settings>");
+				sw.WriteLine("			<permissions>");
+				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"True\" />");
+				sw.WriteLine("			</permissions>");
+				sw.WriteLine("		</plugin> ");
+				sw.WriteLine("		<plugin typename=\"NielsRask.Logger\" path=\"plugins\\logger\\logger.dll\" >");
+				sw.WriteLine("			<settings>");
+				sw.WriteLine("				<logfolderpath>plugins\\logger\\logs</logfolderpath>");
+				sw.WriteLine("			</settings>");
+				sw.WriteLine("			<permissions>");
+				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"False\" />");
+				sw.WriteLine("			</permissions>");
+				sw.WriteLine("		</plugin> ");
+				sw.WriteLine("	</plugins>");
+				sw.WriteLine("</config>");
+				sw.Close();
+			} 
+			catch {}
+		}
 
 		#region Component Designer generated code
 		/// <summary>
