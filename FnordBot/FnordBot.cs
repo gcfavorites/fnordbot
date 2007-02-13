@@ -154,16 +154,24 @@ namespace NielsRask.FnordBot
 				{
 					string typename = node.SelectSingleNode("@typename").Value;
 					string path = node.SelectSingleNode("@path").Value;
-					if (!Path.IsPathRooted( path )) 
+					try 
 					{
-						path = Path.Combine(installationFolderPath, path);
-//						Console.WriteLine("Relative path combined to "+path);
-//					} 
-//					else 
-//					{
-//						Console.WriteLine("path is absolute: "+path);
+						if (!Path.IsPathRooted( path )) 
+						{
+							path = Path.Combine(installationFolderPath, path);
+							//						Console.WriteLine("Relative path combined to "+path);
+							//					} 
+							//					else 
+							//					{
+							//						Console.WriteLine("path is absolute: "+path);
+						}
+						WriteLogMessage("pluginnode for "+typename+": "+node.OuterXml);
+						LoadPlugin( typename, path, node );
+					} 
+					catch (Exception e) 
+					{
+						WriteLogMessage("Error loading plugin "+typename+": "+e);
 					}
-					LoadPlugin( typename, path, node );
 				}
 
 				WriteLogMessage("Fnordbot started");
@@ -424,8 +432,8 @@ namespace NielsRask.FnordBot
 			Assembly pAsm = Assembly.LoadFrom( path );
 			Console.WriteLine("Loading plugin "+pAsm.CodeBase);
 			IPlugin plugin = (IPlugin)pAsm.CreateInstance( type );
-			plugin.Init( pluginNode );
 			plugin.Attach( this );
+			plugin.Init( pluginNode );
 			Console.WriteLine("Attached plugin "+type);
 		}
 
@@ -720,12 +728,12 @@ namespace NielsRask.FnordBot
 	public interface IPlugin 
 	{
 		/// <summary>
-		/// For initalizing the plugin
+		/// For initalizing the plugin. Called after Attach().
 		/// </summary>
 		void Init( XmlNode pluginNode );
 
 		/// <summary>
-		/// Attach subscribers to the forwarders events
+		/// Attach subscribers to the forwarders events. Called before Init().
 		/// </summary>
 		/// <param name="bot">the event forwarder object</param>
 		void Attach( FnordBot bot );

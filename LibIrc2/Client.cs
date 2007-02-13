@@ -350,7 +350,7 @@ namespace NielsRask.LibIrc
 			{
 				WriteLogMessage("Reconnect failed");
 			}
-			Network_OnDisconnect();	// holder det?
+//			Network_OnDisconnect();	// holder det?
 		}
 		#endregion
 
