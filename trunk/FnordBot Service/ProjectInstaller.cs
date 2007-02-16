@@ -13,7 +13,6 @@ namespace Sonate.Taskserver
 	[RunInstaller(true)]
 	public class ProjectInstaller : System.Configuration.Install.Installer
 	{
-		private string TaskserverServiceName = "FnordBot";
 
 		private System.ServiceProcess.ServiceProcessInstaller serviceProcessInstaller1;
 		private System.ServiceProcess.ServiceInstaller serviceInstaller1;
@@ -108,7 +107,7 @@ namespace Sonate.Taskserver
 				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"True\" />");
 				sw.WriteLine("			</permissions>");
 				sw.WriteLine("		</plugin> ");
-				sw.WriteLine("		<plugin typename=\"NielsRask.Logger\" path=\"plugins\\logger\\logger.dll\" >");
+				sw.WriteLine("		<plugin typename=\"NielsRask.Logger.Plugin\" path=\"plugins\\logger\\logger.dll\" >");
 				sw.WriteLine("			<settings>");
 				sw.WriteLine("				<logfolderpath>plugins\\logger\\logs</logfolderpath>");
 				sw.WriteLine("			</settings>");
@@ -141,7 +140,7 @@ namespace Sonate.Taskserver
 			// 
 			// serviceInstaller1
 			// 
-			this.serviceInstaller1.ServiceName = TaskserverServiceName;
+			this.serviceInstaller1.ServiceName = "FnordBot";
 			this.serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
 			// 
 			// ProjectInstaller

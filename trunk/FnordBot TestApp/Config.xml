@@ -3,15 +3,45 @@
 	<client>
 		<server port="6667">irc.droso.net</server>
 		<nickname>BimseBot</nickname>
+		<altnick>BimmerBot</altnick>
 		<realname>B. Imse</realname>
 		<username>bimmerfooo</username>
 		<channels>
-			<channel>#bottest</channel>
+			<channel>
+				<name>#bottest</name>
+				<messagerate messages="5" minutes="15"/>
+			</channel>
 		</channels>
 	</client>
 	<plugins>
-		<!-- <plugin typename="TestPlugin.Class1" path="C:\Documents and Settings\Niels\My Documents\Visual Studio Projects\FnordBot\TestPlugin\bin\Debug\TestPlugin.dll" />
-		<plugin typename="NielsRask.SortSnak.Plugin" path="C:\Documents and Settings\Niels\My Documents\Visual Studio Projects\FnordBot\SortSnak\bin\Debug\SortSnak.dll" /> -->
-		<plugin typename="NielsRask.Wordgame.Plugin" path="C:\Documents and Settings\Niels\My Documents\Visual Studio Projects\FnordBot\Wordgame\bin\Debug\Wordgame.dll" />
+		<plugin typename="NielsRask.SortSnak.Plugin" path="..\..\..\sortsnak\bin\debug\sortsnak.dll" >
+			<settings>
+				<vocabularyfilepath>..\..\..\sortsnak\vocabulary.dat</vocabularyfilepath>
+				<answerchance>15</answerchance>
+				<minimumoverlap>3</minimumoverlap>
+				<simplechance>35</simplechance>
+				<ambientsimplechance>10</ambientsimplechance>
+				<autosaving>5</autosaving>
+			</settings>
+			<permissions>
+				<permission name="CanOverrideSendToChannel" value="False" />
+			</permissions>
+		</plugin> 
+		<plugin typename="NielsRask.Wordgame.Plugin" path="..\..\..\wordgame\bin\debug\wordgame.dll" >
+			<settings>
+				<wordlist>..\..\..\wordgame\wordlist.dat</wordlist>
+			</settings>
+			<permissions>
+				<permission name="CanOverrideSendToChannel" value="True" />
+			</permissions>
+		</plugin> 
+		<plugin typename="NielsRask.Logger" path="..\..\..\logger\bin\debug\logger.dll" >
+			<settings>
+				<logfolderpath>c:\</logfolderpath>
+			</settings>
+			<permissions>
+				<permission name="CanOverrideSendToChannel" value="False" />
+			</permissions>
+		</plugin> 
 	</plugins>
 </config>

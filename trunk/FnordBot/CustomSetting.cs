@@ -76,7 +76,7 @@ namespace NielsRask.FnordBot
 				string key = items.Keys[i];
 				xml += "<"+key+">"+items[key]+"</"+key+">";
 			}
-			xml += "<"+name+">";
+			xml += "</"+name+">";
 			return xml;
 		}
 	}
