@@ -265,8 +265,9 @@ namespace NielsRask.FnordBot
 			// of the FnordBot2 project, as the assembly is copied to the launcher programs /bin directory
 			// the solution is to edit the following relative path (starts in the launcher directory)
 			// this should be resolved in the final releases
-			bot = new NielsRask.FnordBot.FnordBot("..\\..\\..\\FnordBot2\\");
+			bot = new NielsRask.FnordBot.FnordBot("..\\..\\..\\FnordBot\\");
 			bot.Init();
+			bot.OnLogMessage += new NielsRask.FnordBot.FnordBot.LogMessageHandler(bot_OnLogMessage);
 			bot.Connect();
 		}
 
@@ -285,14 +286,19 @@ namespace NielsRask.FnordBot
 
 		private void btnConnect_Click(object sender, System.EventArgs e)
 		{
-			bot = new FnordBot();
-//			bot.PluginTest();
-			Close();
+//			bot = new FnordBot();
+////			bot.PluginTest();
+//			Close();
 		}
 
 		private void button2_Click(object sender, System.EventArgs e)
 		{
 			NielsRask.FnordBot.FnordBot bot = new NielsRask.FnordBot.FnordBot(".");
+		}
+
+		private void bot_OnLogMessage(string message)
+		{
+			Console.WriteLine( message );
 		}
 	}
 }

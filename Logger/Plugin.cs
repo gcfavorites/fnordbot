@@ -2,35 +2,43 @@ using System;
 using NielsRask.FnordBot;
 using System.IO;
 
-namespace Logger
+namespace NielsRask.Logger
 {
 	/// <summary>
 	/// Summary description for Class1.
 	/// </summary>
-	public class Logger : IPlugin
+	public class Plugin : IPlugin
 	{
-		FnordBot bot;
+		NielsRask.FnordBot.FnordBot bot;
 		StreamWriter writer;
 		string logFolderPath = "c:\\";
 
-		public Logger()
+		public Plugin()
 		{}
 
 		#region IPlugin Members
 
-		public void Attach(FnordBot bot)
+		public void Attach(NielsRask.FnordBot.FnordBot bot)
 		{
-			this.bot = bot;
+			Console.WriteLine("in logger attach");
+			try 
+			{
+				this.bot = bot;
 
-			bot.OnPublicMessage +=new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
-			bot.OnPrivateMessage += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateMessage);
-			bot.OnChannelJoin += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelJoin);
-			bot.OnChannelPart += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelPart);
-			bot.OnChannelMode += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelMode);
-			bot.OnChannelKick += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelKick);
-			bot.OnPrivateNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateNotice);
-			bot.OnPublicNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicNotice);
-			bot.OnTopicChange += new NielsRask.FnordBot.FnordBot.ChannelTopicHandler(bot_OnTopicChange);
+				bot.OnPublicMessage +=new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
+				bot.OnPrivateMessage += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateMessage);
+				bot.OnChannelJoin += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelJoin);
+				bot.OnChannelPart += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelPart);
+				bot.OnChannelMode += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelMode);
+				bot.OnChannelKick += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelKick);
+				bot.OnPrivateNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateNotice);
+				bot.OnPublicNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicNotice);
+				bot.OnTopicChange += new NielsRask.FnordBot.FnordBot.ChannelTopicHandler(bot_OnTopicChange);
+			} 
+			catch (Exception e) 
+			{
+				Console.WriteLine("Failed in Logger.Attach: "+e);
+			}
 		}
 
 		public void Init(System.Xml.XmlNode pluginNode)
@@ -47,7 +55,7 @@ namespace Logger
 			} 
 			catch (Exception e) 
 			{
-				bot.WriteLogMessage("Error in logger init: "+e);
+				Console.WriteLine("Error in logger init: "+e);
 			}
 		}
 

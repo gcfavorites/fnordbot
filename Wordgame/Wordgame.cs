@@ -168,8 +168,8 @@ namespace NielsRask.Wordgame
 			string scrambledWord = ScrambleWord( secretWord );
 			Console.WriteLine("gamethread started");
 			
-			bot.SendToChannel( channel, "Unscramble ---> "+scrambledWord );
-			bot.SendToChannel( channel, "Clue ---> "+wordHint );
+			bot.SendToChannel( channel, "Unscramble ---> "+scrambledWord, true  );
+			bot.SendToChannel( channel, "Clue ---> "+wordHint, true  );
 
 			// start timer
 			TimerCallback tmrCbFirstHint = new TimerCallback( OnFirstHint );
@@ -252,7 +252,7 @@ namespace NielsRask.Wordgame
 			if (!done) 
 			{
 				Console.WriteLine("sending first hint");
-				bot.SendToChannel( channel, "First letter ---> "+secretWord.Substring(0,1) );
+				bot.SendToChannel( channel, "First letter ---> "+secretWord.Substring(0,1), true  );
 			}
 		}
 
@@ -261,7 +261,7 @@ namespace NielsRask.Wordgame
 			if (!done) 
 			{
 				Console.WriteLine("sending second hint");
-				bot.SendToChannel( channel, "First two letters ---> "+secretWord.Substring(0,2) );
+				bot.SendToChannel( channel, "First two letters ---> "+secretWord.Substring(0,2), true  );
 			}
 		}
 
@@ -270,7 +270,7 @@ namespace NielsRask.Wordgame
 			if (!done) 
 			{
 				Console.WriteLine("game has ended");
-				bot.SendToChannel( channel, "Nobody got it... losers!");
+				bot.SendToChannel( channel, "Nobody got it... losers!", true );
 				done = true;
 			}
 		}
@@ -282,8 +282,10 @@ namespace NielsRask.Wordgame
 				{
 					if (string.Compare(message, secretWord, true) == 0) 
 					{
-						bot.SendToChannel( channel, "Woohoo "+user.Name+"!! You got it... "+secretWord+"" );
-						string strOldScore = user.CustomSettings.GetByName("wordgame").GetValue("score");
+						done = true;
+						Console.WriteLine("Word guessed, stopping game");
+						bot.SendToChannel( channel, "Woohoo "+user.Name+"!! You got it... "+secretWord+"", true );
+						string strOldScore = user.CustomSettings.GetCustomValue("wordgame", "score");
 						int oldScore = 0;
 						try 
 						{
@@ -292,9 +294,8 @@ namespace NielsRask.Wordgame
 							oldScore = int.Parse(strOldScore);
 						} 
 						catch {}
-						user.CustomSettings.GetByName("wordgame").SetValue("score", (oldScore+1)+"");
+						user.CustomSettings.SetCustomValue("wordgame", "score", (oldScore+1)+"");
 						user.Save();
-						done = true;
 					}
 				}
 			}

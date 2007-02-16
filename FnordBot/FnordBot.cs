@@ -61,11 +61,6 @@ namespace NielsRask.FnordBot
 		#endregion
 
 
-		public FnordBot() 
-		{
-
-		}
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FnordBot"/> class.
 		/// </summary>
@@ -97,12 +92,16 @@ namespace NielsRask.FnordBot
 		private UserCollection LoadUsers() 
 		{
 			XmlDocument xdoc = new XmlDocument();
-			xdoc.Load( usersFilePath );
+			if (File.Exists(usersFilePath)) 
+			{
+				xdoc.Load( usersFilePath );
 
-			XmlNodeList usrlst = xdoc.DocumentElement.SelectNodes("user");
-			Console.WriteLine("found "+usrlst.Count+" usernodes");
+				XmlNodeList usrlst = xdoc.DocumentElement.SelectNodes("user");
+				Console.WriteLine("found "+usrlst.Count+" usernodes");
 			
-			return UserCollection.UnpackUsers( usrlst, new UserCollection.SaveUsersDelegate( SaveUsers ) );		
+				return UserCollection.UnpackUsers( usrlst, new UserCollection.SaveUsersDelegate( SaveUsers ) );		
+			}
+			else return new UserCollection( new UserCollection.SaveUsersDelegate( SaveUsers ) );
 		}
 
 		
@@ -264,7 +263,7 @@ namespace NielsRask.FnordBot
 				// channel or message is empty - call will be ignored
 				if (channel.Length == 0 || text.Length == 0) 
 				{
-					// someone made an error, dont send. maybe we should throw something :)
+					// someone made an error, dont send the message. maybe we should throw something :)
 				}
 				// override requested and is allowed - send to channel
 				else if (overrideQueue && IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) 
@@ -275,15 +274,27 @@ namespace NielsRask.FnordBot
 				else 
 				{
 					// if we're allowed to send
-					if ( queues[channel].CanEnqueue() ) 
+					try 
 					{
-						queues[channel].Enqueue( text ); // auto-dequeues if too long
-						irc.SendToChannel( channel, text );
+						StringQueue queue = queues[channel];
+						if ( queue == null)
+						{
+							WriteLogMessage("queues[\""+channel+"\"] returned null??");
+						}
+						if ( queue.CanEnqueue() ) 
+						{
+							queues[channel].Enqueue( text ); // auto-dequeues if too long
+							irc.SendToChannel( channel, text );
+						} 
+							// we're not alowed to send - maybe we should signal that somehow
+						else 
+						{
+							Console.WriteLine("message to "+channel+" was blocked by floodqueue");
+						}
 					} 
-					// we're not alowed to send - maybe we should signal that somehow
-					else 
+					catch (Exception e) 
 					{
-						Console.WriteLine("message to "+channel+" was blocked by floodqueue");
+						WriteLogMessage("Error in SendToChannel(\""+channel+"\", \""+text+"\", "+overrideQueue+"): "+e);
 					}
 				}
 			} 
@@ -432,6 +443,7 @@ namespace NielsRask.FnordBot
 			Assembly pAsm = Assembly.LoadFrom( path );
 			Console.WriteLine("Loading plugin "+pAsm.CodeBase);
 			IPlugin plugin = (IPlugin)pAsm.CreateInstance( type );
+			Console.WriteLine("attaching "+type);
 			plugin.Attach( this );
 			plugin.Init( pluginNode );
 			Console.WriteLine("Attached plugin "+type);
@@ -746,13 +758,21 @@ namespace NielsRask.FnordBot
 	public class StringQueueHash : Hashtable 
 	{
 		/// <summary>
+		/// Initializes a new instance of the <see cref="StringQueueHash"/> class.
+		/// </summary>
+		public StringQueueHash(): base() 
+		{
+
+		}
+		/// <summary>
 		/// Adds the specified queue.
 		/// </summary>
 		/// <param name="queueName">Name of the queue.</param>
 		/// <param name="value">The value.</param>
 		public void Add(string queueName, StringQueue value)
 		{
-			base.Add (queueName, value);
+			Console.WriteLine("adding queue "+queueName);
+			base.Add (queueName.ToLower(), value);
 		}
 
 		/// <summary>
@@ -763,7 +783,7 @@ namespace NielsRask.FnordBot
 		/// <param name="deltaMin">The delta min.</param>
 		public void Add(string queueName, int deltaMsg, int deltaMin) 
 		{
-			base.Add(queueName, new StringQueue(deltaMsg, deltaMin));
+			base.Add(queueName.ToLower(), new StringQueue(deltaMsg, deltaMin));
 		}
 
 		/// <summary>
@@ -775,7 +795,7 @@ namespace NielsRask.FnordBot
 		/// </returns>
 		public bool ContainsKey(string queueName)
 		{
-			return base.ContainsKey (queueName);
+			return base.ContainsKey (queueName.ToLower());
 		}
 
 		/// <summary>
@@ -859,13 +879,21 @@ namespace NielsRask.FnordBot
 		/// <returns>True if there is room in the queue or the specified amount of time has passed since first message in queue. Otherwise false</returns>
 		public bool CanEnqueue() 
 		{
-			if (Count < dmsg ) return true; // vi har ikke nået max endnu
-			else 
+			try 
 			{
-				TimeSpan dt = DateTime.Now-Peek().TimeStamp; // dT siden første item
-				if (dt.TotalMinutes >= dmin) return true; // 
-				else return false;
+				if (Count < dmsg ) return true; // vi har ikke nået max endnu
+				else 
+				{
+					TimeSpan dt = DateTime.Now-Peek().TimeStamp; // dT siden første item
+					if (dt.TotalMinutes >= dmin) return true; // 
+					else return false;
+				}
+			} 
+			catch (Exception e) 
+			{
+				Console.WriteLine("CanEnqueue failed: "+e);
 			}
+			return false;
 		}
 	}
 

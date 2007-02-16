@@ -115,6 +115,7 @@ namespace NielsRask.FnordBot
 			xml += "<password>"+password+"</password>";
 			xml += hostmasks.ToXmlString();
 			xml += customSettings.ToXmlString();
+			xml += "</user>";
 			return xml;
 		}
 
@@ -271,7 +272,10 @@ namespace NielsRask.FnordBot
 		{
 			string xml = "<users>";
 
-			for(int i=0; i<Count; i++) if (this[i].IsCitizen) xml += this[i].ToXmlString(); // only save citizens
+			for(int i=0; i<Count; i++) 
+				if (this[i].IsCitizen) 
+					xml += this[i].ToXmlString(); // only save citizens
+
 			xml += "</users>";
 			return xml;
 		}
