@@ -68,6 +68,9 @@ Global
 		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Release.ActiveCfg = Release|.NET
 		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Release.Build.0 = Release|.NET
 	EndGlobalSection
+	GlobalSection(SolutionItems) = postSolution
+		FnordBot.FxCop = FnordBot.FxCop
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
 	GlobalSection(ExtensibilityAddIns) = postSolution
