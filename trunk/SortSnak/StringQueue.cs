@@ -21,7 +21,7 @@ namespace NielsRask.SortSnak
 		public void CreateFragment(bool canStart, bool canTerminate) 
 		{
 			object[] arr = base.ToArray();
-			if (arr[0] == null || arr[1] == null || arr[2] == null || (string)arr[0] == "" || (string)arr[1] == "" || (string)arr[2] == "" ) 
+			if (arr[0] == null || arr[1] == null || arr[2] == null || ((string)arr[0]).Length == 0 || ((string)arr[1]).Length == 0 || ((string)arr[2]).Length == 0 ) 
 			{
 				throw new Exception("forsøg på at indsætte null-fragment!");
 			} 

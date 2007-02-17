@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Specialized;
 using System.Xml;
+using System.Text;
 
 namespace NielsRask.FnordBot
 {
@@ -70,14 +71,15 @@ namespace NielsRask.FnordBot
 		/// <returns></returns>
 		public string ToXmlString() 
 		{
-			string xml = "<"+name+">";
+			StringBuilder sb = new StringBuilder();
+			sb.Append( "<"+name+">" );
 			for (int i=0; i<items.Keys.Count; i++) 
 			{
 				string key = items.Keys[i];
-				xml += "<"+key+">"+items[key]+"</"+key+">";
+				sb.Append( "<"+key+">"+items[key]+"</"+key+">" );
 			}
-			xml += "</"+name+">";
-			return xml;
+			sb.Append( "</"+name+">" );
+			return sb.ToString();
 		}
 	}
 
@@ -199,13 +201,14 @@ namespace NielsRask.FnordBot
 		/// <returns></returns>
 		public string ToXmlString() 
 		{
-			string xml = "<custom>";
+			StringBuilder sb = new StringBuilder();
+			sb.Append( "<custom>" );
 			for(int i=0; i<Count; i++) 
 			{
-				xml += this[i].ToXmlString();
+				sb.Append( this[i].ToXmlString() );
 			}
-			xml += "</custom>";
-			return xml;
+			sb.Append( "</custom>" );
+			return sb.ToString();
 		}
 
 		/// <summary>

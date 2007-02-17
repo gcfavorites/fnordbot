@@ -112,7 +112,6 @@ namespace NielsRask.LibIrc
 	{
 		private Thread listener;
 		private StreamReader reader;
-		private StreamWriter writer;
 		private string inputLine;
 		private Network network;
 
@@ -153,7 +152,6 @@ namespace NielsRask.LibIrc
 		internal void Start(NetworkStream stream) 
 		{
 			this.reader = new StreamReader(stream,System.Text.Encoding.Default);
-			this.writer = new StreamWriter(stream,System.Text.Encoding.Default);
 			listener.Start();
 		}
 
@@ -172,7 +170,7 @@ namespace NielsRask.LibIrc
 			catch (Exception e) 
 			{
 				// this message can propably be discarded as we're only interested in the fact that the connection was lost
-				WriteLogMessage("Error in listener.run, connection propably lost: "+e);
+				WriteLogMessage("Error in listener.run, connection probably lost: "+e);
 			} 
 			finally 
 			{

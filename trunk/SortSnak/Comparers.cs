@@ -80,7 +80,7 @@ namespace NielsRask.SortSnak
 
 	public class NextComparer : IComparer
 	{
-		bool reverse = false;
+		bool reverse;
 		public NextComparer() {;}
 		public NextComparer(bool reverse) 
 		{
@@ -109,7 +109,7 @@ namespace NielsRask.SortSnak
 
 	public class OverlapComparer : IComparer 
 	{
-		private bool reverse = false;
+		private bool reverse;
 		public OverlapComparer() {}
 		public OverlapComparer(bool reverse) 
 		{

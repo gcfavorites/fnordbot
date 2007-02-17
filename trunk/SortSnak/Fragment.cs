@@ -26,7 +26,7 @@ namespace NielsRask.SortSnak
 				for(int i =0; i< st.FrameCount; i++ )
 				{
 					StackFrame sf = st.GetFrame(i);
-					if (sf.GetFileName() != "") 
+					if (sf.GetFileName().Length > 0 ) 
 					{
 						Console.WriteLine(indent+" Method: {0} File: {1} : {2}",sf.GetMethod(),sf.GetFileName(), sf.GetFileLineNumber() );
 						indent += "*";
@@ -172,7 +172,7 @@ namespace NielsRask.SortSnak
 			OverlapComparer olc = new OverlapComparer(true);
 			int i = list.BinarySearch(frag, olc);
 			if (i<0) throw new Exception("tilsyneladende blev "+frag+" ikke fundet i denne liste");
-			int o = ~i;
+//			int o = ~i;
 			while (i > 1 && olc.Compare(this[i-1],frag) == 0 ) i--; 
 
 			while(olc.Compare(this[i],frag) == 0) 
@@ -203,7 +203,7 @@ namespace NielsRask.SortSnak
 			int i = list.BinarySearch(frag, olc);
 			if (i<0) throw new Exception("tilsyneladende blev "+frag+" ikke fundet i denne liste");
 			//			Console.WriteLine("fandt next: "+list[i]);
-			int o = ~i;
+//			int o = ~i;
 			while (i > 1 && olc.Compare(this[i-1],frag) == 0 )  
 			{
 				//				Console.WriteLine("backtrack!");

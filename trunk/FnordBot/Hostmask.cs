@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Xml;
+using System.Text;
 
 namespace NielsRask.FnordBot
 {
@@ -208,13 +209,14 @@ namespace NielsRask.FnordBot
 		/// <returns></returns>
 		public string ToXmlString() 
 		{
-			string xml = "<hostmasks>";
+			StringBuilder sb = new StringBuilder();
+			sb.Append(" <hostmasks> ");
 			for(int i=0; i<Count; i++) 
 			{
-				xml += this[i].ToXmlString();
+				sb.Append( this[i].ToXmlString() );
 			}
-			xml += "</hostmasks>";
-			return xml;
+			sb.Append( "</hostmasks>" );
+			return sb.ToString();
 		}
 	}
 

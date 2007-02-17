@@ -126,7 +126,7 @@ namespace NielsRask.Wordgame
 		Timer tmrGameEnd;
 		string secretWord;
 		string wordHint;
-		bool done = false;
+		bool done;
 		WordgameCollection gameList;
 		Random rnd;
 		string wordListPath;
@@ -289,7 +289,7 @@ namespace NielsRask.Wordgame
 						int oldScore = 0;
 						try 
 						{
-							if (strOldScore == null || strOldScore == "")
+							if (strOldScore == null || strOldScore.Length == 0)
 								strOldScore = "0";
 							oldScore = int.Parse(strOldScore);
 						} 

@@ -20,7 +20,7 @@
                 PostBuildEvent = ""
                 RootNamespace = "FnordBotService"
                 RunPostBuildEvent = "OnBuildSuccess"
-                StartupObject = "FnordBotService.Service1"
+                StartupObject = "NielsRask.FnordBotService.Service1"
             >
                 <Config
                     Name = "Debug"
