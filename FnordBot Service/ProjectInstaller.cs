@@ -4,13 +4,15 @@ using System.ComponentModel;
 using System.Configuration.Install;
 using Microsoft.Win32;
 using System.IO;
+using System.Runtime.InteropServices;
 
-namespace Sonate.Taskserver
+namespace NielsRask.FnordBotService
 {
 	/// <summary>
 	/// Summary description for ProjectInstaller.
 	/// </summary>
 	[RunInstaller(true)]
+	[ComVisible(false)]
 	public class ProjectInstaller : System.Configuration.Install.Installer
 	{
 
@@ -19,7 +21,7 @@ namespace Sonate.Taskserver
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
-		private System.ComponentModel.Container components = null;
+		private System.ComponentModel.Container components;
 
 		public ProjectInstaller()
 		{
@@ -32,14 +34,23 @@ namespace Sonate.Taskserver
 		/// </summary>
 		protected override void Dispose( bool disposing )
 		{
-			if( disposing )
+			try 
 			{
-				if(components != null)
+				if( disposing )
 				{
-					components.Dispose();
+					serviceInstaller1.Dispose();
+					serviceProcessInstaller1.Dispose();
+					if(components != null)
+					{
+						components.Dispose();
+					}
 				}
 			}
-			base.Dispose( disposing );
+			catch {}
+			finally
+			{
+				base.Dispose( disposing );
+			}
 		}
 
 		//---

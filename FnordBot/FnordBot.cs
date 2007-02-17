@@ -120,7 +120,7 @@ namespace NielsRask.FnordBot
 		{
 			try 
 			{
-				WriteLogMessage("Fnordbot.init");
+				WriteLogMessage("FnordBot.Init");
 				// load the config xml
 				LoadConfig();
 
@@ -164,7 +164,7 @@ namespace NielsRask.FnordBot
 							//					{
 							//						Console.WriteLine("path is absolute: "+path);
 						}
-						WriteLogMessage("pluginnode for "+typename+": "+node.OuterXml);
+						WriteLogMessage("Plugin node for "+typename+": "+node.OuterXml);
 						LoadPlugin( typename, path, node );
 					} 
 					catch (Exception e) 
@@ -177,7 +177,7 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e) 
 			{
-				WriteLogMessage("error in fnordbot .ctor: "+e);
+				WriteLogMessage("error in FnordBot .ctor: "+e);
 			}
 		}
 
@@ -387,7 +387,7 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e) 
 			{
-				WriteLogMessage("Error in GetcallingAssembly(): "+e);
+				WriteLogMessage("Error in GetCallingAssembly(): "+e);
 			}
 			return null;
 		}
@@ -506,7 +506,7 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e) 
 			{
-				WriteLogMessage("Error in getPluginNamespace( "+asm.FullName+" ). found="+found+": "+e);
+				WriteLogMessage("Error in GetPluginNamespace( "+asm.FullName+" ). found="+found+": "+e);
 			}
 			return "ERROR";
 		}
@@ -762,7 +762,8 @@ namespace NielsRask.FnordBot
 		/// </summary>
 		public StringQueueHash(): base() 
 		{
-
+			this.comparer = new CaseInsensitiveComparer();
+			this.hcp = new CaseInsensitiveHashCodeProvider();
 		}
 		/// <summary>
 		/// Adds the specified queue.
@@ -772,7 +773,7 @@ namespace NielsRask.FnordBot
 		public void Add(string queueName, StringQueue value)
 		{
 			Console.WriteLine("adding queue "+queueName);
-			base.Add (queueName.ToLower(), value);
+			base.Add (queueName, value);
 		}
 
 		/// <summary>
@@ -783,7 +784,7 @@ namespace NielsRask.FnordBot
 		/// <param name="deltaMin">The delta min.</param>
 		public void Add(string queueName, int deltaMsg, int deltaMin) 
 		{
-			base.Add(queueName.ToLower(), new StringQueue(deltaMsg, deltaMin));
+			base.Add(queueName, new StringQueue(deltaMsg, deltaMin));
 		}
 
 		/// <summary>
@@ -795,7 +796,7 @@ namespace NielsRask.FnordBot
 		/// </returns>
 		public bool ContainsKey(string queueName)
 		{
-			return base.ContainsKey (queueName.ToLower());
+			return base.ContainsKey (queueName);
 		}
 
 		/// <summary>
@@ -806,7 +807,7 @@ namespace NielsRask.FnordBot
 		{
 			get
 			{
-				return (StringQueue)base[queueName.ToLower()];
+				return (StringQueue)base[queueName];
 			}
 		}
 

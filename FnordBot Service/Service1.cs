@@ -8,14 +8,16 @@ using System.Threading;
 using NielsRask.FnordBot;
 using Microsoft.Win32;
 using System.IO;
-namespace FnordBotService
+using System.Runtime.InteropServices;
+namespace NielsRask.FnordBotService
 {
+	[ComVisible(false)]
 	public class Service1 : System.ServiceProcess.ServiceBase
 	{
 		/// <summary> 
 		/// Required designer variable.
 		/// </summary>
-		private System.ComponentModel.Container components = null;
+		private System.ComponentModel.Container components;
 		private BotHandler handler;
 
 		public Service1()
@@ -58,14 +60,21 @@ namespace FnordBotService
 		/// </summary>
 		protected override void Dispose( bool disposing )
 		{
-			if( disposing )
+			try 
 			{
-				if (components != null) 
+				if( disposing )
 				{
-					components.Dispose();
+					if (components != null) 
+					{
+						components.Dispose();
+					}
 				}
+			} 
+			catch {}
+			finally
+			{
+				base.Dispose( disposing );
 			}
-			base.Dispose( disposing );
 		}
 
 		/// <summary>
@@ -90,7 +99,7 @@ namespace FnordBotService
 	public class BotHandler 
 	{
 		Thread thread;
-		FnordBot bot;
+		NielsRask.FnordBot.FnordBot bot;
 		string installationFolderPath;
 		StreamWriter swlog;
 
@@ -107,8 +116,8 @@ namespace FnordBotService
 			Console.SetError( swerr );
 			Console.SetOut( swout );
 			Console.WriteLine("Initiating fnordbot with path: "+installationFolderPath);
-			bot = new FnordBot( installationFolderPath );
-			bot.OnLogMessage +=new FnordBot.LogMessageHandler(WriteLogMessage);
+			bot = new NielsRask.FnordBot.FnordBot( installationFolderPath );
+			bot.OnLogMessage +=new NielsRask.FnordBot.FnordBot.LogMessageHandler(WriteLogMessage);
 			bot.Init();
 			Console.WriteLine("initiating thread");
 			thread = new Thread( new ThreadStart( bot.Connect ) );

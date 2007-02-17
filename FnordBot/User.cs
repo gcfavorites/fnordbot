@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Collections;
 using System.Xml;
 
@@ -14,7 +15,7 @@ namespace NielsRask.FnordBot
 		string password = "";
 		HostmaskCollection hostmasks;
 		CustomSettingCollection customSettings;
-		bool isCitizen = false;
+		bool isCitizen;
 		UserCollection.SaveUsersDelegate saveUsers;
 //		Module mdl;
 
@@ -270,14 +271,15 @@ namespace NielsRask.FnordBot
 		/// <returns></returns>
 		public string ToXmlString() 
 		{
-			string xml = "<users>";
+			StringBuilder sb = new StringBuilder();
+			sb.Append( "<users>" );
 
 			for(int i=0; i<Count; i++) 
 				if (this[i].IsCitizen) 
-					xml += this[i].ToXmlString(); // only save citizens
+					sb.Append( this[i].ToXmlString() ); // only save citizens
 
-			xml += "</users>";
-			return xml;
+			sb.Append( "</users>" );
+			return sb.ToString();
 		}
 
 		/// <summary>
