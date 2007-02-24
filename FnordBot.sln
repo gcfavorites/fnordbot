@@ -31,6 +31,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FnordBot TestApp", "FnordBo
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stat", "Stat\Stat.csproj", "{B4585BB6-954F-484E-A0BB-95B87D6BE14B}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		Debug = Debug
@@ -67,6 +71,10 @@ Global
 		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Debug.Build.0 = Debug|.NET
 		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Release.ActiveCfg = Release|.NET
 		{591A5E29-F9C2-4F65-9AB1-80083AE3369E}.Release.Build.0 = Release|.NET
+		{B4585BB6-954F-484E-A0BB-95B87D6BE14B}.Debug.ActiveCfg = Debug|.NET
+		{B4585BB6-954F-484E-A0BB-95B87D6BE14B}.Debug.Build.0 = Debug|.NET
+		{B4585BB6-954F-484E-A0BB-95B87D6BE14B}.Release.ActiveCfg = Release|.NET
+		{B4585BB6-954F-484E-A0BB-95B87D6BE14B}.Release.Build.0 = Release|.NET
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 		FnordBot.FxCop = FnordBot.FxCop
