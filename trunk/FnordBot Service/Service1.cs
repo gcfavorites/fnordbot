@@ -9,6 +9,11 @@ using NielsRask.FnordBot;
 using Microsoft.Win32;
 using System.IO;
 using System.Runtime.InteropServices;
+// Configure log4net using the .config file
+[assembly: log4net.Config.XmlConfigurator(Watch=true)]
+// This will cause log4net to look for a configuration file
+// called ConsoleApp.exe.config in the application base
+// directory (i.e. the directory containing ConsoleApp.exe)
 namespace NielsRask.FnordBotService
 {
 	[ComVisible(false)]

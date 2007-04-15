@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using log4net;
 
 namespace NielsRask.LibIrc
 {
@@ -18,6 +19,7 @@ namespace NielsRask.LibIrc
 		string altNick = "";
 		string fingerInfo = "fnord";
 		string versionInfo = "LibIrc "+System.Reflection.Assembly.GetCallingAssembly().GetName().Version;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// Gets or sets the server.
@@ -167,19 +169,20 @@ namespace NielsRask.LibIrc
 		/// Delegate for messages from ourselves
 		/// </summary>
 		public delegate void BotMessageHandler( string botName, string target, string text ); // bottens eget navn kendes ikke her, det sættes på i client
-		/// <summary>
-		/// Delegate for logmessages
-		/// </summary>
-		public delegate void LogMessageHandler(string message);
-		/// <summary>
-		/// Occurs when we want to log a message
-		/// </summary>
-		public event LogMessageHandler OnLogMessage;
-
-		private void WriteLogMessage(string message) 
-		{
-			if ( OnLogMessage != null ) OnLogMessage( message );
-		}
+//		/// <summary>
+//		/// Delegate for logmessages
+//		/// </summary>
+//		public delegate void LogMessageHandler(string message);
+//		/// <summary>
+//		/// Occurs when we want to log a message
+//		/// </summary>
+//		public event LogMessageHandler OnLogMessage;
+//
+//		private void WriteLogMessage(string message) 
+//		{
+//			if ( OnLogMessage != null ) 
+//				OnLogMessage( message );
+//		}
 
 
 		/// <summary>
@@ -204,7 +207,7 @@ namespace NielsRask.LibIrc
 			protocol.OnNickChange += new NielsRask.LibIrc.Protocol.NickChangeHandler(protocol_OnNickChange);
 			protocol.Network.OnDisconnect +=new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
 
-			protocol.OnLogMessage += new Protocol.LogMessageHandler( WriteLogMessage );
+//			protocol.OnLogMessage += new Protocol.LogMessageHandler( WriteLogMessage );
 		}
 
 		#region control
@@ -214,6 +217,7 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public void Connect() 
 		{
+			log.Info("Client: connecting to "+server+":"+port+"");
 			protocol.FingerInfo = fingerInfo;
 			protocol.VersionInfo = versionInfo;
 			protocol.Connect( server, port );
@@ -313,27 +317,32 @@ namespace NielsRask.LibIrc
 
 		private void protocol_OnSendToUser(string target, string text)
 		{
-			if (OnSendToUser != null) OnSendToUser( nickname, target, text );
+			if (OnSendToUser != null) 
+				OnSendToUser( nickname, target, text );
 		}
 
 		private void protocol_OnSendToChannel(string target, string text)
 		{
-			if (OnSendToChannel != null) OnSendToChannel( nickname, target, text );
+			if (OnSendToChannel != null) 
+				OnSendToChannel( nickname, target, text );
 		}
 
 		private void protocol_OnSetMode(string target, string text)
 		{
-			if (OnSetMode != null) OnSetMode( nickname, target, text );
+			if (OnSetMode != null) 
+				OnSetMode( nickname, target, text );
 		}
 
 		private void protocol_OnSendNotice(string target, string text)
 		{
-			if (OnSendNotice != null) OnSendNotice( nickname, target, text );
+			if (OnSendNotice != null) 
+				OnSendNotice( nickname, target, text );
 		}
 
 		private void protocol_OnNickChange(string newname, string oldname, string hostmask)
 		{
-			if (OnNickChange != null) OnNickChange( newname, oldname, hostmask );
+			if (OnNickChange != null) 
+				OnNickChange( newname, oldname, hostmask );
 		}
 
 		private void Network_OnDisconnect()
@@ -341,14 +350,17 @@ namespace NielsRask.LibIrc
 			System.Threading.Thread.Sleep(30*1000);
 			try 
 			{
-				WriteLogMessage("Reconnecting ...");
+				log.Info("Got disconnected event - Reconnecting");
+//				WriteLogMessage("Reconnecting ...");
 				Connect();
-				WriteLogMessage("Reconnected.");
+//				WriteLogMessage("Reconnected.");
+				log.Info("Reconnected to server");
 
 			} 
-			catch (Exception) 
+			catch (Exception e) 
 			{
-				WriteLogMessage("Reconnect failed");
+//				WriteLogMessage("Reconnect failed");
+				log.Error("Reconnect failed", e);
 			}
 //			Network_OnDisconnect();	// holder det?
 		}

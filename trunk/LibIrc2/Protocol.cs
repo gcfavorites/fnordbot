@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Text.RegularExpressions;
+using log4net;
 
 namespace NielsRask.LibIrc
 {
@@ -13,6 +14,7 @@ namespace NielsRask.LibIrc
 		private string versionReply = "";
 		private string fingerReply = "";
 		private string altNick = "";
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		#region event-forwarding
 		/// <summary>
@@ -128,25 +130,25 @@ namespace NielsRask.LibIrc
 
 		#endregion
 
-		/// <summary>
-		/// Delegate for logging
-		/// </summary>
-		public delegate void LogMessageHandler(string message);
-		/// <summary>
-		/// Occurs when the protocol layer wants to write to the log
-		/// </summary>
-		public event LogMessageHandler OnLogMessage;
-
-		/// <summary>
-		/// Writes a message to the log
-		/// </summary>
-		/// <param name="message"></param>
-		private void WriteLogMessage(string message) 
-		{
-			if ( OnLogMessage != null ) 
-				OnLogMessage( message );
-		}
-
+//		/// <summary>
+//		/// Delegate for logging
+//		/// </summary>
+//		public delegate void LogMessageHandler(string message);
+//		/// <summary>
+//		/// Occurs when the protocol layer wants to write to the log
+//		/// </summary>
+//		public event LogMessageHandler OnLogMessage;
+//
+//		/// <summary>
+//		/// Writes a message to the log
+//		/// </summary>
+//		/// <param name="message"></param>
+//		private void WriteLogMessage(string message) 
+//		{
+//			if ( OnLogMessage != null ) 
+//				OnLogMessage( message );
+//		}
+//
 		/// <summary>
 		/// The string to be sent as reply to VERSION requests
 		/// </summary>
@@ -190,7 +192,7 @@ namespace NielsRask.LibIrc
 		{
 			network = new Network();
 			network.OnServerMessage += new Network.ServerMessageHandler( ProcessMessage );
-			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
+//			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
 		} 
 
 		/// <summary>
@@ -206,6 +208,7 @@ namespace NielsRask.LibIrc
 			network.SendToServer("USER "+username+" a b :"+realname);//"USER foo bar baz :botting");
 
 			network.SendToServer("NICK "+nickname);//wintermute");
+			log.Info("Registered on server with nickname ''");
 		}
 
 
@@ -386,6 +389,10 @@ namespace NielsRask.LibIrc
 			{
 				ParseNumericReply( line );
 			}
+			else 
+			{
+				log.Warn("Fell through ProcessMessage cases on string '"+line+"'");
+			}
 		}
 
 		private void ParseNickChange( string line ) 
@@ -408,7 +415,8 @@ namespace NielsRask.LibIrc
 			string newname = parts[2].Substring(1);
 
 //			if (OnChannelJoin != null) OnChannelJoin(this, new ChannelActionEventArgs(target, user, hostmask, "") );
-			if (OnNickChange != null) OnNickChange( newname, username, hostmask );
+			if (OnNickChange != null) 
+				OnNickChange( newname, username, hostmask );
 
 		}
 
@@ -576,22 +584,25 @@ namespace NielsRask.LibIrc
 			{
 				reply = (ReplyCode)int.Parse( parts[1] );
 			} 
-
 			catch (Exception) {}
 
 			if (reply == ReplyCode.RPL_MOTD) 
 			{
 				// :koala.droso.net 372 BimseBot :- This is ircd-hybrid MOTD replace it with something better
 				string motd = line.Split(new Char[] {' '}, 4)[3];
-				if (motd.Length>1) motd = motd.Substring(1);
-				if (OnMotd != null) OnMotd( motd );
+				if (motd.Length>1) 
+					motd = motd.Substring(1);
+				if (OnMotd != null) 
+					OnMotd( motd );
 			} 
 			else if (reply == ReplyCode.RPL_NAMREPLY) 
 			{
 				// :koala.droso.net 353 BimseBot = #bottest :BimseBot @NordCore
 				string[] users = new string[parts.Length-5];
-				for (int i=5; i<parts.Length; i++) users[i-5] = parts[i];
-				if (OnChannelUserList != null) OnChannelUserList( parts[4], users );
+				for (int i=5; i<parts.Length; i++) 
+					users[i-5] = parts[i];
+				if (OnChannelUserList != null) 
+					OnChannelUserList( parts[4], users );
 			} 
 			else if (reply == ReplyCode.RPL_TOPIC ) 
 			{
@@ -641,7 +652,8 @@ namespace NielsRask.LibIrc
 			else 
 			{
 				// HACK vi skal kunne sende fejl opad opå en pæn måde
-				WriteLogMessage("got unknown "+decoded_message);
+//				WriteLogMessage("got unknown "+decoded_message);
+				log.Warn("HandleCTCP got unknown message '"+message+"'");
 			}
 		}
 		#endregion
@@ -667,7 +679,7 @@ namespace NielsRask.LibIrc
 			} 
 			else 
 			{
-				Console.WriteLine("ends with "+quotedstring.ToCharArray()[quotedstring.Length-1]);
+				log.Warn("CTCPDequote: "+quotedstring+" ends with "+quotedstring.ToCharArray()[quotedstring.Length-1]);
 			}
 			return quotedstring;
 		}
