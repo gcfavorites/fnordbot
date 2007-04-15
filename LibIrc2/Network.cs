@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Threading;
+using log4net;
 
 namespace NielsRask.LibIrc
 {
@@ -15,6 +16,8 @@ namespace NielsRask.LibIrc
 		private NetworkStream stream;
 		private StreamWriter writer;
 		private IrcListener listener;
+		// Create a logger for use in this class
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// Occurs on message received from server
@@ -37,16 +40,16 @@ namespace NielsRask.LibIrc
 		/// Delegate for server state changes
 		/// </summary>
 		public delegate void ServerStateHandler();
-		/// <summary>
-		/// Delegate for logging
-		/// </summary>
-		public delegate void LogMessageHandler(string message);
-
-		/// <summary>
-		/// Occurs when the network layer wishes to log a message
-		/// </summary>
-		public event LogMessageHandler OnLogMessage;
-
+//		/// <summary>
+//		/// Delegate for logging
+//		/// </summary>
+//		public delegate void LogMessageHandler(string message);
+//
+//		/// <summary>
+//		/// Occurs when the network layer wishes to log a message
+//		/// </summary>
+//		public event LogMessageHandler OnLogMessage;
+//
 		/// <summary>
 		/// Calls the OnServerMessage event if a subscriber exists
 		/// </summary>
@@ -65,14 +68,14 @@ namespace NielsRask.LibIrc
 				OnDisconnect(); 
 		}
 
-		/// <summary>
-		/// Calls the OnLogMessage event if a subscriber exists
-		/// </summary>
-		private void WriteLogMessage(string message) 
-		{
-			if ( OnLogMessage != null ) 
-				OnLogMessage( message );
-		}
+//		/// <summary>
+//		/// Calls the OnLogMessage event if a subscriber exists
+//		/// </summary>
+//		private void WriteLogMessage(string message) 
+//		{
+//			if ( OnLogMessage != null ) 
+//				OnLogMessage( message );
+//		}
 
 
 		/// <summary>
@@ -87,7 +90,7 @@ namespace NielsRask.LibIrc
 
 			listener = new IrcListener(this);
 
-			listener.OnLogMessage += new IrcListener.LogMessageHandler(WriteLogMessage);
+//			listener.OnLogMessage += new IrcListener.LogMessageHandler(WriteLogMessage);
 			
 			listener.Start(stream);
 			writer = new StreamWriter(stream,System.Text.Encoding.Default);
@@ -99,6 +102,7 @@ namespace NielsRask.LibIrc
 		/// <param name="text">The text to send</param>
 		public void SendToServer(string text) 
 		{
+			log.Debug("Sending to server: '"+text+"'");
 			writer.WriteLine(text);
 			writer.Flush();
 		}
@@ -114,25 +118,27 @@ namespace NielsRask.LibIrc
 		private StreamReader reader;
 		private string inputLine;
 		private Network network;
+		// Create a logger for use in this class
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-		/// <summary>
-		/// Delegate for logging
-		/// </summary>
-		public delegate void LogMessageHandler(string message);
-		/// <summary>
-		/// Occurs when the network listener wants to log a message
-		/// </summary>
-		public event LogMessageHandler OnLogMessage;
-
-		/// <summary>
-		/// Writes a message to the log, if a subscriber exists
-		/// </summary>
-		/// <param name="message"></param>
-		private void WriteLogMessage(string message) 
-		{
-			if ( OnLogMessage != null ) 
-				OnLogMessage( message );
-		}
+//		/// <summary>
+//		/// Delegate for logging
+//		/// </summary>
+//		public delegate void LogMessageHandler(string message);
+//		/// <summary>
+//		/// Occurs when the network listener wants to log a message
+//		/// </summary>
+//		public event LogMessageHandler OnLogMessage;
+//
+//		/// <summary>
+//		/// Writes a message to the log, if a subscriber exists
+//		/// </summary>
+//		/// <param name="message"></param>
+//		private void WriteLogMessage(string message) 
+//		{
+//			if ( OnLogMessage != null ) 
+//				OnLogMessage( message );
+//		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="IrcListener"/> class.
@@ -153,6 +159,7 @@ namespace NielsRask.LibIrc
 		{
 			this.reader = new StreamReader(stream,System.Text.Encoding.Default);
 			listener.Start();
+			log.Info("Listener thread started.");
 		}
 
 		/// <summary>
@@ -170,7 +177,8 @@ namespace NielsRask.LibIrc
 			catch (Exception e) 
 			{
 				// this message can propably be discarded as we're only interested in the fact that the connection was lost
-				WriteLogMessage("Error in listener.run, connection probably lost: "+e);
+//				WriteLogMessage("Error in listener.run, connection probably lost: "+e);
+				log.Error("Error in listener.run, connection probably lost.",e);
 			} 
 			finally 
 			{

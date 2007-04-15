@@ -89,10 +89,19 @@
                     Project = "{C841E838-D150-4BF3-A001-61996ED81377}"
                     Package = "{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}"
                 />
+                <Reference
+                    Name = "log4net"
+                    AssemblyName = "log4net"
+                    HintPath = "..\log4net.dll"
+                />
             </References>
         </Build>
         <Files>
             <Include>
+                <File
+                    RelPath = "App.config"
+                    BuildAction = "None"
+                />
                 <File
                     RelPath = "AssemblyInfo.cs"
                     SubType = "Code"

@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using NielsRask.FnordBot.Users;
 using System.Diagnostics;
+using log4net;
 
 namespace NielsRask.FnordBot
 {
@@ -25,6 +26,8 @@ namespace NielsRask.FnordBot
 		StringQueueHash queues;
 		string installationFolderPath;
 		XmlDocument xdoc = new XmlDocument();
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
 
 		/// <summary>
 		/// Gets the installationfolder path.
@@ -80,6 +83,7 @@ namespace NielsRask.FnordBot
 
 			// load the userlist
 			usersFilePath = installationFolderPath+"Users.xml";
+			log.Debug("userlist path: "+usersFilePath);
 			users = LoadUsers();
 			
 			// initialize the client layer - maybe we should use the protocol layer directly?
@@ -101,7 +105,11 @@ namespace NielsRask.FnordBot
 			
 				return UserCollection.UnpackUsers( usrlst, new UserCollection.SaveUsersDelegate( SaveUsers ) );		
 			}
-			else return new UserCollection( new UserCollection.SaveUsersDelegate( SaveUsers ) );
+			else 
+			{
+				log.Info("No userlist found, creating a new one.");
+				return new UserCollection( new UserCollection.SaveUsersDelegate( SaveUsers ) );
+			}
 		}
 
 		
@@ -120,7 +128,8 @@ namespace NielsRask.FnordBot
 		{
 			try 
 			{
-				WriteLogMessage("FnordBot.Init");
+//				WriteLogMessage("FnordBot.Init");
+				log.Debug("Now in fnordbot.init()");
 				// load the config xml
 				LoadConfig();
 
@@ -137,6 +146,7 @@ namespace NielsRask.FnordBot
 				{
 					string name = node.SelectSingleNode("name/text()").Value;
 					channelsToJoin.Add( name );
+					log.Debug("channel to join: "+name);
 					int dMsg = 5;	// defasult values
 					int dMin = 60;	// max 5 msg/hr
 					if (node.SelectSingleNode("messagerate") != null) 
@@ -153,6 +163,7 @@ namespace NielsRask.FnordBot
 				{
 					string typename = node.SelectSingleNode("@typename").Value;
 					string path = node.SelectSingleNode("@path").Value;
+					log.Info("Loading plugin "+typename);
 					try 
 					{
 						if (!Path.IsPathRooted( path )) 
@@ -164,20 +175,25 @@ namespace NielsRask.FnordBot
 							//					{
 							//						Console.WriteLine("path is absolute: "+path);
 						}
-						WriteLogMessage("Plugin node for "+typename+": "+node.OuterXml);
+						log.Debug("Loading plugin from "+path);
+//						WriteLogMessage("Plugin node for "+typename+": "+node.OuterXml);
+						log.Debug("Plugin config-node: "+node.OuterXml);
 						LoadPlugin( typename, path, node );
 					} 
 					catch (Exception e) 
 					{
-						WriteLogMessage("Error loading plugin "+typename+": "+e);
+//						WriteLogMessage("Error loading plugin "+typename+": "+e);
+						log.Error("Error loading plugin '"+typename+"'", e);
 					}
 				}
 
-				WriteLogMessage("Fnordbot started");
+//				WriteLogMessage("Fnordbot started");
+				log.Info("Fnordbot has started");
 			} 
 			catch (Exception e) 
 			{
-				WriteLogMessage("error in FnordBot .ctor: "+e);
+//				WriteLogMessage("error in FnordBot .ctor: "+e);
+				log.Error("Exception in Fnordbot .ctor", e);
 			}
 		}
 
@@ -194,7 +210,7 @@ namespace NielsRask.FnordBot
 				// join each channel specified in config
 				foreach (string channel in channelsToJoin) 
 				{
-					Console.WriteLine("joining channel "+channel+"");
+					log.Info("Joining channel "+channel+"");
 					irc.Join(channel);
 				}
 
@@ -202,7 +218,8 @@ namespace NielsRask.FnordBot
 			catch ( Exception e ) 
 			{
 				// TODO: need some reconnect logic
-				WriteLogMessage("Exception in Fnordbot.Connect(): "+e);
+//				WriteLogMessage("Exception in Fnordbot.Connect(): "+e);
+				log.Error("Failed in Connect", e);
 			}
 			
 		}
@@ -264,6 +281,7 @@ namespace NielsRask.FnordBot
 				if (channel.Length == 0 || text.Length == 0) 
 				{
 					// someone made an error, dont send the message. maybe we should throw something :)
+					throw new ArgumentException("Langth and text cannot be empty");
 				}
 				// override requested and is allowed - send to channel
 				else if (overrideQueue && IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) 
@@ -279,7 +297,8 @@ namespace NielsRask.FnordBot
 						StringQueue queue = queues[channel];
 						if ( queue == null)
 						{
-							WriteLogMessage("queues[\""+channel+"\"] returned null??");
+//							WriteLogMessage("queues[\""+channel+"\"] returned null??");
+							log.Warn("SendToChannel: queues[\""+channel+"\"] returned null??");
 						}
 						if ( queue.CanEnqueue() ) 
 						{
@@ -289,12 +308,14 @@ namespace NielsRask.FnordBot
 							// we're not alowed to send - maybe we should signal that somehow
 						else 
 						{
-							Console.WriteLine("message to "+channel+" was blocked by floodqueue");
+//							Console.WriteLine("message to "+channel+" was blocked by floodqueue");
+							log.Debug("Message '"+text.Substring(0,15)+(text.Length>15?"[...]":"")+"' was blocked by floodqueue");
 						}
 					} 
 					catch (Exception e) 
 					{
-						WriteLogMessage("Error in SendToChannel(\""+channel+"\", \""+text+"\", "+overrideQueue+"): "+e);
+//						WriteLogMessage("Error in SendToChannel(\""+channel+"\", \""+text+"\", "+overrideQueue+"): "+e);
+						log.Error("Error in SendToChannel(\""+channel+"\", \""+text+"\", "+overrideQueue+")", e);
 					}
 				}
 			} 
@@ -302,7 +323,8 @@ namespace NielsRask.FnordBot
 			{
 				string chan = channel==null?"NULL":channel;
 				string txt = text==null?"NULL":text;
-				WriteLogMessage("Error in SendToChannel( \""+chan+"\", \""+txt+"\", "+overrideQueue+" ): "+e);
+//				WriteLogMessage("Error in SendToChannel( \""+chan+"\", \""+txt+"\", "+overrideQueue+" ): "+e);
+				log.Error("Error in SendToChannel( \""+chan+"\", \""+txt+"\", "+overrideQueue+" )", e);
 			}
 		}
 
@@ -338,7 +360,8 @@ namespace NielsRask.FnordBot
 			string typename = "(unset)";
 			if (asm == null) 
 			{
-				WriteLogMessage("IsAllowed called on NULL assembly");
+//				WriteLogMessage("IsAllowed called on NULL assembly");
+				log.Error("IsAllowed called on NULL assembly");
 				return false;
 			}
 			try 
@@ -352,7 +375,8 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e)
 			{
-				WriteLogMessage("error in Fnordbot.IsAllowed (xpath '"+xpath+"'): "+e);
+//				WriteLogMessage("error in Fnordbot.IsAllowed (xpath '"+xpath+"'): "+e);
+				log.Error("Error in Fnordbot.IsAllowed (xpath '"+xpath+"'", e);
 			}
 			return false;
 		}
@@ -381,13 +405,15 @@ namespace NielsRask.FnordBot
 				} 
 				else 
 				{
-					WriteLogMessage("Cannot locate calling assembly?");
+//					WriteLogMessage("Cannot locate calling assembly?");
+					log.Warn("GetCallingAssembly: Cannot locate calling assembly?");
 					return null;
 				}
 			} 
 			catch (Exception e) 
 			{
-				WriteLogMessage("Error in GetCallingAssembly(): "+e);
+//				WriteLogMessage("Error in GetCallingAssembly(): "+e);
+				log.Error("Error in GetCallingAssembly", e);
 			}
 			return null;
 		}
@@ -420,7 +446,8 @@ namespace NielsRask.FnordBot
 			else if (File.Exists("..\\..\\Config.xml")) 
 				cfgpath = "..\\..\\Config.xml";
 			else throw new FileNotFoundException("Config file not found");
-			Console.WriteLine("config found at "+cfgpath);
+//			Console.WriteLine("config found at "+cfgpath);
+			log.Debug("Config found at "+cfgpath);
 
 			xdoc.Load( cfgpath );
 		}
@@ -429,24 +456,23 @@ namespace NielsRask.FnordBot
 		{
 			XmlNode node = xdoc.DocumentElement.SelectSingleNode( xpath );
 			if ( node != null) 
-			{
 				return node.Value;
-			}
 			else 
-			{
 				return "";
-			}
 		}
 
 		private void LoadPlugin( string type, string path, XmlNode pluginNode ) 
 		{
 			Assembly pAsm = Assembly.LoadFrom( path );
-			Console.WriteLine("Loading plugin "+pAsm.CodeBase);
+//			Console.WriteLine("Loading plugin "+pAsm.CodeBase);
+			log.Info("Loading plugin "+pAsm.CodeBase);
 			IPlugin plugin = (IPlugin)pAsm.CreateInstance( type );
-			Console.WriteLine("attaching "+type);
+//			Console.WriteLine("attaching "+type);
+			log.Info("Attaching "+type);
 			plugin.Attach( this );
 			plugin.Init( pluginNode );
-			Console.WriteLine("Attached plugin "+type);
+//			Console.WriteLine("Attached plugin "+type);
+			log.Info("Attached plugin "+type);
 		}
 
 //		public void PluginTest()
@@ -481,7 +507,8 @@ namespace NielsRask.FnordBot
 			bool found = false;
 			if (asm == null) 
 			{
-				WriteLogMessage("GetPluginNamespace() called with NULL argument");
+//				WriteLogMessage("GetPluginNamespace() called with NULL argument");
+				log.Warn("GetPluginNamespace() called with NULL argument");
 				return "ERROR";
 			}
 			try 
@@ -501,12 +528,15 @@ namespace NielsRask.FnordBot
 					}
 					if (!found) i++;
 				}
-				if (found) return types[i].FullName;
-				else return "UNKNOWN";
+				if (found) 
+					return types[i].FullName;
+				else 
+					return "UNKNOWN";
 			} 
 			catch (Exception e) 
 			{
-				WriteLogMessage("Error in GetPluginNamespace( "+asm.FullName+" ). found="+found+": "+e);
+//				WriteLogMessage("Error in GetPluginNamespace( "+asm.FullName+" ). found="+found+": "+e);
+				log.Error("Error in GetPluginNamespace( "+asm.FullName+" ). found="+found, e);
 			}
 			return "ERROR";
 		}
@@ -516,7 +546,7 @@ namespace NielsRask.FnordBot
 
 		private void AttachEvents() 
 		{
-			irc.OnLogMessage += new Client.LogMessageHandler(WriteLogMessage);
+//			irc.OnLogMessage += new Client.LogMessageHandler(WriteLogMessage);
 			irc.Protocol.Network.OnDisconnect += new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
 			irc.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicMessage);
 			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
@@ -714,7 +744,8 @@ namespace NielsRask.FnordBot
 		}		
 		private void Network_OnDisconnect()
 		{
-			WriteLogMessage("Ooops, seems we lost our connection!");
+//			WriteLogMessage("Ooops, seems we lost our connection!");
+			log.Warn("Ooops, seems we lost our connection!");
 		}
 		private void Protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
@@ -723,7 +754,8 @@ namespace NielsRask.FnordBot
 				User user = users.GetByHostMatch( senderHost );
 				if (user != null)
 					SendToUser( senderNick, "you appear to be "+user.Name+" (citizen: "+user.IsCitizen+")");
-				else SendToUser( senderNick, "i dont know you.." );
+				else 
+					SendToUser( senderNick, "i dont know you.." );
 			} 
 			else if (message == "!ping") 
 			{
@@ -824,6 +856,7 @@ namespace NielsRask.FnordBot
 		string name;
 		int dmsg;
 		int dmin;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueue"/> class.
@@ -853,7 +886,8 @@ namespace NielsRask.FnordBot
 		public void Enqueue(StringQueueItem item)
 		{
 			base.Enqueue (item);
-			if (Count > dmsg) Dequeue();
+			if (Count > dmsg) 
+				Dequeue();
 		}
 
 		/// <summary>
@@ -886,13 +920,16 @@ namespace NielsRask.FnordBot
 				else 
 				{
 					TimeSpan dt = DateTime.Now-Peek().TimeStamp; // dT siden første item
-					if (dt.TotalMinutes >= dmin) return true; // 
-					else return false;
+					if (dt.TotalMinutes >= dmin) 
+						return true; // 
+					else 
+						return false;
 				}
 			} 
 			catch (Exception e) 
 			{
-				Console.WriteLine("CanEnqueue failed: "+e);
+				log.Error("CanEnqueue failed", e);
+//				Console.WriteLine("CanEnqueue failed: "+e);
 			}
 			return false;
 		}
