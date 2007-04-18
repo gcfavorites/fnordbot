@@ -10,7 +10,14 @@ using System.Xml;
 //using NielsRask.LibIrc;
 using NielsRask.FnordBot;
 using System.Reflection;
+using log4net;
 
+// Configure log4net using the .config file
+[assembly: log4net.Config.XmlConfigurator(Watch=true)]
+// This will cause log4net to look for a configuration file
+// called ConsoleApp.exe.config in the application base
+// directory (i.e. the directory containing ConsoleApp.exe)
+//[assembly: log4net.Config.DOMConfigurator(Watch=true)] 
 namespace NielsRask.FnordBot
 {
 	/// <summary>
@@ -23,6 +30,7 @@ namespace NielsRask.FnordBot
 		private System.Windows.Forms.Button btnConnect2;
 		private System.Windows.Forms.Button btnShow;
 		private System.Windows.Forms.Button button2;
+		private static readonly ILog log = LogManager.GetLogger(typeof(Form1)); 
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
@@ -31,6 +39,7 @@ namespace NielsRask.FnordBot
 		public Form1()
 		{
 			InitializeComponent();
+//			log.Info("Starting fnordbot test-app!");
 //
 //			client = new Client();
 //			client.VersionInfo = "FnordBot 0.8";
