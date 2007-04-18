@@ -1,6 +1,7 @@
 using System;
 using NielsRask.FnordBot;
 using System.IO;
+using log4net;
 
 namespace NielsRask.Logger
 {
@@ -12,6 +13,7 @@ namespace NielsRask.Logger
 		NielsRask.FnordBot.FnordBot bot;
 		StreamWriter writer;
 		string logFolderPath = "c:\\";
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public Plugin()
 		{}
@@ -20,7 +22,7 @@ namespace NielsRask.Logger
 
 		public void Attach(NielsRask.FnordBot.FnordBot bot)
 		{
-			Console.WriteLine("in logger attach");
+			log.Info("Attaching logger plugin");
 			try 
 			{
 				this.bot = bot;
@@ -37,7 +39,7 @@ namespace NielsRask.Logger
 			} 
 			catch (Exception e) 
 			{
-				Console.WriteLine("Failed in Logger.Attach: "+e);
+				log.Error("Failed in Logger.Attach",e);
 			}
 		}
 
@@ -55,7 +57,7 @@ namespace NielsRask.Logger
 			} 
 			catch (Exception e) 
 			{
-				Console.WriteLine("Error in logger init: "+e);
+				log.Error("Error in logger init",e);
 			}
 		}
 

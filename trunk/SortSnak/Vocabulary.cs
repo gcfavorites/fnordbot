@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using log4net;
 
 namespace NielsRask.SortSnak
 {
@@ -13,7 +14,7 @@ namespace NielsRask.SortSnak
 		private FragmentList nextSortedFragments;
 		private FragmentList canStartFragments;
 		Random rnd;
-
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public FragmentList PrevSortedFragments 
 		{
@@ -108,7 +109,7 @@ namespace NielsRask.SortSnak
 			if (list.Count > 0) return list[rnd.Next(list.Count)];
 			else 
 			{
-				Console.WriteLine("fandt ikke '"+word+"' i ordlisten");
+				log.Warn("fandt ikke '"+word+"' i ordlisten");
 				return null;
 			}
 		}

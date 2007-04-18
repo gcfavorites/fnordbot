@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using log4net;
 
 namespace NielsRask.SortSnak
 {
@@ -14,12 +15,13 @@ namespace NielsRask.SortSnak
 		Word nextWord;
 		bool canEnd = false;
 		bool canStart = false;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public Fragment(Word pw, Word cw, Word nw, bool canStart, bool canEnd) 
 		{
 			if (pw == null || cw == null || nw == null)
 			{
-				Console.WriteLine("*** forsøg på at oprette fragment med null-værdi!! unwinding the stack:");
+				log.Warn("Forsøg på at oprette fragment med null-værdi!! unwinding the stack:");
 
 				StackTrace st = new StackTrace(true);
 				string indent = "";
@@ -28,7 +30,7 @@ namespace NielsRask.SortSnak
 					StackFrame sf = st.GetFrame(i);
 					if (sf.GetFileName().Length > 0 ) 
 					{
-						Console.WriteLine(indent+" Method: {0} File: {1} : {2}",sf.GetMethod(),sf.GetFileName(), sf.GetFileLineNumber() );
+						log.Warn(indent+" Method: "+sf.GetMethod()+" File: "+sf.GetFileName()+" : "+sf.GetFileLineNumber()+"");
 						indent += "*";
 					}
 				}
@@ -82,6 +84,7 @@ namespace NielsRask.SortSnak
 		int lowerBound = 3; // hvis ikke der findes så mange overlaps, prøver vi at finde en simple-next
 		int simpleChance = 35; // procent chance for at vi enabler simple-motoren hvis lowerbound ikke er mødt
 		int ambientSimpleChance = 10; // chance der altid er for at få simple-options med
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// we need at least this many fragments to choose from, to use normal 2-word matching.
@@ -155,7 +158,7 @@ namespace NielsRask.SortSnak
 			FragmentList lst = new FragmentList(null);
 
 			int i = list.BinarySearch( frag, mc );
-			if (i < 0) Console.WriteLine("GetSomeFragmentsByWord fandt ikke ord, binsearch returnerede "+i+" ("+~i+")");
+			if (i < 0) log.Warn("GetSomeFragmentsByWord fandt ikke ord, binsearch returnerede "+i+" ("+~i+")");
 			while (i>1 && mc.Compare(this[i-1], frag)==0) i--; 
 
 			while(i>0 && mc.Compare(this[i],frag) == 0) 
@@ -306,7 +309,7 @@ namespace NielsRask.SortSnak
 				} 
 				catch (Exception e) 
 				{
-					Console.WriteLine("fragment["+index+"]: "+e.ToString());
+					log.Error("Fragment["+index+"]",e);
 					throw;
 				}
 			}
