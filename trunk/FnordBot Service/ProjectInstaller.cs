@@ -21,7 +21,7 @@ namespace NielsRask.FnordBotService
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
-		private System.ComponentModel.Container components;
+		private System.ComponentModel.Container components = null;
 
 		public ProjectInstaller()
 		{
