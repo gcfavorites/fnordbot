@@ -4,6 +4,7 @@ using System.Text;
 using NielsRask.FnordBot;
 using System.Threading;
 using System.Xml;
+using log4net;
 
 namespace NielsRask.SortSnak
 {
@@ -15,7 +16,7 @@ namespace NielsRask.SortSnak
 		private int sortSnakAnswerChance = 15; 
 		string vocabularyFilePath;
 		int saveInterval = 5;
-
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public Plugin()
 		{
@@ -81,12 +82,14 @@ namespace NielsRask.SortSnak
 			}
 			if (minscore == 9999) 
 			{
-				bot.WriteLogMessage("GenerateAnswer(\""+line+"\"): No rare words found?");
+//				bot.WriteLogMessage("GenerateAnswer(\""+line+"\"): No rare words found?");
+				log.Info("GenerateAnswer('"+line+"') found no rare words.");
 				return "";
 			}
 			else 
 			{
-				bot.WriteLogMessage("GenerateAnswer(\""+line+"\"): rarest word is '"+parts[minindex]+"' with score "+minscore);
+				log.Info("GenerateAnswer(\""+line+"\"): Rarest word is '"+parts[minindex]+"' with score "+minscore);
+//				bot.WriteLogMessage("GenerateAnswer(\""+line+"\"): rarest word is '"+parts[minindex]+"' with score "+minscore);
 			}
 			return GenerateReply( parts[minindex] );
 		}
@@ -107,7 +110,8 @@ namespace NielsRask.SortSnak
 			}
 			sb.Append( frag.ThisWord.Value );
 
-			bot.WriteLogMessage("Generated message '"+sb.ToString()+"'");
+//			bot.WriteLogMessage("Generated message '"+sb.ToString()+"'");
+			log.Info("Generated message '"+sb.ToString()+"'");
 			return sb.ToString();
 		}
 
@@ -145,7 +149,7 @@ namespace NielsRask.SortSnak
 			}
 			else 
 			{
-				bot.WriteLogMessage("Unable to genearte reply based on '"+word+"'");
+				log.Warn("Unable to generate reply based on '"+word+"'");
 				return "";
 			}
 			return sb.ToString();
@@ -188,7 +192,7 @@ namespace NielsRask.SortSnak
 		{
 			if (configNode == null) 
 			{
-				bot.WriteLogMessage("sortsnak got null confignode!");
+				log.Warn("Sortsnak got null confignode!");
 			}
 			if (configNode.SelectSingleNode("settings/vocabularyfilepath/text()") != null) 
 			{
@@ -197,11 +201,11 @@ namespace NielsRask.SortSnak
 				{
 					vocabularyFilePath = Path.Combine(bot.InstallationFolderPath, vocabularyFilePath);
 				}
-				bot.WriteLogMessage("vocabulary found at "+vocabularyFilePath);
+				log.Debug("vocabulary found at "+vocabularyFilePath);
 			} 
 			else 
 			{
-				bot.WriteLogMessage("Error in LoadConfig: cannot read settings/vocabularyfilepath/text()");
+				log.Error("Error in LoadConfig: cannot read settings/vocabularyfilepath/text()");
 			}
 
 			if ( File.Exists(vocabularyFilePath) ) 
@@ -224,7 +228,7 @@ namespace NielsRask.SortSnak
 			} 
 			catch (Exception e) 
 			{
-				Console.WriteLine("error on sortsnak loadconfig: "+e);
+				log.Error("Error in sortsnak loadconfig.",e);
 			}
 		}
 
@@ -283,19 +287,19 @@ namespace NielsRask.SortSnak
 
 		internal void SaveVocabulary() 
 		{
-			bot.WriteLogMessage("saving vocabulary ...");
+			log.Debug("saving vocabulary ...");
 			StreamWriter writer = new StreamWriter( vocabularyFilePath, false, Encoding.Default );
 			foreach (Fragment frag in vocab.CenterSortedFragments) 
 			{
 				writer.WriteLine( frag.ToString() );
 			}
 			writer.Close();
-			bot.WriteLogMessage("vocabulary saved.");
+			log.Debug("vocabulary saved.");
 		}
 
 		private void LoadVocabulary() 
 		{
-			bot.WriteLogMessage("loading vocabulary ...");
+			log.Debug("loading vocabulary ...");
 			StreamReader reader = null;
 			reader = new StreamReader( vocabularyFilePath, Encoding.Default );
 			string line;
@@ -313,7 +317,7 @@ namespace NielsRask.SortSnak
 			{
 				if (reader!=null) reader.Close();
 			}
-			bot.WriteLogMessage("vocabulary loaded.");
+			log.Info("vocabulary loaded.");
 
 		}
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using log4net;
 
 namespace NielsRask.SortSnak
 {
@@ -47,6 +48,7 @@ namespace NielsRask.SortSnak
 
 	public class MatchComparer : IComparer 
 	{
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 		public int Compare(object x, object y)
 		{
 			Fragment frg1 = (Fragment)x;
@@ -72,7 +74,8 @@ namespace NielsRask.SortSnak
 				return string.Compare(f1.ThisWord.Value, f2.ThisWord.Value, true);
 			} 
 			catch (Exception e) {
-				Console.WriteLine("matchcomparer: "+e.ToString());   
+//				Console.WriteLine("matchcomparer: "+e.ToString());   
+				log.Error("matchcomparer: "+e.ToString());  
 				throw;
 			}
 		}

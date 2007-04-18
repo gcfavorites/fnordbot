@@ -8,6 +8,7 @@ using System.Text;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using log4net;
 
 namespace NielsRask.Wordgame
 {
@@ -19,6 +20,8 @@ namespace NielsRask.Wordgame
 		FnordBot.FnordBot bot;
 		WordgameCollection gameList;
 		string wordListPath;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
 		public Plugin()
 		{
 			gameList = new WordgameCollection();
@@ -27,8 +30,8 @@ namespace NielsRask.Wordgame
 		public void Attach(FnordBot.FnordBot bot) 
 		{
 			this.bot = bot;
-			bot.WriteLogMessage("Wordgame say's hello");
 			bot.OnPublicMessage +=new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
+			log.Info("Wordgame plugin attached");
 		}
 
 		public void Init( XmlNode pluginNode) 
@@ -47,10 +50,12 @@ namespace NielsRask.Wordgame
 		{
 			if (message == "!wordgame") 
 			{
-				Console.WriteLine("someone requested a game");
+//				Console.WriteLine("someone requested a game");
+				log.Info("A game was requested on "+channel);
 				if (gameList.ChannelExists( channel ) ) 
 				{
 					// game is already running
+					log.Warn("A game is already running.");
 				} 
 				else 
 				{
@@ -64,13 +69,15 @@ namespace NielsRask.Wordgame
 			} 
 			else if (message == "!score") 
 			{
-				// list the top10 wordgamers
+				// TODO: list the top10 wordgamers
 			}
 		}
 	}
 
 	public class WordgameCollection : CollectionBase 
 	{
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
 		public void Add( Wordgame game) 
 		{
 			List.Add( game );
@@ -78,14 +85,15 @@ namespace NielsRask.Wordgame
 
 		public void Remove( Wordgame game ) 
 		{
-			Console.WriteLine("*** removing game for channel "+game.Channel);
+			log.Debug("Removing game for channel "+game.Channel);
+			
 			try 
 			{
 				List.Remove( game );
 			} 
 			catch (Exception e) 
 			{
-				Console.WriteLine("error removing from gamelist: "+e);
+				log.Error("Error removing from gamelist",e);
 			}
 		}
 
@@ -130,6 +138,7 @@ namespace NielsRask.Wordgame
 		WordgameCollection gameList;
 		Random rnd;
 		string wordListPath;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// Gets the channel that this game is running in.
@@ -166,7 +175,8 @@ namespace NielsRask.Wordgame
 			secretWord = word[0];
 			wordHint = word[1];
 			string scrambledWord = ScrambleWord( secretWord );
-			Console.WriteLine("gamethread started");
+//			Console.WriteLine("gamethread started");
+			log.Info("GameThread started");
 			
 			bot.SendToChannel( channel, "Unscramble ---> "+scrambledWord, true  );
 			bot.SendToChannel( channel, "Clue ---> "+wordHint, true  );
@@ -221,7 +231,8 @@ namespace NielsRask.Wordgame
 			else if ( File.Exists(path+"..\\..\\wordlist.dat") ) path += "..\\..\\wordlist.dat";
 			else 
 			{	
-				Console.WriteLine("cannot read wordlist");
+//				Console.WriteLine("cannot read wordlist");
+				log.Error("Cannot read wordlist");
 //				Assembly.GetCallingAssembly().
 				return "error:Wordlist_not_loaded";
 			}
@@ -237,7 +248,8 @@ namespace NielsRask.Wordgame
 			} 
 			catch (Exception e) 
 			{
-				Console.WriteLine("eror reading wordlist: "+e);
+//				Console.WriteLine("eror reading wordlist: "+e);
+				log.Error("Error reading wordlist", e);
 			} 
 			finally 
 			{
@@ -251,7 +263,7 @@ namespace NielsRask.Wordgame
 		{
 			if (!done) 
 			{
-				Console.WriteLine("sending first hint");
+				log.Debug("Sending first hint for game on "+channel);
 				bot.SendToChannel( channel, "First letter ---> "+secretWord.Substring(0,1), true  );
 			}
 		}
@@ -260,7 +272,7 @@ namespace NielsRask.Wordgame
 		{
 			if (!done) 
 			{
-				Console.WriteLine("sending second hint");
+				log.Debug("Sending second hint for game on "+channel);
 				bot.SendToChannel( channel, "First two letters ---> "+secretWord.Substring(0,2), true  );
 			}
 		}
@@ -269,7 +281,7 @@ namespace NielsRask.Wordgame
 		{
 			if (!done) 
 			{
-				Console.WriteLine("game has ended");
+				log.Info("Game on "+channel+" has ended with no winner.");
 				bot.SendToChannel( channel, "Nobody got it... losers!", true );
 				done = true;
 			}
@@ -283,7 +295,8 @@ namespace NielsRask.Wordgame
 					if (string.Compare(message, secretWord, true) == 0) 
 					{
 						done = true;
-						Console.WriteLine("Word guessed, stopping game");
+//						Console.WriteLine("Word guessed, stopping game");
+						log.Info("Word '"+secretWord+"' guessed by "+user.NickName+". Game on "+channel+" has ended.");
 						bot.SendToChannel( channel, "Woohoo "+user.Name+"!! You got it... "+secretWord+"", true );
 						string strOldScore = user.CustomSettings.GetCustomValue("wordgame", "score");
 						int oldScore = 0;
@@ -306,7 +319,7 @@ namespace NielsRask.Wordgame
 		public void Dispose()
 		{
 			gameList.Remove( this );
-			Console.WriteLine("disposing ...");
+//			Console.WriteLine("disposing ...");
 			tmrFirstHint.Dispose();
 			tmrSecondHint.Dispose();
 			tmrGameEnd.Dispose();
