@@ -131,7 +131,7 @@ namespace NielsRask.FnordBotService
 			Console.SetOut( swout );
 			log.Debug("Initiating fnordbot with path: "+installationFolderPath);
 			bot = new NielsRask.FnordBot.FnordBot( installationFolderPath );
-			bot.OnLogMessage +=new NielsRask.FnordBot.FnordBot.LogMessageHandler(WriteLogMessage);
+//			bot.OnLogMessage +=new NielsRask.FnordBot.FnordBot.LogMessageHandler(WriteLogMessage);
 			bot.Init();
 			log.Debug("initiating thread");
 			thread = new Thread( new ThreadStart( bot.Connect ) );
