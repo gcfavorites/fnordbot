@@ -9,6 +9,7 @@ using NielsRask.FnordBot;
 using Microsoft.Win32;
 using System.IO;
 using System.Runtime.InteropServices;
+using log4net;
 // Configure log4net using the .config file
 [assembly: log4net.Config.XmlConfigurator(Watch=true)]
 // This will cause log4net to look for a configuration file
@@ -24,6 +25,7 @@ namespace NielsRask.FnordBotService
 		/// </summary>
 		private System.ComponentModel.Container components;
 		private BotHandler handler;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public Service1()
 		{
@@ -88,7 +90,10 @@ namespace NielsRask.FnordBotService
 		protected override void OnStart(string[] args)
 		{
 			// TODO: Add code here to start your service.
+			log.Info("Starting FnordBot service ...");
 			handler.Start();
+			log.Info("FnordBot service");
+
 		}
  
 		/// <summary>
@@ -97,7 +102,10 @@ namespace NielsRask.FnordBotService
 		protected override void OnStop()
 		{
 			// TODO: Add code here to perform any tear-down necessary to stop your service.
+			log.Info("Stopping FnordBot service ...");
 			handler.Stop();
+			log.Info("FnordBot service stopped.");
+
 		}
 	}
 
@@ -107,6 +115,7 @@ namespace NielsRask.FnordBotService
 		NielsRask.FnordBot.FnordBot bot;
 		string installationFolderPath;
 		StreamWriter swlog;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public BotHandler() 
 		{
@@ -120,11 +129,11 @@ namespace NielsRask.FnordBotService
 			swout.AutoFlush = true;
 			Console.SetError( swerr );
 			Console.SetOut( swout );
-			Console.WriteLine("Initiating fnordbot with path: "+installationFolderPath);
+			log.Debug("Initiating fnordbot with path: "+installationFolderPath);
 			bot = new NielsRask.FnordBot.FnordBot( installationFolderPath );
 			bot.OnLogMessage +=new NielsRask.FnordBot.FnordBot.LogMessageHandler(WriteLogMessage);
 			bot.Init();
-			Console.WriteLine("initiating thread");
+			log.Debug("initiating thread");
 			thread = new Thread( new ThreadStart( bot.Connect ) );
 			thread.IsBackground = false;
 			thread.Name = "FnordBotThread";
@@ -139,7 +148,7 @@ namespace NielsRask.FnordBotService
 			} 
 			catch (Exception e) 
 			{
-				Console.WriteLine("Error writing to log: "+e);
+				log.Error("Error writing to log ",e);
 			} 
 			finally 
 			{
@@ -149,13 +158,13 @@ namespace NielsRask.FnordBotService
 
 		public void Start() 
 		{
-			Console.WriteLine("starting thread");
+			log.Debug("starting thread");
 			thread.Start();
 		}
 
 		public void Stop() 
 		{
-			Console.WriteLine("stopping thread");
+			log.Debug("stopping thread");
 			thread.Abort();
 		}
 

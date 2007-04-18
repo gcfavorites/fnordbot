@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1" ?> 
 <config>
 	<client>
-		<server port="6667">irc.droso.net</server>
+		<server port="6667">panda.droso.net</server>
 		<nickname>BimseBot</nickname>
 		<altnick>BimmerBot</altnick>
 		<realname>B. Imse</realname>
