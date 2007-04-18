@@ -42,25 +42,25 @@ namespace NielsRask.FnordBot
 		}
 
 		#region log logic
-		/// <summary>
-		/// Delegate for logging
-		/// </summary>
-		public delegate void LogMessageHandler(string message);
-
-		/// <summary>
-		/// Occurs when the bot wants to log a message
-		/// </summary>
-		public event LogMessageHandler OnLogMessage;
-
-		/// <summary>
-		/// Write a message to the log
-		/// </summary>
-		/// <param name="message"></param>
-		public void WriteLogMessage(string message) 
-		{
-			if ( OnLogMessage != null ) 
-				OnLogMessage( message );
-		}
+//		/// <summary>
+//		/// Delegate for logging
+//		/// </summary>
+//		public delegate void LogMessageHandler(string message);
+//
+//		/// <summary>
+//		/// Occurs when the bot wants to log a message
+//		/// </summary>
+//		public event LogMessageHandler OnLogMessage;
+//
+//		/// <summary>
+//		/// Write a message to the log
+//		/// </summary>
+//		/// <param name="message"></param>
+//		public void WriteLogMessage(string message) 
+//		{
+//			if ( OnLogMessage != null ) 
+//				OnLogMessage( message );
+//		}
 		#endregion
 
 
@@ -101,7 +101,7 @@ namespace NielsRask.FnordBot
 				xdoc.Load( usersFilePath );
 
 				XmlNodeList usrlst = xdoc.DocumentElement.SelectNodes("user");
-				Console.WriteLine("found "+usrlst.Count+" usernodes");
+				log.Info("Found "+usrlst.Count+" usernodes");
 			
 				return UserCollection.UnpackUsers( usrlst, new UserCollection.SaveUsersDelegate( SaveUsers ) );		
 			}
@@ -115,6 +115,7 @@ namespace NielsRask.FnordBot
 		
 		private void SaveUsers() 
 		{
+			log.Info("Saving userlist");
 			XmlDocument xdoc = new XmlDocument();
 			xdoc.LoadXml( users.ToXmlString() );
 			xdoc.Save( usersFilePath );
@@ -153,6 +154,7 @@ namespace NielsRask.FnordBot
 					{
 						dMsg = int.Parse( node.SelectSingleNode("messagerate/@messages").Value );
 						dMin = int.Parse( node.SelectSingleNode("messagerate/@minutes").Value );
+						log.Debug(name+" flood-limit: "+dMsg+"/"+dMin+" msg/min");
 					}
 					queues.Add(name, dMsg, dMin); // initiate the antiflood queue
 
