@@ -276,7 +276,7 @@ namespace NielsRask.FnordBot
 			// this should be resolved in the final releases
 			bot = new NielsRask.FnordBot.FnordBot("..\\..\\..\\FnordBot\\");
 			bot.Init();
-			bot.OnLogMessage += new NielsRask.FnordBot.FnordBot.LogMessageHandler(bot_OnLogMessage);
+//			bot.OnLogMessage += new NielsRask.FnordBot.FnordBot.LogMessageHandler(bot_OnLogMessage);
 			bot.Connect();
 		}
 
