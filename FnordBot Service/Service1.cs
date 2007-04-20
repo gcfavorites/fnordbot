@@ -10,6 +10,7 @@ using Microsoft.Win32;
 using System.IO;
 using System.Runtime.InteropServices;
 using log4net;
+
 // Configure log4net using the .config file
 [assembly: log4net.Config.XmlConfigurator(Watch=true)]
 // This will cause log4net to look for a configuration file
@@ -29,11 +30,21 @@ namespace NielsRask.FnordBotService
 
 		public Service1()
 		{
-			// This call is required by the Windows.Forms Component Designer.
-			InitializeComponent();
-			handler = new BotHandler();
+			try 
+			{
+				// This call is required by the Windows.Forms Component Designer.
+				InitializeComponent();
+				handler = new BotHandler();
 
-			// TODO: Add any initialization after the InitComponent call
+				// TODO: Add any initialization after the InitComponent call
+			}
+			catch (Exception e) 
+			{
+				// emergency logging ...
+				StreamWriter sw = File.CreateText("c:\\fnordlog.txt");
+				sw.WriteLine("Service1.ctor: "+e);
+				sw.Close();
+			}
 		}
 
 		// The main entry point for the process
@@ -119,24 +130,31 @@ namespace NielsRask.FnordBotService
 
 		public BotHandler() 
 		{
-			installationFolderPath = GetConfigFilePath();
-			File.Delete( installationFolderPath+"err.txt" );
-			File.Delete( installationFolderPath+"out.txt" );
-			File.Delete( installationFolderPath+"log.txt" );
-			StreamWriter swerr = new StreamWriter( installationFolderPath+"err.txt", true, System.Text.Encoding.Default );
-			swerr.AutoFlush = true;
-			StreamWriter swout = new StreamWriter( installationFolderPath+"out.txt", true, System.Text.Encoding.Default );
-			swout.AutoFlush = true;
-			Console.SetError( swerr );
-			Console.SetOut( swout );
-			log.Debug("Initiating fnordbot with path: "+installationFolderPath);
-			bot = new NielsRask.FnordBot.FnordBot( installationFolderPath );
-//			bot.OnLogMessage +=new NielsRask.FnordBot.FnordBot.LogMessageHandler(WriteLogMessage);
-			bot.Init();
-			log.Debug("initiating thread");
-			thread = new Thread( new ThreadStart( bot.Connect ) );
-			thread.IsBackground = false;
-			thread.Name = "FnordBotThread";
+			try 
+			{
+				installationFolderPath = GetConfigFilePath();
+				File.Delete( installationFolderPath+"err.txt" );
+				File.Delete( installationFolderPath+"out.txt" );
+				File.Delete( installationFolderPath+"log.txt" );
+				StreamWriter swerr = new StreamWriter( installationFolderPath+"err.txt", true, System.Text.Encoding.Default );
+				swerr.AutoFlush = true;
+				StreamWriter swout = new StreamWriter( installationFolderPath+"out.txt", true, System.Text.Encoding.Default );
+				swout.AutoFlush = true;
+				Console.SetError( swerr );
+				Console.SetOut( swout );
+				log.Debug("Initiating fnordbot with path: "+installationFolderPath);
+				bot = new NielsRask.FnordBot.FnordBot( installationFolderPath );
+				//			bot.OnLogMessage +=new NielsRask.FnordBot.FnordBot.LogMessageHandler(WriteLogMessage);
+				bot.Init();
+				log.Debug("initiating thread");
+				thread = new Thread( new ThreadStart( bot.Connect ) );
+				thread.IsBackground = false;
+				thread.Name = "FnordBotThread";
+			} 
+			catch (Exception e) 
+			{
+				log.Error("Error in bothandler constructor", e);
+			}
 		}
 
 		private void WriteLogMessage(string message) 
