@@ -30,7 +30,7 @@ namespace NielsRask.FnordBot
 		private System.Windows.Forms.Button btnConnect2;
 		private System.Windows.Forms.Button btnShow;
 		private System.Windows.Forms.Button button2;
-		private static readonly ILog log = LogManager.GetLogger(typeof(Form1)); 
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
