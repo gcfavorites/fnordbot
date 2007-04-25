@@ -246,41 +246,45 @@ namespace NielsRask.SortSnak
 			{
 				bot.SendToChannel( channel, GenerateLine() );
 			} 
-			// saves the vocabulary - need to trig it by a timer
+				// saves the vocabulary - need to trig it by a timer
 			else if (message == "!save")	
 			{
 				SaveVocabulary();
 			} 
-			// loads the vocabulary - why? we load it at startup
+				// loads the vocabulary - why? we load it at startup
 			else if (message == "!load")
 			{
 				LoadVocabulary();
 			} 
-			// non-commands are ignored
+				// non-commands are ignored
 			else if ( message.StartsWith("!") ) 
 			{
 			} 
-			// someone mentioned the bot by name - cant let that go unanswered
-			else if (message.ToLower().IndexOf( bot.NickName.ToLower() ) >= 0)	
+				// someone mentioned the bot by name - cant let that go unanswered
+			else if (message.Split(' ').Length >= 2) 
 			{
-				string baseline;
-				// remove the bots name from the message
-				baseline = message.Replace( bot.NickName+":", "" );	
-				baseline = message.Replace( bot.NickName, "" );
+				if (message.ToLower().IndexOf( bot.NickName.ToLower() ) >= 0)	
+				{
+					// remove the bots name from the message
+					string baseline = message.Replace( bot.NickName+":", "" );	
+					baseline = message.Replace( bot.NickName, "" );
 
-				// generate a reply based on the modified message
-				string line = GenerateAnswer( baseline );
-				// if reply contains the bot name, generate another one - potentially lots of tries here!
-				while ( line.ToLower().IndexOf( bot.NickName.ToLower() )>0 ) 
-					line = GenerateAnswer(message); 
+					// generate a reply based on the modified message
+					string line = GenerateAnswer( baseline );
 
-				bot.SendToChannel( channel, line ); 
-			}
-			// roll the dice to see if we'll answer
-			else if ( bot.TakeChance(sortSnakAnswerChance) )
-			{
-				string line = GenerateAnswer( message );
-				if (line.Length > 0) bot.SendToChannel( channel, line );
+					// if reply contains the bot name, generate another one - potentially lots of tries here!
+					while ( line.ToLower().IndexOf( bot.NickName.ToLower() )>0 ) 
+						line = GenerateAnswer(message); 
+
+					bot.SendToChannel( channel, line ); 
+				}
+					
+				// roll the dice to see if we'll answer
+				else if ( bot.TakeChance(sortSnakAnswerChance) )
+				{
+					string line = GenerateAnswer( message );
+					if (line.Length > 0) bot.SendToChannel( channel, line );
+				}
 			}
 		}
 
