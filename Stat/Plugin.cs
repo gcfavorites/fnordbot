@@ -22,8 +22,15 @@ namespace NielsRask.Stat
 		public void Attach(NielsRask.FnordBot.FnordBot bot)
 		{
 			log.Info("Attaching stat plugin");
-			this.bot = bot;
-			bot.OnPublicMessage += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
+			try 
+			{
+				this.bot = bot;
+				bot.OnPublicMessage += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
+			} 
+			catch (Exception e) 
+			{
+				log.Error("Error in Statplugin.attach", e);
+			}
 		}
 
 		public void Init(System.Xml.XmlNode pluginNode)
