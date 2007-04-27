@@ -172,6 +172,7 @@ namespace NielsRask.LibIrc
 				while ( (inputLine = reader.ReadLine() ) != null) 
 				{
 					network.CallOnServerMessage(inputLine);
+					log.Debug("Received line: "+inputLine);
 				} 
 			} 
 			catch (Exception e) 
