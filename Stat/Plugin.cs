@@ -59,27 +59,38 @@ namespace NielsRask.Stat
 				else if (message == "!topwords") //eller toptalk{
 				{
 					log.Info("Listing top words on "+channel+"...");
-
+					string output = "";
 					StatCollection scol = wordstat[channel].GetTop(10);
 					for (int i=0; i<scol.Count; i++) 
 					{
-						bot.SendToChannel( channel, (i+1)+" "+scol[i].Key+": "+scol[i].Score, true);// forkert, skal bruge et dictionary eller en anden måde at få scores på. 
+						output += (i+1)+" - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
 					}
+					bot.SendToChannel(channel, output, true);
 				}
 				else if (message == "!toptalk") 
 				{
 					log.Info("Listing top talkers on "+channel+"...");
-
+					string output = "";
 					StatCollection scol = userstat[channel].GetTop(10);
 					for (int i=0; i<scol.Count; i++) 
 					{
-						bot.SendToChannel( channel, (i+1)+" "+scol[i].Key+": "+scol[i].Score, true);
+						output += (i+1)+" - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
 					}
+					bot.SendToChannel(channel, output, true);
 				}
 				else if (message=="!chanstat") 
 				{
 					log.Info("Listing stat info");
-					bot.SendToChannel(channel, wordstat[channel].Count+" words known in this channel");
+					int chncount = wordstat[channel].Count;
+					bot.SendToChannel(channel, chncount+" words known in this channel", true);
+					int count = 0;
+					foreach (object okey in wordstat.Keys) 
+					{
+						string key = okey as string;
+						count += wordstat[key].Count;
+					}
+					if (count > chncount)
+						bot.SendToChannel(channel, count+" words known in all channels", true);
 				}
 				else if (message=="!mystat") 
 				{
@@ -102,7 +113,7 @@ namespace NielsRask.Stat
 	{
 		public void Increment(string channel, string word) 
 		{
-			if (Contains(channel))
+			if (!Contains(channel))
 				Add(channel, new StatCollection());
 
 			this[channel].Increment(word);
@@ -197,7 +208,7 @@ namespace NielsRask.Stat
 			{
 				for (j = 0; j < i; j++)
 				{
-					if (this[j].Score.CompareTo(this[j + 1].Score) > 0)
+					if (this[j].Score.CompareTo(this[j + 1].Score) < 0)
 					{
 						temp = this[j];
 						this[j] = this[j+1];
