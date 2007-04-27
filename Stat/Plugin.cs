@@ -147,7 +147,7 @@ namespace NielsRask.Stat
 			return this.Dictionary.Contains(key);
 		}
 
-		public ICollection Keys
+		public ICollection Keys // TODO: stringcollection here
 		{
 			get {return this.Dictionary.Keys;}
 		}
@@ -204,7 +204,7 @@ namespace NielsRask.Stat
 			Sort();
 
 			StatCollection col = new StatCollection();
-			int max = count>10?10:count;
+			int max = Count>10?10:count;
 
 			for(int i=0; i<max; i++)
 				col.Add( this[i] );
