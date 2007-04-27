@@ -70,7 +70,7 @@ namespace NielsRask.Logger
 
 		private void bot_OnPrivateMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
-			WriteToFile( channel, "<"+user.Name+"> "+message );
+			WriteToFile( user.NickName, "<"+user.Name+"> "+message );
 		}
 
 		private void bot_OnChannelJoin(string text, string channel, string target, string senderNick, string senderHost)
@@ -95,7 +95,7 @@ namespace NielsRask.Logger
 
 		private void bot_OnPrivateNotice(NielsRask.FnordBot.User user, string channel, string message)
 		{
-			WriteToFile( user.Name, "[Notice] "+message );
+			WriteToFile( user.NickName, "[Notice] "+message );
 		}
 
 		private void bot_OnPublicNotice(NielsRask.FnordBot.User user, string channel, string message)
