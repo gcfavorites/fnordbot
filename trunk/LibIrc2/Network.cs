@@ -102,7 +102,8 @@ namespace NielsRask.LibIrc
 		/// <param name="text">The text to send</param>
 		public void SendToServer(string text) 
 		{
-			log.Debug("Sending to server: '"+text+"'");
+			if (!text.StartsWith("PONG :")) 
+				log.Debug("Sending to server: '"+text+"'");
 			writer.WriteLine(text);
 			writer.Flush();
 		}
@@ -172,7 +173,8 @@ namespace NielsRask.LibIrc
 				while ( (inputLine = reader.ReadLine() ) != null) 
 				{
 					network.CallOnServerMessage(inputLine);
-					log.Debug("Received line: "+inputLine);
+					if (!inputLine.StartsWith("PING :"))
+						log.Debug("Received line: "+inputLine);
 				} 
 			} 
 			catch (Exception e) 
@@ -183,6 +185,7 @@ namespace NielsRask.LibIrc
 			} 
 			finally 
 			{
+				log.Warn("Calling network.CallOnDisconnect()");
 				network.CallOnDisconnect();
 			}
 		}
