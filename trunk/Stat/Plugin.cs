@@ -111,8 +111,8 @@ namespace NielsRask.Stat
 			if (message == "!colortest")
 			{ 
 				bot.SendToUser(user.NickName, "I am ^C4,7really upset^C at my brother for ^C0,1WASTING ^C15,000 sheets of paper!");
-				bot.SendTouser(user.NickName, "dette er en \u0020Bold\u0020 test");
-				bot.SendTouser(user.NickName, "dette er en \u0002Bold\u0002 test 2");
+				bot.SendToUser(user.NickName, "dette er en \u0020Bold\u0020 test");
+				bot.SendToUser(user.NickName, "dette er en \u0002Bold\u0002 test 2");
 			}
 		}
 
