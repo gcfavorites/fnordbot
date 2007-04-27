@@ -26,6 +26,7 @@ namespace NielsRask.Stat
 			{
 				this.bot = bot;
 				bot.OnPublicMessage += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicMessage);
+				bot.OnPrivateMessage += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateMessage);
 			} 
 			catch (Exception e) 
 			{
@@ -63,7 +64,7 @@ namespace NielsRask.Stat
 					StatCollection scol = wordstat[channel].GetTop(10);
 					for (int i=0; i<scol.Count; i++) 
 					{
-						output += (i+1)+" - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
+						output += "\u0002"+(i+1)+"\u0002 - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
 					}
 					bot.SendToChannel(channel, output, true);
 				}
@@ -74,7 +75,7 @@ namespace NielsRask.Stat
 					StatCollection scol = userstat[channel].GetTop(10);
 					for (int i=0; i<scol.Count; i++) 
 					{
-						output += (i+1)+" - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
+						output += "\u0002"+(i+1)+"\u0002 - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
 					}
 					bot.SendToChannel(channel, output, true);
 				}
@@ -104,6 +105,17 @@ namespace NielsRask.Stat
 				log.Error("Error in statplugin.onpublicmessage('"+user.NickName+"','"+channel+"', '"+message+"')",e);
 			}
 		}
+
+		private void bot_OnPrivateMessage(User user, string channel, string message)
+		{
+			if (message == "!colortest")
+			{ 
+				bot.SendToUser(user.NickName, "I am ^C4,7really upset^C at my brother for ^C0,1WASTING ^C15,000 sheets of paper!");
+				bot.SendTouser(user.NickName, "dette er en \u0020Bold\u0020 test");
+				bot.SendTouser(user.NickName, "dette er en \u0002Bold\u0002 test 2");
+			}
+		}
+
 	}
 
 	/// <summary>
