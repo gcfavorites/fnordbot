@@ -62,7 +62,9 @@ namespace NielsRask.Stat
 					log.Info("Listing top words on "+channel+"...");
 					string output = "";
 					StatCollection scol = wordstat[channel].GetTop(10);
-					for (int i=0; i<scol.Count; i++) 
+					int topCount = scol.Count>10?10:scol.Count;
+
+					for (int i=0; i<topCount; i++) 
 					{
 						output += "\u0002"+(i+1)+"\u0002 - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
 					}
@@ -73,7 +75,8 @@ namespace NielsRask.Stat
 					log.Info("Listing top talkers on "+channel+"...");
 					string output = "";
 					StatCollection scol = userstat[channel].GetTop(10);
-					for (int i=0; i<scol.Count; i++) 
+					int topCount = scol.Count>10?10:scol.Count;
+					for (int i=0; i<topCount; i++) 
 					{
 						output += "\u0002"+(i+1)+"\u0002 - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
 					}
@@ -96,7 +99,7 @@ namespace NielsRask.Stat
 				else if (message=="!mystat") 
 				{
 					log.Info("Listing personal stats info");
-					bot.SendToChannel(channel, "Your score: "+userstat[channel][user.NickName].Score+"");
+					bot.SendToChannel(channel, "You seem to know "+userstat[channel][user.NickName].Score+" words ...");
 
 				}
 			} 
@@ -204,7 +207,7 @@ namespace NielsRask.Stat
 			Sort();
 
 			StatCollection col = new StatCollection();
-			int max = Count>10?10:count;
+			int max = count>10?10:Count;
 
 			for(int i=0; i<max; i++)
 				col.Add( this[i] );
