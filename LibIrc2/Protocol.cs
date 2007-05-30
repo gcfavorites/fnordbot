@@ -203,12 +203,12 @@ namespace NielsRask.LibIrc
 		/// <param name="realname">The realname.</param>
 		public void Register(string nickname, string username, string realname) 
 		{
-			Thread.Sleep(1000);
+			Thread.Sleep(1000);	// dette holder ikke - den bør afvente serverens udmelding før den regger!
 
 			network.SendToServer("USER "+username+" a b :"+realname);//"USER foo bar baz :botting");
 
 			network.SendToServer("NICK "+nickname);//wintermute");
-			log.Info("Registered on server with nickname ''");
+			log.Info("Registered on server with nickname '"+nickname+"'");
 		}
 
 
