@@ -747,7 +747,7 @@ namespace NielsRask.FnordBot
 		private void Network_OnDisconnect()
 		{
 //			WriteLogMessage("Ooops, seems we lost our connection!");
-			log.Warn("Ooops, seems we lost our connection!");
+			log.Warn("Network_OnDisconnect(): Ooops, seems we lost our connection!");
 		}
 		private void Protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
