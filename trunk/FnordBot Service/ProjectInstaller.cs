@@ -126,7 +126,7 @@ namespace NielsRask.FnordBotService
 				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"False\" />");
 				sw.WriteLine("			</permissions>");
 				sw.WriteLine("		</plugin> ");
-				sw.WriteLine("		<plugin typename=\"NielsRask.Stat.StatPlugin\" path=\"plugins\\stat\stat.dll\" > ");
+				sw.WriteLine("		<plugin typename=\"NielsRask.Stat.StatPlugin\" path=\"plugins\\stat\\stat.dll\" > ");
 				sw.WriteLine("			<settings /> ");
 				sw.WriteLine("			<permissions> ");
 				sw.WriteLine("				<permission name=\"CanOverrideSendToChannel\" value=\"True\" /> ");
