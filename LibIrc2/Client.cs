@@ -347,11 +347,12 @@ namespace NielsRask.LibIrc
 
 		private void Network_OnDisconnect()
 		{
+			log.Info("Got disconnected event - taking a wee nap");
 			System.Threading.Thread.Sleep(30*1000);
 			try 
 			{
 				log.Info("Got disconnected event - Reconnecting");
-//				WriteLogMessage("Reconnecting ...");
+				//				WriteLogMessage("Reconnecting ...");
 				Connect();
 //				WriteLogMessage("Reconnected.");
 				log.Info("Reconnected to server");
