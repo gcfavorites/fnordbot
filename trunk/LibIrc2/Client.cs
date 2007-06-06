@@ -135,6 +135,10 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateNotice;
 		/// <summary>
+		/// Occurs when we receive MOTD from server. we are then ready to join channels
+		/// </summary>
+		public event NielsRask.LibIrc.Protocol.ServerDataHandler OnMotd;
+		/// <summary>
 		/// Occurs when a user changes nickname
 		/// </summary>
 		public event NickChangeHandler OnNickChange;
@@ -206,6 +210,7 @@ namespace NielsRask.LibIrc
 			protocol.OnSendNotice += new NielsRask.LibIrc.Protocol.BotMessageHandler(protocol_OnSendNotice);
 			protocol.OnNickChange += new NielsRask.LibIrc.Protocol.NickChangeHandler(protocol_OnNickChange);
 			protocol.Network.OnDisconnect +=new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
+			protocol.OnMotd += new NielsRask.LibIrc.Protocol.ServerDataHandler(protocol_OnMotd);
 
 //			protocol.OnLogMessage += new Protocol.LogMessageHandler( WriteLogMessage );
 		}
@@ -367,6 +372,11 @@ namespace NielsRask.LibIrc
 		}
 		#endregion
 
+		private void protocol_OnMotd(string data)
+		{
+			if (OnMotd != null)
+				OnMotd( data );
+		}
 	}
 
 	/// <summary>

@@ -12,6 +12,7 @@ namespace NielsRask.LibIrc
 	{
 		Network network;
 		private string versionReply = "";
+		private string nickName = "";
 		private string fingerReply = "";
 		private string altNick = "";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -62,7 +63,7 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public event NickChangeHandler OnNickChange;
 		/// <summary>
-		/// Occurs when we receive the message-of-the-day from the server
+		/// Occurs when we receive the message-of-the-day from the server. it is then ok to join a channel
 		/// </summary>
 		public event ServerDataHandler OnMotd;
 		/// <summary>
@@ -203,12 +204,13 @@ namespace NielsRask.LibIrc
 		/// <param name="realname">The realname.</param>
 		public void Register(string nickname, string username, string realname) 
 		{
-			Thread.Sleep(1000);	// dette holder ikke - den bør afvente serverens udmelding før den regger!
+			this.nickName = nickname;
+			Thread.Sleep(1000);
 
 			network.SendToServer("USER "+username+" a b :"+realname);//"USER foo bar baz :botting");
 
+			log.Info("Registering on server with nickname '"+nickname+"'");
 			network.SendToServer("NICK "+nickname);//wintermute");
-			log.Info("Registered on server with nickname '"+nickname+"'");
 		}
 
 
@@ -571,6 +573,8 @@ namespace NielsRask.LibIrc
 		}
 
 
+		private string motd = "";
+
 		// håndterer numeriske svar
 		private void ParseNumericReply(string line) 
 		{
@@ -589,12 +593,19 @@ namespace NielsRask.LibIrc
 			if (reply == ReplyCode.RPL_MOTD) 
 			{
 				// :koala.droso.net 372 BimseBot :- This is ircd-hybrid MOTD replace it with something better
-				string motd = line.Split(new Char[] {' '}, 4)[3];
-				if (motd.Length>1) 
-					motd = motd.Substring(1);
+				string motdline = line.Split(new Char[] {' '}, 4)[3];
+				if (motdline.Length>1) 
+					motd += motdline.Substring(1);
+			} 
+			else if (reply == ReplyCode.RPL_MOTDSTART) 
+			{
+				motd = "";// nulstil eksisterende motd
+			}
+			else if (reply == ReplyCode.RPL_ENDOFMOTD)
+			{	// vi formodes allerede at have opsamlet motd - vi signalerer nu at den er færdig
 				if (OnMotd != null) 
 					OnMotd( motd );
-			} 
+			}
 			else if (reply == ReplyCode.RPL_NAMREPLY) 
 			{
 				// :koala.droso.net 353 BimseBot = #bottest :BimseBot @NordCore
@@ -617,14 +628,18 @@ namespace NielsRask.LibIrc
 			} 
 			else if (reply == ReplyCode.ERR_NICKINUSE ) 
 			{
+				log.Warn("It seems nickname '"+nickName+"' is in use");
 				if (altNick.Length > 0) 
 				{
+					log.Info("Trying alternative nick '"+altNick+"'");
 					network.SendToServer( "NICK "+altNick );
 					altNick = "";	// next time we get this message, we'll generate a new nick
 				} 
 				else 
 				{
-					network.SendToServer( "NICK "+parts[3]+new Random().Next(999).ToString("000") );
+					string randnick = parts[3]+new Random().Next(999).ToString("0000");
+					log.Info("Trying random nick '"+randnick+"'");
+					network.SendToServer( "NICK "+randnick );
 				}
 			}
 		}

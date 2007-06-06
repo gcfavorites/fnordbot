@@ -204,18 +204,11 @@ namespace NielsRask.FnordBot
 		/// </summary>
 		public void Connect() 
 		{
-			try 
+			try		
 			{
+				irc.OnMotd += new NielsRask.LibIrc.Protocol.ServerDataHandler(irc_OnMotd);
 				// connect to server
 				irc.Connect();
-				
-				// join each channel specified in config
-				foreach (string channel in channelsToJoin) 
-				{
-					log.Info("Joining channel "+channel+"");
-					irc.Join(channel);
-				}
-
 			} 
 			catch ( Exception e ) 
 			{
@@ -766,6 +759,15 @@ namespace NielsRask.FnordBot
 		}		
 		#endregion
 
+		private void irc_OnMotd(string data)
+		{
+			// join each channel specified in config
+			foreach (string channel in channelsToJoin) 
+			{
+				log.Info("Joining channel "+channel+"");
+				irc.Join(channel);
+			}
+		}
 	}
 
 	/// <summary>
