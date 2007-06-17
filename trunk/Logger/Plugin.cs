@@ -36,6 +36,12 @@ namespace NielsRask.Logger
 				bot.OnPrivateNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateNotice);
 				bot.OnPublicNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicNotice);
 				bot.OnTopicChange += new NielsRask.FnordBot.FnordBot.ChannelTopicHandler(bot_OnTopicChange);
+				bot.OnPublicAction += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicAction);
+				bot.OnPrivateAction += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateAction);
+				bot.OnSendToChannel += new NielsRask.FnordBot.FnordBot.BotMessageHandler(bot_OnSendToChannel);
+				bot.OnSendToUser += new NielsRask.FnordBot.FnordBot.BotMessageHandler(bot_OnSendToUser);
+				bot.OnSendNotice +=new NielsRask.FnordBot.FnordBot.BotMessageHandler(bot_OnSendNotice);
+				bot.OnSetMode += new NielsRask.FnordBot.FnordBot.BotMessageHandler(bot_OnSetMode);
 			} 
 			catch (Exception e) 
 			{
@@ -115,5 +121,39 @@ namespace NielsRask.Logger
 			}
 		}
 
+		private void bot_OnPublicAction(User user, string channel, string message)
+		{
+			// public action
+			WriteToFile(channel, "* "+user.Name+" "+message);
+		}
+
+		private void bot_OnPrivateAction(User user, string channel, string message)
+		{
+			// private action
+			WriteToFile(channel, "* "+user.Name+" "+message);
+		}
+
+		private void bot_OnSendToChannel(string botName, string target, string text)
+		{
+			// bot talks to channel
+			WriteToFile( target, "<"+botName+"> "+text );
+		}
+
+		private void bot_OnSendToUser(string botName, string target, string text)
+		{
+			// bot talks to user
+			WriteToFile( target, "<"+botName+"> "+text );
+		}
+
+		private void bot_OnSendNotice(string botName, string target, string text)
+		{
+			// bot sets mode
+			WriteToFile( target, "[Notice] "+text );		
+		}
+
+		private void bot_OnSetMode(string botName, string target, string text)
+		{
+			WriteToFile( target, "***"+botName+" sets mode "+text );
+		}
 	}
 }
