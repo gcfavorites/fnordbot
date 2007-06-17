@@ -556,8 +556,10 @@ namespace NielsRask.FnordBot
 			irc.Protocol.OnChannelKick += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelKick);
 			irc.Protocol.OnChannelMode += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelMode);
 			irc.Protocol.OnChannelPart += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelPart);
-			irc.Protocol.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(Protocol_OnTopicChange);
-			irc.Protocol.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(Protocol_OnPrivateMessage);
+			irc.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(Protocol_OnTopicChange);
+			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(Protocol_OnPrivateMessage);
+			irc.OnPublicAction += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicAction);
+			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
 		}
 
 
@@ -636,6 +638,9 @@ namespace NielsRask.FnordBot
 		/// Occurs when the bot changes channel mode
 		/// </summary>
 		public event BotMessageHandler OnSetMode;
+
+		public event MessageHandler OnPublicAction;
+		public event MessageHandler OnPrivateAction;
 
 		/// <summary>
 		/// Delegate or received messages
@@ -767,6 +772,18 @@ namespace NielsRask.FnordBot
 				log.Info("Joining channel "+channel+"");
 				irc.Join(channel);
 			}
+		}
+
+		private void irc_OnPublicAction(string message, string target, string senderNick, string senderHost)
+		{
+			if (OnPublicAction != null)
+				OnPublicAction( GetUser(senderNick, senderHost), target, message );
+		}
+		private void irc_OnPrivateAction(string message, string target, string senderNick, string senderHost)
+		{
+			if (OnPrivateAction != null)
+				OnPrivateAction( GetUser(senderNick, senderHost), target, message );
+
 		}
 	}
 
