@@ -164,6 +164,11 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public event BotMessageHandler OnSetMode;
 
+		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicAction;
+		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateAction;
+		public event NielsRask.LibIrc.Protocol.ChannelTopicHandler OnTopicChange;
+		
+
 		// her mangler vist et par ting? topicchanger f.eks?
 		// skulle vi evt. bruge dem der er defineret i protocol?
 		// gør vi allerede det, er dette bare ekstra? tjek op!
@@ -177,21 +182,6 @@ namespace NielsRask.LibIrc
 		/// Delegate for messages from ourselves
 		/// </summary>
 		public delegate void BotMessageHandler( string botName, string target, string text ); // bottens eget navn kendes ikke her, det sættes på i client
-//		/// <summary>
-//		/// Delegate for logmessages
-//		/// </summary>
-//		public delegate void LogMessageHandler(string message);
-//		/// <summary>
-//		/// Occurs when we want to log a message
-//		/// </summary>
-//		public event LogMessageHandler OnLogMessage;
-//
-//		private void WriteLogMessage(string message) 
-//		{
-//			if ( OnLogMessage != null ) 
-//				OnLogMessage( message );
-//		}
-
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Client"/> class.
@@ -215,6 +205,10 @@ namespace NielsRask.LibIrc
 			protocol.OnNickChange += new NielsRask.LibIrc.Protocol.NickChangeHandler(protocol_OnNickChange);
 			protocol.Network.OnDisconnect +=new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
 			protocol.OnMotd += new NielsRask.LibIrc.Protocol.ServerDataHandler(protocol_OnMotd);
+
+			protocol.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(protocol_OnTopicChange);
+			protocol.OnPublicAction +=new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPublicAction);
+			protocol.OnPrivateAction += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPrivateAction);
 
 //			protocol.OnLogMessage += new Protocol.LogMessageHandler( WriteLogMessage );
 		}
@@ -287,11 +281,6 @@ namespace NielsRask.LibIrc
 		private void OnChannelUserList(string channel, string[] list)
 		{
 			GetChannel(channel).SetUserList( list );
-		}
-
-		private void OnTopicChange(string newTopic, string channel, string changerNick, string changerHost)
-		{
-			GetChannel(channel).SetTopic( newTopic );
 		}
 
 		private Channel GetChannel(string name) 
@@ -379,13 +368,32 @@ namespace NielsRask.LibIrc
 			}
 //			Network_OnDisconnect();	// holder det?
 		}
-		#endregion
 
 		private void protocol_OnMotd(string data)
 		{
 			if (OnMotd != null)
 				OnMotd( data );
 		}
+
+		private void protocol_OnTopicChange(string newTopic, string channel, string changerNick, string changerHost)
+		{
+			GetChannel(channel).SetTopic( newTopic );
+			if (OnTopicChange != null)
+				OnTopicChange( newTopic, channel, changerNick, changerHost);
+		}
+
+		private void protocol_OnPublicAction(string message, string target, string senderNick, string senderHost)
+		{
+			if (OnPublicAction != null)
+				OnPublicAction(message, target, senderNick, senderHost);
+		}
+
+		private void protocol_OnPrivateAction(string message, string target, string senderNick, string senderHost)
+		{
+			if (OnPrivateAction != null)
+				OnPrivateAction( message, target, senderNick, senderHost );
+		}
+		#endregion
 	}
 
 	/// <summary>

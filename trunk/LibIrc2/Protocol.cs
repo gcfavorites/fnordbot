@@ -83,6 +83,15 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public event BotMessageHandler OnSetMode;
 		/// <summary>
+		/// Occurs when a private action is received
+		/// </summary>
+		public event MessageHandler OnPrivateAction;
+		/// <summary>
+		/// Occurs when a public action is received
+		/// </summary>
+		public event MessageHandler OnPublicAction;
+
+		/// <summary>
 		/// Delegate for messages from server
 		/// </summary>
 		/// <param name="senderNick">Nickname of the user sending the message</param>
@@ -532,19 +541,49 @@ namespace NielsRask.LibIrc
 			string message = parts[3].Substring(1);
 
 			if (message.ToCharArray()[0] == 1) 
-			{
-				HandleCTCP(message,rd.Username);
-			} 
+				ParseCTCP(line);
 			else if (target.StartsWith("#")) 
-			{
 				if (OnPublicMessage != null) 
 					OnPublicMessage(message, target, rd.Username, rd.Hostmask);
-			} 
 			else 
-			{
 				if (OnPrivateMessage != null) 
 					OnPrivateMessage(message, target, rd.Username, rd.Hostmask);
+		}
+
+		private void ParseCTCP( string line ) 
+		{
+			string[] parts = line.Split(new Char[] {' '},4);
+
+			ReplyData rd = ReplyData.GetFromArray( parts );
+			string target = parts[2];
+			string message = parts[3].Substring(1);
+
+			string decoded_message = CTCPDequote(message); // fjern \001-quotes
+			if (decoded_message.StartsWith("PING")) 
+				network.SendToServer("NOTICE "+rd.Username+" :\u0001PING "+decoded_message.Substring(5)+"\u0001");
+			else if (decoded_message.StartsWith("VERSION")) 
+				network.SendToServer("NOTICE "+rd.Username+" :\u0001VERSION "+VersionInfo+"\u0001");
+			else if (decoded_message.StartsWith("TIME")) 
+				network.SendToServer("NOTICE "+rd.Username+" :\u0001TIME "+DateTime.Now.ToString()+"\u0001");
+			else if (decoded_message.StartsWith("FINGER")) 
+				network.SendToServer("NOTICE "+rd.Username+" :\u0001FINGER "+FingerInfo+"\u0001");
+			else if (decoded_message.StartsWith("ACTION"))
+			{
+				// :smcRanger!~smc@user103.77-105-195.netatonce.net PRIVMSG #craYon :ACTION havde lige samme tanke
+				decoded_message = decoded_message.Substring( 7 ); //fjern "ACTION "
+				if (target.StartsWith("#")) 
+					if (OnPublicAction != null) 
+						OnPublicAction(message, target, rd.Username, rd.Hostmask);
+					else 
+						if (OnPrivateAction != null) 
+						OnPrivateAction(message, target, rd.Username, rd.Hostmask);
 			}
+			else if (decoded_message.StartsWith("SOUND")) 
+			{
+				//SOUND ignorerer vi bare ...
+			}
+			else
+				log.Warn("ParseCTCP got unknown message '"+message+"'");
 		}
 
 		private void ParseNotice(string line) 
@@ -557,19 +596,13 @@ namespace NielsRask.LibIrc
 			string message = parts[3].Substring(1);
 
 			if (message.ToCharArray()[0] == 1) 
-			{
-				HandleCTCP(message,rd.Username);
-			} 
+				ParseCTCP( line );
 			else if (target.StartsWith("#")) 
-			{
 				if (OnPublicNotice != null) 
 					OnPublicNotice(message, target, rd.Username, rd.Hostmask);
-			} 
 			else 
-			{
 				if (OnPrivateNotice != null) 
 					OnPrivateNotice(message, target, rd.Username, rd.Hostmask);
-			}
 		}
 
 
@@ -644,33 +677,6 @@ namespace NielsRask.LibIrc
 			}
 		}
 
-		// håndterer ctcp privmsg's
-		private void HandleCTCP(string message, string sender) 
-		{
-			string decoded_message = CTCPDequote(message); // fjern \001-quotes
-			if (decoded_message.StartsWith("PING")) 
-			{
-				network.SendToServer("NOTICE "+sender+" :\u0001PING "+decoded_message.Substring(5)+"\u0001");
-			} 
-			else if (decoded_message.StartsWith("VERSION")) 
-			{
-				network.SendToServer("NOTICE "+sender+" :\u0001VERSION "+VersionInfo+"\u0001");
-			} 
-			else if (decoded_message.StartsWith("TIME")) 
-			{
-				network.SendToServer("NOTICE "+sender+" :\u0001TIME "+DateTime.Now.ToString()+"\u0001");
-			} 
-			else if (decoded_message.StartsWith("FINGER")) 
-			{
-				network.SendToServer("NOTICE "+sender+" :\u0001FINGER "+FingerInfo+"\u0001");
-			} 
-			else 
-			{
-				// HACK vi skal kunne sende fejl opad opå en pæn måde
-//				WriteLogMessage("got unknown "+decoded_message);
-				log.Warn("HandleCTCP got unknown message '"+message+"'");
-			}
-		}
 		#endregion
 
 		#region helper methods
