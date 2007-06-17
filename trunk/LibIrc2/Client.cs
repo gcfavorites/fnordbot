@@ -268,7 +268,7 @@ namespace NielsRask.LibIrc
 			if (text.Length > maxMessageLength) 
 			{
 				text = text.Substring(0, maxMessageLength);
-				log.Info("Flood-prevention truncated a line at "+maxMessageLength+" characters!");
+				log.Info("Flood-prevention: Truncated a line at "+maxMessageLength+" characters!");
 			}
 			protocol.SendToChannel( channel, text );
 		}
