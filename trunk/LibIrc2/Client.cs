@@ -21,6 +21,10 @@ namespace NielsRask.LibIrc
 		string versionInfo = "LibIrc "+System.Reflection.Assembly.GetCallingAssembly().GetName().Version;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+		// majic numbaz
+		// truncate any message longer than this
+		int maxMessageLength = 250;
+
 		/// <summary>
 		/// Gets or sets the server.
 		/// </summary>
@@ -261,6 +265,11 @@ namespace NielsRask.LibIrc
 		/// <param name="text"></param>
 		public void SendToChannel( string channel, string text ) 
 		{
+			if (text.Length > maxMessageLength) 
+			{
+				text = text.Substring(0, maxMessageLength);
+				log.Info("Flood-prevention truncated a line at "+maxMessageLength+" characters!");
+			}
 			protocol.SendToChannel( channel, text );
 		}
 		/// <summary>
