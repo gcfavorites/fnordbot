@@ -174,7 +174,8 @@ namespace NielsRask.Logger
 		private void SendMail() 
 		{
 			MailMessage mail = new MailMessage(); 
-			mail.To = "niels@itide.dk";
+			mail.To = "niels@crayon.dk";
+			mail.Cc = "niels@itide.dk";
 			mail.From = "niels@itide.dk";
 			mail.Subject = "irc log";
 			mail.Body = "Log: "+Environment.NewLine;
