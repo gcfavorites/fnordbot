@@ -60,6 +60,11 @@ namespace NielsRask.Stat
 				else if (message == "!topwords") //eller toptalk{
 				{
 					log.Info("Listing top words on "+channel+"...");
+					if (!wordstat.Contains(channel)) 
+					{
+						bot.SendToChannel(channel, "No stats yet ...", true);
+						return;
+					}
 					string output = "";
 					StatCollection scol = wordstat[channel].GetTop(10);
 					int topCount = scol.Count>10?10:scol.Count;
@@ -74,6 +79,11 @@ namespace NielsRask.Stat
 				{
 					log.Info("Listing top talkers on "+channel+"...");
 					string output = "";
+					if (!userstat.Contains(channel)) 
+					{
+						bot.SendToChannel(channel, "No stats yet ...", true);
+						return;
+					}
 					StatCollection scol = userstat[channel].GetTop(10);
 					int topCount = scol.Count>10?10:scol.Count;
 					for (int i=0; i<topCount; i++) 
@@ -85,6 +95,11 @@ namespace NielsRask.Stat
 				else if (message=="!chanstat") 
 				{
 					log.Info("Listing stat info");
+					if (!wordstat.Contains(channel)) 
+					{
+						bot.SendToChannel(channel, "No stats yet ...", true);
+						return;
+					}
 					int chncount = wordstat[channel].Count;
 					bot.SendToChannel(channel, chncount+" words known in this channel", true);
 					int count = 0;
@@ -99,8 +114,7 @@ namespace NielsRask.Stat
 				else if (message=="!mystat") 
 				{
 					log.Info("Listing personal stats info");
-					bot.SendToChannel(channel, "You seem to know "+userstat[channel][user.NickName].Score+" words ...");
-
+					bot.SendToChannel(channel, "You seem to know an astonishing "+userstat[channel][user.NickName].Score+" words ...");
 				}
 			} 
 			catch (Exception e) 
