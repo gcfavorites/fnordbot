@@ -2,6 +2,7 @@ using System;
 using NielsRask.FnordBot;
 using System.IO;
 using log4net;
+using System.Web.Mail;
 
 namespace NielsRask.Logger
 {
@@ -14,9 +15,12 @@ namespace NielsRask.Logger
 		StreamWriter writer;
 		string logFolderPath = "c:\\";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
+		DateTime lastWriteTime;
+		System.Collections.Specialized.StringCollection daily;
 		public Plugin()
-		{}
+		{
+			daily = new System.Collections.Specialized.StringCollection();
+		}
 
 		#region IPlugin Members
 
@@ -113,13 +117,6 @@ namespace NielsRask.Logger
 		{
 			WriteToFile( channel, "*** "+user.Name+" sets new topic: "+topic );
 		}
-		private void WriteToFile(string file, string message) 
-		{
-			using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
-			{
-				writer.WriteLine( "["+DateTime.Now.ToLongTimeString()+"] "+message );
-			}
-		}
 
 		private void bot_OnPublicAction(User user, string channel, string message)
 		{
@@ -155,5 +152,37 @@ namespace NielsRask.Logger
 		{
 			WriteToFile( target, "***"+botName+" sets mode "+text );
 		}
+
+		private void WriteToFile(string file, string message) 
+		{
+			if (lastWriteTime.Date != DateTime.Now.Date)	// overskredet midnat. måske er 0300 bedre?
+			{
+				// send mail
+				SendMail();
+				daily.Clear();
+			}
+
+			lastWriteTime = DateTime.Now;
+			using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
+			{
+				writer.WriteLine( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+				daily.Add( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+			}
+		}
+
+		//TODO: support for several channels
+		private void SendMail() 
+		{
+			MailMessage mail = new MailMessage(); 
+			mail.To = "niels@itide.dk";
+			mail.From = "niels@itide.dk";
+			mail.Subject = "irc log";
+			mail.Body = "Log: "+Environment.NewLine;
+			foreach (string str in daily)
+				mail.Body += str+Environment.NewLine;
+			SmtpMail.SmtpServer = "mail.itide.dk";
+			SmtpMail.Send( mail );
+		}
+
 	}
 }
