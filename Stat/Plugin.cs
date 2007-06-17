@@ -8,8 +8,9 @@ namespace NielsRask.Stat
 	public class StatPlugin : IPlugin
 	{
 		NielsRask.FnordBot.FnordBot bot;
-		ChannelDictionary wordstat;
-		ChannelDictionary userstat;
+		ChannelDictionary wordstat;		// mest brugte ord
+		ChannelDictionary userstat;		// mest snakkende bruger - linjer
+		ChannelDictionary userstatw;	// mest snakkende bruger - ord
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public StatPlugin()
@@ -49,8 +50,11 @@ namespace NielsRask.Stat
 				{
 					#region wordstat
 					string[] parts = message.Split(' ');
-					foreach (string part in parts)
+					foreach (string part in parts) 
+					{
 						wordstat.Increment(channel, part); // bedre med en rigtig for-løkke
+						userstatw.Increment(channel,user.NickName);
+					}
 					#endregion
 
 					#region userstat
@@ -76,6 +80,23 @@ namespace NielsRask.Stat
 					bot.SendToChannel(channel, output, true);
 				}
 				else if (message == "!toptalk") 
+				{
+					log.Info("Listing top talkers on "+channel+"...");
+					string output = "";
+					if (!userstatw.Contains(channel)) 
+					{
+						bot.SendToChannel(channel, "No stats yet ...", true);
+						return;
+					}
+					StatCollection scol = userstatw[channel].GetTop(10);
+					int topCount = scol.Count>10?10:scol.Count;
+					for (int i=0; i<topCount; i++) 
+					{
+						output += "\u0002"+(i+1)+"\u0002 - ["+scol[i].Key+"]: "+scol[i].Score+"; ";
+					}
+					bot.SendToChannel(channel, output, true);
+				}				
+				else if (message == "!toplines") 
 				{
 					log.Info("Listing top talkers on "+channel+"...");
 					string output = "";
