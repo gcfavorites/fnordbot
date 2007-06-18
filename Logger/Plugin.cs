@@ -155,18 +155,25 @@ namespace NielsRask.Logger
 
 		private void WriteToFile(string file, string message) 
 		{
-			if (lastWriteTime.Date != DateTime.Now.Date)	// overskredet midnat. måske er 0300 bedre?
+			try 
 			{
-				// send mail
-				SendMail();
-				daily.Clear();
-			}
+				if (lastWriteTime.Date != DateTime.Now.Date)	// overskredet midnat. måske er 0300 bedre?
+				{
+					// send mail
+					SendMail();
+					daily.Clear();
+				}
 
-			lastWriteTime = DateTime.Now;
-			using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
+				lastWriteTime = DateTime.Now;
+				using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
+				{
+					writer.WriteLine( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+					daily.Add( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+				}
+			}
+			catch (Exception e) 
 			{
-				writer.WriteLine( "["+DateTime.Now.ToLongTimeString()+"] "+message );
-				daily.Add( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+				log.Error("Error in WriteToFile()",e);
 			}
 		}
 
