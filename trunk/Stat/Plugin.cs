@@ -17,6 +17,7 @@ namespace NielsRask.Stat
 		{
 			wordstat = new ChannelDictionary();
 			userstat  = new ChannelDictionary();
+			userstatw = new ChannelDictionary();
 		}
 		#region IPlugin Members
 
