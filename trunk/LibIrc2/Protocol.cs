@@ -573,10 +573,10 @@ namespace NielsRask.LibIrc
 				decoded_message = decoded_message.Substring( 7 ); //fjern "ACTION "
 				if (target.StartsWith("#")) 
 					if (OnPublicAction != null) 
-						OnPublicAction(message, target, rd.Username, rd.Hostmask);
+						OnPublicAction(decoded_message, target, rd.Username, rd.Hostmask);
 					else 
 						if (OnPrivateAction != null) 
-						OnPrivateAction(message, target, rd.Username, rd.Hostmask);
+						OnPrivateAction(decoded_message, target, rd.Username, rd.Hostmask);
 			}
 			else if (decoded_message.StartsWith("SOUND")) 
 			{
