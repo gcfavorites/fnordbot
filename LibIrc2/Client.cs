@@ -192,7 +192,7 @@ namespace NielsRask.LibIrc
 			protocol.AlternativeNick = altNick;
 			channels = new ChannelCollection( protocol );
 			protocol.OnChannelUserList += new Protocol.ChannelUserListHandler(OnChannelUserList);
-			protocol.OnTopicChange += new Protocol.ChannelTopicHandler(OnTopicChange);
+//			protocol.OnTopicChange += new Protocol.ChannelTopicHandler(OnTopicChange);
 			protocol.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPrivateMessage);
 			protocol.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPublicMessage);
 			protocol.OnPublicNotice += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPublicNotice);
