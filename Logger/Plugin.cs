@@ -3,6 +3,8 @@ using NielsRask.FnordBot;
 using System.IO;
 using log4net;
 using System.Web.Mail;
+using System.Collections;
+using System.Threading;
 
 namespace NielsRask.Logger
 {
@@ -15,11 +17,16 @@ namespace NielsRask.Logger
 		StreamWriter writer;
 		string logFolderPath = "c:\\";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		DateTime lastWriteTime;
-		System.Collections.Specialized.StringCollection daily;
+//		DateTime lastWriteTime;
+//		System.Collections.Specialized.StringCollection daily;
+		ChannelLogDictionary chanlog;
+		AlarmClock alarmClock;
 		public Plugin()
 		{
-			daily = new System.Collections.Specialized.StringCollection();
+//			daily = new System.Collections.Specialized.StringCollection();
+			chanlog = new ChannelLogDictionary();
+			alarmClock = new AlarmClock();
+			alarmClock.Start();
 		}
 
 		#region IPlugin Members
@@ -46,6 +53,7 @@ namespace NielsRask.Logger
 				bot.OnSendToUser += new NielsRask.FnordBot.FnordBot.BotMessageHandler(bot_OnSendToUser);
 				bot.OnSendNotice +=new NielsRask.FnordBot.FnordBot.BotMessageHandler(bot_OnSendNotice);
 				bot.OnSetMode += new NielsRask.FnordBot.FnordBot.BotMessageHandler(bot_OnSetMode);
+				alarmClock.AddAlarm( new DelegateCaller(DateTime.Today.AddDays(1), new AlarmMethod( OnMidnight ) ) );
 			} 
 			catch (Exception e) 
 			{
@@ -153,22 +161,27 @@ namespace NielsRask.Logger
 			WriteToFile( target, "***"+botName+" sets mode "+text );
 		}
 
+		private void OnMidnight() 
+		{
+			foreach (NielsRask.LibIrc.Channel chan in bot.Channels) 
+			{
+				WriteToFile(chan.Name, "*** It is now "+DateTime.Now.ToLongDateString() );
+			}
+			foreach (DictionaryEntry de in chanlog) 
+			{
+				SendMail((string)de.Key, (System.Collections.Specialized.StringCollection)de.Value);
+				( (System.Collections.Specialized.StringCollection)de.Value ).Clear();
+			}
+		}
+
 		private void WriteToFile(string file, string message) 
 		{
 			try 
 			{
-				if (lastWriteTime.Date != DateTime.Now.Date)	// overskredet midnat. måske er 0300 bedre?
-				{
-					// send mail
-					SendMail();
-					daily.Clear();
-				}
-
-				lastWriteTime = DateTime.Now;
 				using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
 				{
 					writer.WriteLine( "["+DateTime.Now.ToLongTimeString()+"] "+message );
-					daily.Add( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+					chanlog[file].Add( "["+DateTime.Now.ToLongTimeString()+"] "+message );
 				}
 			}
 			catch (Exception e) 
@@ -178,19 +191,68 @@ namespace NielsRask.Logger
 		}
 
 		//TODO: support for several channels
-		private void SendMail() 
+		private void SendMail(string channame, System.Collections.Specialized.StringCollection col) 
 		{
 			MailMessage mail = new MailMessage(); 
 			mail.To = "niels@crayon.dk";
 			mail.Cc = "niels@itide.dk";
 			mail.From = "niels@itide.dk";
-			mail.Subject = "irc log";
+			mail.Subject = "IRC log for "+channame;
 			mail.Body = "Log: "+Environment.NewLine;
-			foreach (string str in daily)
+			foreach (string str in col)
 				mail.Body += str+Environment.NewLine;
 			SmtpMail.SmtpServer = "mail.itide.dk";
 			SmtpMail.Send( mail );
 		}
 
+	}
+
+	public delegate void AlarmMethod();
+
+	public class DelegateCaller :IAlarmLauncher
+	{
+		DateTime time;
+		AlarmMethod method;
+
+		public DelegateCaller(DateTime time, AlarmMethod method ) 
+		{
+			this.time = time;
+			this.method = method;
+		}
+
+		public DateTime Time
+		{
+			get{ return time; }
+		}
+
+		public void Reschedule(AlarmEngine engine, DateTime currentAlarmTime)
+		{
+			engine.AddAlarm( new DelegateCaller(time.AddDays(1), method) );	// ny kørsel imorgen
+		}
+
+		public void Execute()
+		{
+			Thread t = new Thread( new ThreadStart( method ) );
+			method();
+		}
+	}
+
+	public class ChannelLogDictionary : DictionaryBase 
+	{
+		public void Add(string channelName, System.Collections.Specialized.StringCollection log) 
+		{
+			Dictionary.Add( channelName, log );
+
+		}
+
+		public System.Collections.Specialized.StringCollection this[string name] 
+		{
+			get 
+			{ 
+				if(Dictionary[name] == null)
+					Add( name, new System.Collections.Specialized.StringCollection() );
+				return (System.Collections.Specialized.StringCollection)Dictionary[name]; 
+			}
+		}
 	}
 }
