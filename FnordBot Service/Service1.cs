@@ -103,7 +103,7 @@ namespace NielsRask.FnordBotService
 			// TODO: Add code here to start your service.
 			log.Info("Starting FnordBot service ...");
 			handler.Start();
-			log.Info("FnordBot service");
+			log.Info("FnordBot service started.");
 
 		}
  
