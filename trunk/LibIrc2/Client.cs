@@ -365,8 +365,8 @@ namespace NielsRask.LibIrc
 			{
 //				WriteLogMessage("Reconnect failed");
 				log.Error("Reconnect failed", e);
+				Network_OnDisconnect();	// holder det?
 			}
-//			Network_OnDisconnect();	// holder det?
 		}
 
 		private void protocol_OnMotd(string data)
