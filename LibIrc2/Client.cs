@@ -354,17 +354,14 @@ namespace NielsRask.LibIrc
 			System.Threading.Thread.Sleep(30*1000);
 			try 
 			{
-				log.Info("Got disconnected event - Reconnecting");
-				//				WriteLogMessage("Reconnecting ...");
+				log.Info("Reconnecting ...");
 				Connect();
-//				WriteLogMessage("Reconnected.");
 				log.Info("Reconnected to server");
 
 			} 
 			catch (Exception e) 
 			{
-//				WriteLogMessage("Reconnect failed");
-				log.Error("Reconnect failed", e);
+				log.Error("Reconnect failed, re-calling Network_OnDisconnect()", e);
 				Network_OnDisconnect();	// holder det?
 			}
 		}
