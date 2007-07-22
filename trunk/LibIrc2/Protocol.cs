@@ -391,10 +391,15 @@ namespace NielsRask.LibIrc
 			{
 				ParseChannelTopic( line );
 			} 
-			else if ( parts[1] == "NICK") 
+			else if ( parts[1] == "NICK" ) 
 			{
 				// :WiZ!jto@tolsun.oulu.fi NICK Kilroy
 				ParseNickChange( line );
+			}
+			else if ( parts[1] == "QUIT" )
+			{
+				// :smcRanger!~smc@user103.77-105-195.netatonce.net QUIT :Remote host closed the connection
+				// Add logic here :)
 			}
 			else if ( IsNumericReply( parts[1] ) )
 			{
