@@ -556,6 +556,7 @@ namespace NielsRask.FnordBot
 			irc.Protocol.OnChannelKick += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelKick);
 			irc.Protocol.OnChannelMode += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelMode);
 			irc.Protocol.OnChannelPart += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelPart);
+			irc.Protocol.OnServerQuit += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnServerQuit);
 			irc.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(Protocol_OnTopicChange);
 			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(Protocol_OnPrivateMessage);
 			irc.OnPublicAction += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicAction);
@@ -611,6 +612,10 @@ namespace NielsRask.FnordBot
 		/// </summary>
 		public event ChannelActionHandler OnChannelPart;
 		/// <summary>
+		/// Occurs when someone quits IRC entirely
+		/// </summary>
+		public event ChannelActionHandler OnServerQuit;
+		/// <summary>
 		/// Occurs when someone changes the mode of a channel
 		/// </summary>
 		public event ChannelActionHandler OnChannelMode;
@@ -638,8 +643,13 @@ namespace NielsRask.FnordBot
 		/// Occurs when the bot changes channel mode
 		/// </summary>
 		public event BotMessageHandler OnSetMode;
-
+		/// <summary>
+		/// Occurs when an action is sent to a channel
+		/// </summary>
 		public event MessageHandler OnPublicAction;
+		/// <summary>
+		/// Occurs when an action is sent by a user
+		/// </summary>
 		public event MessageHandler OnPrivateAction;
 
 		/// <summary>
@@ -779,11 +789,17 @@ namespace NielsRask.FnordBot
 			if (OnPublicAction != null)
 				OnPublicAction( GetUser(senderNick, senderHost), target, message );
 		}
+
 		private void irc_OnPrivateAction(string message, string target, string senderNick, string senderHost)
 		{
 			if (OnPrivateAction != null)
 				OnPrivateAction( GetUser(senderNick, senderHost), target, message );
+		}
 
+		private void Protocol_OnServerQuit(string text, string channel, string target, string senderNick, string senderHost)
+		{
+			if (OnServerQuit != null)
+				OnServerQuit( text, channel, target, senderNick, senderHost );
 		}
 	}
 

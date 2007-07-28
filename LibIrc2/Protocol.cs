@@ -46,6 +46,7 @@ namespace NielsRask.LibIrc
 		/// Occurs when someone leaves a channel
 		/// </summary>
 		public event ChannelActionHandler OnChannelPart;
+		public event ChannelActionHandler OnServerQuit;
 		/// <summary>
 		/// Occurs when the mode of a channel changes
 		/// </summary>
@@ -399,7 +400,7 @@ namespace NielsRask.LibIrc
 			else if ( parts[1] == "QUIT" )
 			{
 				// :smcRanger!~smc@user103.77-105-195.netatonce.net QUIT :Remote host closed the connection
-				// Add logic here :)
+				ParseServerQuit( line );
 			}
 			else if ( IsNumericReply( parts[1] ) )
 			{
@@ -462,7 +463,7 @@ namespace NielsRask.LibIrc
 		private void ParseChannelPart(string line) 
 		{
 			//:NordCore!~nordcore@0x3e42a834.adsl.cybercity.dk PART #bottest
-			string[] parts = line.Split(new Char[] {' '},4);
+			string[] parts = line.Split(new Char[] {' '},3);
 			int pos = parts[0].IndexOf("!");
 			string user;
 			string hostmask;
@@ -480,6 +481,32 @@ namespace NielsRask.LibIrc
 
 			if (OnChannelPart != null) 
 				OnChannelPart("", target,"",user, hostmask);
+		}
+
+		private void ParseServerQuit(string line) 
+		{
+			// ':smcRanger!~smc@user103.77-105-195.netatonce.net QUIT :Remote host closed the connection'
+			string[] parts = line.Split(new Char[] {' '},3);
+			int pos = parts[0].IndexOf("!");
+			string user;
+			string hostmask;
+			if (pos>1) 
+			{
+				user = parts[0].Substring(1,pos-1);
+				hostmask = parts[0].Substring(pos);
+			} 
+			else 
+			{
+				user = parts[0].Replace(":","");
+				hostmask = "";
+			}
+			string msg = parts[2];
+			if (msg.StartsWith(":"))
+				msg = msg.Substring(1);
+
+			if (OnServerQuit != null) 
+				OnChannelPart(msg, "","",user, hostmask);
+
 		}
 
 		private void ParseChannelMode(string line) 
