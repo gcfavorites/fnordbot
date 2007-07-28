@@ -176,7 +176,10 @@ namespace NielsRask.Logger
 			}
 			foreach (DictionaryEntry de in chanlog) 
 			{
-				SendMail((string)de.Key, (System.Collections.Specialized.StringCollection)de.Value);
+				string key = (string)de.Key; 
+				System.Collections.Specialized.StringCollection value = (System.Collections.Specialized.StringCollection)de.Value;
+				if (value.Count > 0)	//ovenfor har vi skrevet datoskift
+					SendMail(key, value);
 				( (System.Collections.Specialized.StringCollection)de.Value ).Clear();
 			}
 		}
