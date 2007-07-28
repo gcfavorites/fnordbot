@@ -44,6 +44,7 @@ namespace NielsRask.Logger
 				bot.OnChannelPart += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelPart);
 				bot.OnChannelMode += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelMode);
 				bot.OnChannelKick += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnChannelKick);
+				bot.OnServerQuit += new NielsRask.FnordBot.FnordBot.ChannelActionHandler(bot_OnServerQuit);
 				bot.OnPrivateNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPrivateNotice);
 				bot.OnPublicNotice += new NielsRask.FnordBot.FnordBot.MessageHandler(bot_OnPublicNotice);
 				bot.OnTopicChange += new NielsRask.FnordBot.FnordBot.ChannelTopicHandler(bot_OnTopicChange);
@@ -159,6 +160,12 @@ namespace NielsRask.Logger
 		private void bot_OnSetMode(string botName, string target, string text)
 		{
 			WriteToFile( target, "***"+botName+" sets mode "+text );
+		}
+
+		private void bot_OnServerQuit(string text, string channel, string target, string senderNick, string senderHost)
+		{
+			foreach (NielsRask.LibIrc.Channel chan in bot.Channels)	// logs quit in all channels - needs fixing
+				WriteToFile( chan.Name, "*** "+senderNick+" ("+senderHost+") has quit IRC: "+text );
 		}
 
 		private void OnMidnight() 
