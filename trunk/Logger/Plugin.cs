@@ -142,12 +142,14 @@ namespace NielsRask.Logger
 		private void bot_OnSendToChannel(string botName, string target, string text)
 		{
 			// bot talks to channel
+			Thread.Sleep(500);
 			WriteToFile( target, "<"+botName+"> "+text );
 		}
 
 		private void bot_OnSendToUser(string botName, string target, string text)
 		{
 			// bot talks to user
+			Thread.Sleep(500);
 			WriteToFile( target, "<"+botName+"> "+text );
 		}
 
