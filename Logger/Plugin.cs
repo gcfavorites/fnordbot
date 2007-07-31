@@ -104,7 +104,8 @@ namespace NielsRask.Logger
 
 		private void bot_OnChannelMode(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			WriteToFile( channel, "***"+senderNick+" sets mode "+text );
+			if (channel != "")
+				WriteToFile( channel, "*** "+senderNick+" sets mode "+text );
 		}
 
 		private void bot_OnChannelKick(string text, string channel, string target, string senderNick, string senderHost)
@@ -142,14 +143,14 @@ namespace NielsRask.Logger
 		private void bot_OnSendToChannel(string botName, string target, string text)
 		{
 			// bot talks to channel
-			Thread.Sleep(500);
+			Thread.Sleep(1500);
 			WriteToFile( target, "<"+botName+"> "+text );
 		}
 
 		private void bot_OnSendToUser(string botName, string target, string text)
 		{
 			// bot talks to user
-			Thread.Sleep(500);
+			Thread.Sleep(1500);
 			WriteToFile( target, "<"+botName+"> "+text );
 		}
 
@@ -161,7 +162,7 @@ namespace NielsRask.Logger
 
 		private void bot_OnSetMode(string botName, string target, string text)
 		{
-			WriteToFile( target, "***"+botName+" sets mode "+text );
+			WriteToFile( target, "*** "+botName+" sets mode "+text );
 		}
 
 		private void bot_OnServerQuit(string text, string channel, string target, string senderNick, string senderHost)

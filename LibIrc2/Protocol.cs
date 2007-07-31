@@ -46,6 +46,9 @@ namespace NielsRask.LibIrc
 		/// Occurs when someone leaves a channel
 		/// </summary>
 		public event ChannelActionHandler OnChannelPart;
+		/// <summary>
+		/// Occurs when someone quits IRC entirely
+		/// </summary>
 		public event ChannelActionHandler OnServerQuit;
 		/// <summary>
 		/// Occurs when the mode of a channel changes
