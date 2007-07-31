@@ -78,6 +78,7 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionItems) = postSolution
 		FnordBot.FxCop = FnordBot.FxCop
+		Installer.nsi = Installer.nsi
 		log4net.dll = log4net.dll
 		log4net.xml = log4net.xml
 	EndGlobalSection

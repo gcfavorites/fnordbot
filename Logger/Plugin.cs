@@ -190,10 +190,13 @@ namespace NielsRask.Logger
 		{
 			try 
 			{
-				using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
+				if (file != "")
 				{
-					writer.WriteLine( "["+DateTime.Now.ToLongTimeString()+"] "+message );
-					chanlog[file].Add( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+					using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
+					{
+						writer.WriteLine( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+						chanlog[file].Add( "["+DateTime.Now.ToLongTimeString()+"] "+message );
+					}
 				}
 			}
 			catch (Exception e) 

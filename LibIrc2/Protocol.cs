@@ -505,7 +505,7 @@ namespace NielsRask.LibIrc
 				msg = msg.Substring(1);
 
 			if (OnServerQuit != null) 
-				OnChannelPart(msg, "","",user, hostmask);
+				OnServerQuit(msg, "","",user, hostmask);
 
 		}
 
