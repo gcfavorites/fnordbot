@@ -150,6 +150,7 @@ namespace NielsRask.LibIrc
 			this.network = network;
 			listener = new Thread (new ThreadStart (this.Run) );
 			listener.IsBackground = true;
+			listener.Name = "ListenerThread";
 		}
 
 		/// <summary>
@@ -180,7 +181,6 @@ namespace NielsRask.LibIrc
 			catch (Exception e) 
 			{
 				// this message can propably be discarded as we're only interested in the fact that the connection was lost
-//				WriteLogMessage("Error in listener.run, connection probably lost: "+e);
 				log.Error("Error in listener.run, connection probably lost.",e);
 			} 
 			finally 

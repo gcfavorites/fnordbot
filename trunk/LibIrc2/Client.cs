@@ -350,13 +350,13 @@ namespace NielsRask.LibIrc
 
 		private void Network_OnDisconnect()
 		{
-			log.Info("Got disconnected event - taking a wee nap");
+			log.Warn("Got disconnected event - taking a wee nap");
 			System.Threading.Thread.Sleep(30*1000);
 			try 
 			{
 				log.Info("Reconnecting ...");
 				Connect();
-				log.Info("Reconnected to server");
+				log.Warn("Reconnected to server");
 
 			} 
 			catch (Exception e) 
