@@ -143,15 +143,27 @@ namespace NielsRask.Logger
 		private void bot_OnSendToChannel(string botName, string target, string text)
 		{
 			// bot talks to channel
-			Thread.Sleep(1500);
-			WriteToFile( target, "<"+botName+"> "+text );
+//			Thread.Sleep(1500);
+//			WriteToFile( target, "<"+botName+"> "+text );
+            WriteDelayed( target, "<"+botName+"> "+text );
 		}
 
 		private void bot_OnSendToUser(string botName, string target, string text)
 		{
 			// bot talks to user
-			Thread.Sleep(1500);
-			WriteToFile( target, "<"+botName+"> "+text );
+//			Thread.Sleep(1500);
+//			WriteToFile( target, "<"+botName+"> "+text );
+			WriteDelayed( target, "<"+botName+"> "+text );
+
+		}
+
+		private void WriteDelayed(string file, string message) 
+		{
+			DelayWriter dw = new DelayWriter( file, message,1000, new WriterDelegate(WriteToFile) );
+			Thread t = new Thread( new ThreadStart( dw ) );
+			t.Name = "DelayedLogWriterThread";
+			t.IsBackground = true;
+			t.Start();
 		}
 
 		private void bot_OnSendNotice(string botName, string target, string text)
@@ -186,6 +198,8 @@ namespace NielsRask.Logger
 				( (System.Collections.Specialized.StringCollection)de.Value ).Clear();
 			}
 		}
+
+		public delegate void WriterDelegate(string file, string message);
 
 		private void WriteToFile(string file, string message) 
 		{
@@ -269,6 +283,26 @@ namespace NielsRask.Logger
 					Add( name, new System.Collections.Specialized.StringCollection() );
 				return (System.Collections.Specialized.StringCollection)Dictionary[name]; 
 			}
+		}
+	}
+
+	public class DelayWriter 
+	{
+		string file;
+		string message;
+		Plugin.WriterDelegate writerDelegate;
+
+		public DelayWriter( string file, string message, int delay, Plugin.WriterDelegate writeDelegate ) 
+		{
+			this.file = file;
+			this.message = message;
+			this.writerDelegate = writerDelegate;
+		}
+
+		public void Start() 
+		{
+			Thread.Sleep( delay );
+			writerDelegate(file, message);
 		}
 	}
 }

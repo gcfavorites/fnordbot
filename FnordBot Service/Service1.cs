@@ -132,6 +132,7 @@ namespace NielsRask.FnordBotService
 		{
 			try 
 			{
+				AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 				installationFolderPath = GetConfigFilePath();
 				File.Delete( installationFolderPath+"err.txt" );
 				File.Delete( installationFolderPath+"out.txt" );
@@ -190,6 +191,12 @@ namespace NielsRask.FnordBotService
 		{
 			RegistryKey rk = Registry.LocalMachine.OpenSubKey("Software\\NielsRask\\FnordBot");
 			return (string)rk.GetValue("InstallationFolderPath");
+		}
+
+		private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+		{
+			log.Error( "An unhandled exception was caught" );
+			log.Error( "Details of unhandled exception: ", ((Exception)e.ExceptionObject) );
 		}
 	}
 }
