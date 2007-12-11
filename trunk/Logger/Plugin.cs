@@ -160,7 +160,7 @@ namespace NielsRask.Logger
 		private void WriteDelayed(string file, string message) 
 		{
 			DelayWriter dw = new DelayWriter( file, message,1000, new WriterDelegate(WriteToFile) );
-			Thread t = new Thread( new ThreadStart( dw ) );
+			Thread t = new Thread( new ThreadStart( dw.Start ) );
 			t.Name = "DelayedLogWriterThread";
 			t.IsBackground = true;
 			t.Start();
@@ -290,12 +290,14 @@ namespace NielsRask.Logger
 	{
 		string file;
 		string message;
+		int delay;
 		Plugin.WriterDelegate writerDelegate;
 
 		public DelayWriter( string file, string message, int delay, Plugin.WriterDelegate writeDelegate ) 
 		{
 			this.file = file;
 			this.message = message;
+			this.delay = delay;
 			this.writerDelegate = writerDelegate;
 		}
 
