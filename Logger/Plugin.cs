@@ -296,6 +296,7 @@ namespace NielsRask.Logger
 		public DelayWriter( string file, string message, int delay, Plugin.WriterDelegate writeDelegate ) 
 		{
 			this.file = file;
+			this.delay = delay;
 			this.message = message;
 			this.delay = delay;
 			this.writerDelegate = writerDelegate;
@@ -303,8 +304,19 @@ namespace NielsRask.Logger
 
 		public void Start() 
 		{
-			Thread.Sleep( delay );
-			writerDelegate(file, message);
+			int err=0;
+			try 
+			{
+				err=1;
+				Thread.Sleep( delay );
+				err=2;
+				writerDelegate(file, message);
+				err=3;
+			} 
+			catch (Exception e) 
+			{
+				throw new Exception("DelayWriter.Start died with "+e.GetType().Name+": "+e.Message+", at step "+err+"");
+			}
 		}
 	}
 }
