@@ -83,8 +83,10 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public void Connect(string host, int port) 
 		{
+			log.Debug("Network: Connecting to server "+host+":"+port+" ...");
 			server = new TcpClient(host,port);
 			if (OnConnect!=null) OnConnect();
+			log.Debug("Network: Successfully connected, starting listener...");
 			
 			stream = server.GetStream();
 
@@ -94,6 +96,8 @@ namespace NielsRask.LibIrc
 			
 			listener.Start(stream);
 			writer = new StreamWriter(stream,System.Text.Encoding.Default);
+			log.Debug("Network: Writer and listener threads started.");
+
 		}
 
 		/// <summary>
@@ -102,7 +106,7 @@ namespace NielsRask.LibIrc
 		/// <param name="text">The text to send</param>
 		public void SendToServer(string text) 
 		{
-			if (!text.StartsWith("PONG :")) 
+			//if (!text.StartsWith("PONG :")) 
 				log.Debug("Sending to server: '"+text+"'");
 			writer.WriteLine(text);
 			writer.Flush();
@@ -174,7 +178,7 @@ namespace NielsRask.LibIrc
 				while ( (inputLine = reader.ReadLine() ) != null) 
 				{
 					network.CallOnServerMessage(inputLine);
-					if (!inputLine.StartsWith("PING :"))
+					//if (!inputLine.StartsWith("PING :"))
 						log.Debug("Received line: "+inputLine);
 				} 
 			} 
