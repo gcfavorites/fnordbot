@@ -16,6 +16,7 @@ namespace NielsRask.LibIrc
 		private string fingerReply = "";
 		private string altNick = "";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		private PingListener pingListener;
 
 		#region event-forwarding
 		/// <summary>
@@ -210,6 +211,14 @@ namespace NielsRask.LibIrc
 			network = new Network();
 			network.OnServerMessage += new Network.ServerMessageHandler( ProcessMessage );
 //			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
+
+			// pinglistener skal opdage når vi ikke har fået pings længe
+			pingListener = new PingListener();
+			network.OnServerMessage += new NielsRask.LibIrc.Network.ServerMessageHandler(pingListener.ProcessMessage);
+			Thread tPingListen = new Thread( new ThreadStart( pingListener.Start ) );
+			tPingListen.Name = "PingListenerThread";
+			tPingListen.IsBackground = true;
+			tPingListen.Start();
 		} 
 
 		/// <summary>
@@ -794,6 +803,28 @@ namespace NielsRask.LibIrc
 			rd.Command = parts[1];
 
 			return rd;
+		}
+	}
+
+	public class PingListener 
+	{
+		private DateTime lastPing = DateTime.Now;
+		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		
+		public void Start() 
+		{
+			log.Info("PingListener was started ...");
+			while (true) 
+			{
+				if ( lastPing < DateTime.Now.AddMinutes(-5) )
+					log.Warn("Last ping was recieved at "+lastPing+" - connection might be lost!");
+				Thread.Sleep( new TimeSpan(0, 5, 0) );
+			}
+		}
+		public void ProcessMessage(string line) 
+		{
+			if ( line.StartsWith("PING") ) 
+				lastPing = DateTime.Now;
 		}
 	}
 }
