@@ -16,6 +16,7 @@ namespace NielsRask.LibIrc
 		private NetworkStream stream;
 		private StreamWriter writer;
 		private IrcListener listener;
+
 		// Create a logger for use in this class
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -23,10 +24,12 @@ namespace NielsRask.LibIrc
 		/// Occurs on message received from server
 		/// </summary>
 		public event ServerMessageHandler OnServerMessage;
+
 		/// <summary>
 		/// Occurs on successfull connect to server
 		/// </summary>
 		public event ServerStateHandler OnConnect;
+
 		/// <summary>
 		/// Occurs on disconnect from server
 		/// </summary>
@@ -36,20 +39,12 @@ namespace NielsRask.LibIrc
 		/// Delegate for raw server messages
 		/// </summary>
 		public delegate void ServerMessageHandler(string message);
+
 		/// <summary>
 		/// Delegate for server state changes
 		/// </summary>
 		public delegate void ServerStateHandler();
-//		/// <summary>
-//		/// Delegate for logging
-//		/// </summary>
-//		public delegate void LogMessageHandler(string message);
-//
-//		/// <summary>
-//		/// Occurs when the network layer wishes to log a message
-//		/// </summary>
-//		public event LogMessageHandler OnLogMessage;
-//
+
 		/// <summary>
 		/// Calls the OnServerMessage event if a subscriber exists
 		/// </summary>
@@ -67,16 +62,6 @@ namespace NielsRask.LibIrc
 			if (OnDisconnect != null) 
 				OnDisconnect(); 
 		}
-
-//		/// <summary>
-//		/// Calls the OnLogMessage event if a subscriber exists
-//		/// </summary>
-//		private void WriteLogMessage(string message) 
-//		{
-//			if ( OnLogMessage != null ) 
-//				OnLogMessage( message );
-//		}
-
 
 		/// <summary>
 		/// Connects to a server
@@ -108,8 +93,11 @@ namespace NielsRask.LibIrc
 		{
 			//if (!text.StartsWith("PONG :")) 
 				log.Debug("Sending to server: '"+text+"'");
-			writer.WriteLine(text);
-			writer.Flush();
+			lock( writer ) 
+			{
+				writer.WriteLine(text);
+				writer.Flush();
+			}
 		}
 
 	}
@@ -123,27 +111,9 @@ namespace NielsRask.LibIrc
 		private StreamReader reader;
 		private string inputLine;
 		private Network network;
+
 		// Create a logger for use in this class
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-//		/// <summary>
-//		/// Delegate for logging
-//		/// </summary>
-//		public delegate void LogMessageHandler(string message);
-//		/// <summary>
-//		/// Occurs when the network listener wants to log a message
-//		/// </summary>
-//		public event LogMessageHandler OnLogMessage;
-//
-//		/// <summary>
-//		/// Writes a message to the log, if a subscriber exists
-//		/// </summary>
-//		/// <param name="message"></param>
-//		private void WriteLogMessage(string message) 
-//		{
-//			if ( OnLogMessage != null ) 
-//				OnLogMessage( message );
-//		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="IrcListener"/> class.
@@ -175,12 +145,15 @@ namespace NielsRask.LibIrc
 		{
 			try 
 			{
-				while ( (inputLine = reader.ReadLine() ) != null) 
-				{
-					network.CallOnServerMessage(inputLine);
-					//if (!inputLine.StartsWith("PING :"))
+				lock (reader) 
+				{ 
+					while ( (inputLine = reader.ReadLine() ) != null) 
+					{
+						network.CallOnServerMessage(inputLine);
+						//if (!inputLine.StartsWith("PING :"))
 						log.Debug("Received line: "+inputLine);
-				} 
+					} 
+				}
 			} 
 			catch (Exception e) 
 			{
