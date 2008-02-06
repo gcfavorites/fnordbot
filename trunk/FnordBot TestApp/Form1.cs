@@ -31,6 +31,7 @@ namespace NielsRask.FnordBot
 		private System.Windows.Forms.Button btnShow;
 		private System.Windows.Forms.Button button2;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		private System.Windows.Forms.Button button3;
 		/// <summary>
 		/// Required designer variable.
 		/// </summary>
@@ -178,6 +179,7 @@ namespace NielsRask.FnordBot
 			this.btnConnect2 = new System.Windows.Forms.Button();
 			this.btnShow = new System.Windows.Forms.Button();
 			this.button2 = new System.Windows.Forms.Button();
+			this.button3 = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// btnConnect
@@ -220,10 +222,19 @@ namespace NielsRask.FnordBot
 			this.button2.Text = "button2";
 			this.button2.Click += new System.EventHandler(this.button2_Click);
 			// 
+			// button3
+			// 
+			this.button3.Location = new System.Drawing.Point(40, 208);
+			this.button3.Name = "button3";
+			this.button3.TabIndex = 5;
+			this.button3.Text = "button3";
+			this.button3.Click += new System.EventHandler(this.button3_Click);
+			// 
 			// Form1
 			// 
 			this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
 			this.ClientSize = new System.Drawing.Size(292, 266);
+			this.Controls.Add(this.button3);
 			this.Controls.Add(this.button2);
 			this.Controls.Add(this.btnShow);
 			this.Controls.Add(this.btnConnect2);
@@ -308,6 +319,13 @@ namespace NielsRask.FnordBot
 		private void bot_OnLogMessage(string message)
 		{
 			Console.WriteLine( message );
+		}
+
+		private void button3_Click(object sender, System.EventArgs e)
+		{
+		
+			NielsRask.Logger.Plugin logger = new NielsRask.Logger.Plugin();
+			logger.bot_OnSendToUser("BimseBot", "crayon","snik snak");
 		}
 	}
 }

@@ -17,13 +17,11 @@ namespace NielsRask.Logger
 		StreamWriter writer;
 		string logFolderPath = "c:\\";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-//		DateTime lastWriteTime;
-//		System.Collections.Specialized.StringCollection daily;
+
 		ChannelLogDictionary chanlog;
 		AlarmClock alarmClock;
 		public Plugin()
 		{
-//			daily = new System.Collections.Specialized.StringCollection();
 			chanlog = new ChannelLogDictionary();
 			alarmClock = new AlarmClock();
 			alarmClock.Start();
@@ -143,26 +141,23 @@ namespace NielsRask.Logger
 		private void bot_OnSendToChannel(string botName, string target, string text)
 		{
 			// bot talks to channel
-//			Thread.Sleep(1500);
-//			WriteToFile( target, "<"+botName+"> "+text );
             WriteDelayed( target, "<"+botName+"> "+text );
 		}
 
-		private void bot_OnSendToUser(string botName, string target, string text)
+		public void bot_OnSendToUser(string botName, string target, string text)
 		{
 			// bot talks to user
-//			Thread.Sleep(1500);
-//			WriteToFile( target, "<"+botName+"> "+text );
 			WriteDelayed( target, "<"+botName+"> "+text );
 
 		}
 
 		private void WriteDelayed(string file, string message) 
 		{
-			DelayWriter dw = new DelayWriter( file, message,1000, new WriterDelegate(WriteToFile) );
+			WriterDelegate wrtdel = new WriterDelegate( this.WriteToFile );
+			DelayWriter dw = new DelayWriter( file, message,1000, wrtdel );
 			Thread t = new Thread( new ThreadStart( dw.Start ) );
 			t.Name = "DelayedLogWriterThread";
-			t.IsBackground = true;
+			t.IsBackground = false;
 			t.Start();
 		}
 
@@ -199,9 +194,8 @@ namespace NielsRask.Logger
 			}
 		}
 
-		public delegate void WriterDelegate(string file, string message);
 
-		private void WriteToFile(string file, string message) 
+		public void WriteToFile(string file, string message) 
 		{
 			try 
 			{
@@ -238,6 +232,7 @@ namespace NielsRask.Logger
 	}
 
 	public delegate void AlarmMethod();
+	public delegate void WriterDelegate(string file, string message);
 
 	public class DelegateCaller :IAlarmLauncher
 	{
@@ -291,15 +286,14 @@ namespace NielsRask.Logger
 		string file;
 		string message;
 		int delay;
-		Plugin.WriterDelegate writerDelegate;
+		WriterDelegate method;
 
-		public DelayWriter( string file, string message, int delay, Plugin.WriterDelegate writeDelegate ) 
+		public DelayWriter( string file, string message, int delay,  WriterDelegate writeDelegate ) 
 		{
 			this.file = file;
 			this.delay = delay;
 			this.message = message;
-			this.delay = delay;
-			this.writerDelegate = writerDelegate;
+			this.method = writeDelegate;
 		}
 
 		public void Start() 
@@ -310,7 +304,7 @@ namespace NielsRask.Logger
 				err=1;
 				Thread.Sleep( delay );
 				err=2;
-				writerDelegate(file, message);
+				method(file, message);
 				err=3;
 			} 
 			catch (Exception e) 
