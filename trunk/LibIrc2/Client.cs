@@ -126,39 +126,48 @@ namespace NielsRask.LibIrc
 		/// Occurs when a public message is received
 		/// </summary>
 		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicMessage;
+
 		/// <summary>
 		/// Occurs when a private message is received
 		/// </summary>
 		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateMessage;
+
 		/// <summary>
 		/// Occurs when a public notice is received
 		/// </summary>
 		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicNotice;
+
 		/// <summary>
 		/// Occurs when a private notice is received
 		/// </summary>
 		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateNotice;
+
 		/// <summary>
 		/// Occurs when we receive MOTD from server. we are then ready to join channels
 		/// </summary>
 		public event NielsRask.LibIrc.Protocol.ServerDataHandler OnMotd;
+
 		/// <summary>
 		/// Occurs when a user changes nickname
 		/// </summary>
 		public event NickChangeHandler OnNickChange;
+
 		//bot-actions
 		/// <summary>
 		/// Occurs when we send a public message
 		/// </summary>
 		public event BotMessageHandler OnSendToChannel;
+
 		/// <summary>
 		/// Occurs when we send a private message
 		/// </summary>
 		public event BotMessageHandler OnSendToUser;
+
 		/// <summary>
 		/// Occurs when we send a notice
 		/// </summary>
 		public event BotMessageHandler OnSendNotice;	//TODO: seperat private/public
+
 		/// <summary>
 		/// Occurs when we set the mode of a channel
 		/// </summary>
@@ -167,17 +176,12 @@ namespace NielsRask.LibIrc
 		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicAction;
 		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateAction;
 		public event NielsRask.LibIrc.Protocol.ChannelTopicHandler OnTopicChange;
-		
-
-		// her mangler vist et par ting? topicchanger f.eks?
-		// skulle vi evt. bruge dem der er defineret i protocol?
-		// gør vi allerede det, er dette bare ekstra? tjek op!
-//		public delegate void MessageHandler(string message, string target, string senderNick, string senderHost);
-		
+			
 		/// <summary>
 		/// Delegate for nickname changes
 		/// </summary>
 		public delegate void NickChangeHandler(string newname, string oldname, string hostmask);
+
 		/// <summary>
 		/// Delegate for messages from ourselves
 		/// </summary>
@@ -209,8 +213,6 @@ namespace NielsRask.LibIrc
 			protocol.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(protocol_OnTopicChange);
 			protocol.OnPublicAction +=new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPublicAction);
 			protocol.OnPrivateAction += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPrivateAction);
-
-//			protocol.OnLogMessage += new Protocol.LogMessageHandler( WriteLogMessage );
 		}
 
 		#region control
@@ -235,6 +237,7 @@ namespace NielsRask.LibIrc
 		{
 			protocol.Join( channel );
 		}
+
 		/// <summary>
 		/// leave a channel
 		/// </summary>
@@ -243,6 +246,7 @@ namespace NielsRask.LibIrc
 		{
 			protocol.Part( channel );
 		}
+
 		/// <summary>
 		/// Send message to user
 		/// </summary>
@@ -252,6 +256,7 @@ namespace NielsRask.LibIrc
 		{
 			protocol.SendToUser( user, text );
 		}
+
 		/// <summary>
 		/// send message to channel
 		/// </summary>
@@ -266,6 +271,7 @@ namespace NielsRask.LibIrc
 			}
 			protocol.SendToChannel( channel, text );
 		}
+
 		/// <summary>
 		/// Send notice to user or channel
 		/// </summary>
@@ -414,6 +420,7 @@ namespace NielsRask.LibIrc
 			this.protocol = protocol;
 			users = new UserCollection();
 		}
+
 		/// <summary>
 		/// Gets the name.
 		/// </summary>
@@ -525,6 +532,7 @@ namespace NielsRask.LibIrc
 		/// Occurs when the channel list changes
 		/// </summary>
 		public event ChannelEvent OnChannelListChange;
+
 		/// <summary>
 		/// Delegate for channel list events
 		/// </summary>
@@ -647,6 +655,7 @@ namespace NielsRask.LibIrc
 		{
 			get { return nickName; }
 		}
+
 		/// <summary>
 		/// Gets the hostmask.
 		/// </summary>
@@ -655,6 +664,7 @@ namespace NielsRask.LibIrc
 		{
 			get { return hostmask; }
 		}
+
 		/// <summary>
 		/// Gets a value indicating whether this instance is operator.
 		/// </summary>
@@ -665,6 +675,7 @@ namespace NielsRask.LibIrc
 		{
 			get { return isOperator; }
 		}
+
 		/// <summary>
 		/// Gets a value indicating whether this instance has voice.
 		/// </summary>
@@ -859,7 +870,6 @@ namespace NielsRask.LibIrc
 				}
 			}
 		
-			//			while (j
 			while (j < wild.Length && wild[j] == '*')
 			{
 				j++;

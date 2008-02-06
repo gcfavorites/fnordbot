@@ -41,29 +41,6 @@ namespace NielsRask.FnordBot
 			}
 		}
 
-		#region log logic
-//		/// <summary>
-//		/// Delegate for logging
-//		/// </summary>
-//		public delegate void LogMessageHandler(string message);
-//
-//		/// <summary>
-//		/// Occurs when the bot wants to log a message
-//		/// </summary>
-//		public event LogMessageHandler OnLogMessage;
-//
-//		/// <summary>
-//		/// Write a message to the log
-//		/// </summary>
-//		/// <param name="message"></param>
-//		public void WriteLogMessage(string message) 
-//		{
-//			if ( OnLogMessage != null ) 
-//				OnLogMessage( message );
-//		}
-		#endregion
-
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FnordBot"/> class.
 		/// </summary>
@@ -178,23 +155,19 @@ namespace NielsRask.FnordBot
 							//						Console.WriteLine("path is absolute: "+path);
 						}
 						log.Debug("Loading plugin from "+path);
-//						WriteLogMessage("Plugin node for "+typename+": "+node.OuterXml);
 						log.Debug("Plugin config-node: "+node.OuterXml);
 						LoadPlugin( typename, path, node );
 					} 
 					catch (Exception e) 
 					{
-//						WriteLogMessage("Error loading plugin "+typename+": "+e);
 						log.Error("Error loading plugin '"+typename+"'", e);
 					}
 				}
 
-//				WriteLogMessage("Fnordbot started");
 				log.Info("Fnordbot has started");
 			} 
 			catch (Exception e) 
 			{
-//				WriteLogMessage("error in FnordBot .ctor: "+e);
 				log.Error("Exception in Fnordbot .ctor", e);
 			}
 		}
@@ -212,11 +185,8 @@ namespace NielsRask.FnordBot
 			} 
 			catch ( Exception e ) 
 			{
-				// TODO: need some reconnect logic
-//				WriteLogMessage("Exception in Fnordbot.Connect(): "+e);
 				log.Error("Failed in Connect", e);
-			}
-			
+			}	
 		}
 
 		/// <summary>
@@ -236,6 +206,7 @@ namespace NielsRask.FnordBot
 		{
 			irc.Join( channel );
 		}
+
 		/// <summary>
 		/// Parts the specified channel.
 		/// </summary>
@@ -244,6 +215,7 @@ namespace NielsRask.FnordBot
 		{
 			irc.Part( channel );
 		}
+
 		/// <summary>
 		/// Sends to user.
 		/// </summary>
@@ -253,6 +225,7 @@ namespace NielsRask.FnordBot
 		{
 			irc.SendToUser( user, text );
 		}
+
 		/// <summary>
 		/// Sends a message to the specified channel. overrides the queue if allowed
 		/// </summary>
@@ -262,6 +235,7 @@ namespace NielsRask.FnordBot
 		{
 			SendToChannel( channel, text, true ); 
 		}
+
 		/// <summary>
 		/// Sends a message to the specified channel. allows overriding of flood-queue
 		/// </summary>
@@ -303,13 +277,11 @@ namespace NielsRask.FnordBot
 							// we're not alowed to send - maybe we should signal that somehow
 						else 
 						{
-//							Console.WriteLine("message to "+channel+" was blocked by floodqueue");
 							log.Debug("Message '"+text.Substring(0,15)+(text.Length>15?"[...]":"")+"' was blocked by floodqueue");
 						}
 					} 
 					catch (Exception e) 
 					{
-//						WriteLogMessage("Error in SendToChannel(\""+channel+"\", \""+text+"\", "+overrideQueue+"): "+e);
 						log.Error("Error in SendToChannel(\""+channel+"\", \""+text+"\", "+overrideQueue+")", e);
 					}
 				}
@@ -318,7 +290,6 @@ namespace NielsRask.FnordBot
 			{
 				string chan = channel==null?"NULL":channel;
 				string txt = text==null?"NULL":text;
-//				WriteLogMessage("Error in SendToChannel( \""+chan+"\", \""+txt+"\", "+overrideQueue+" ): "+e);
 				log.Error("Error in SendToChannel( \""+chan+"\", \""+txt+"\", "+overrideQueue+" )", e);
 			}
 		}
@@ -355,14 +326,12 @@ namespace NielsRask.FnordBot
 			string typename = "(unset)";
 			if (asm == null) 
 			{
-//				WriteLogMessage("IsAllowed called on NULL assembly");
 				log.Error("IsAllowed called on NULL assembly");
 				return false;
 			}
 			try 
 			{
 				typename = GetPluginNamespace( asm ); 
-//				xpath = "plugins/plugin[@path='"+asm.Location.ToLower()+"']/permissions/permission[@name='"+permission+"']/@value";
 				xpath = "plugins/plugin[@typename='"+typename+"']/permissions/permission[@name='"+permission+"']/@value";
 				XmlNode node = xdoc.DocumentElement.SelectSingleNode( xpath );
 				if (node != null) 
@@ -370,7 +339,6 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e)
 			{
-//				WriteLogMessage("error in Fnordbot.IsAllowed (xpath '"+xpath+"'): "+e);
 				log.Error("Error in Fnordbot.IsAllowed (xpath '"+xpath+"'", e);
 			}
 			return false;
@@ -400,14 +368,12 @@ namespace NielsRask.FnordBot
 				} 
 				else 
 				{
-//					WriteLogMessage("Cannot locate calling assembly?");
 					log.Warn("GetCallingAssembly: Cannot locate calling assembly?");
 					return null;
 				}
 			} 
 			catch (Exception e) 
 			{
-//				WriteLogMessage("Error in GetCallingAssembly(): "+e);
 				log.Error("Error in GetCallingAssembly", e);
 			}
 			return null;
@@ -441,7 +407,7 @@ namespace NielsRask.FnordBot
 			else if (File.Exists("..\\..\\Config.xml")) 
 				cfgpath = "..\\..\\Config.xml";
 			else throw new FileNotFoundException("Config file not found");
-//			Console.WriteLine("config found at "+cfgpath);
+			Console.WriteLine("config found at "+cfgpath);
 			log.Debug("Config found at "+cfgpath);
 
 			xdoc.Load( cfgpath );
@@ -459,37 +425,13 @@ namespace NielsRask.FnordBot
 		private void LoadPlugin( string type, string path, XmlNode pluginNode ) 
 		{
 			Assembly pAsm = Assembly.LoadFrom( path );
-//			Console.WriteLine("Loading plugin "+pAsm.CodeBase);
 			log.Info("Loading plugin "+pAsm.CodeBase);
 			IPlugin plugin = (IPlugin)pAsm.CreateInstance( type );
-//			Console.WriteLine("attaching "+type);
 			log.Info("Attaching "+type);
 			plugin.Attach( this );
 			plugin.Init( pluginNode );
-//			Console.WriteLine("Attached plugin "+type);
 			log.Info("Attached plugin "+type);
 		}
-
-//		public void PluginTest()
-//		{
-//			Assembly asm = Assembly.LoadFrom( @"c:\program files\nielsrask\fnordbot\plugins\wordgame\wordgame.dll" );
-//			Console.WriteLine("CodeBase: "+asm.CodeBase);
-//			Console.WriteLine("EscapedCodeBase: "+asm.EscapedCodeBase);
-//			Console.WriteLine("FullName: "+asm.FullName);
-//			Console.WriteLine("Location: "+asm.Location);
-//			Type[] types = asm.GetTypes();
-//			foreach (Type t in types) 
-//			{
-//				Console.WriteLine("");
-//				Console.WriteLine("assembly defines type: "+t.Name);
-//				Console.WriteLine("namespace: "+t.Namespace);
-//				Console.WriteLine("basetype: "+t.BaseType.Name );
-//				foreach (Type i in t.GetInterfaces())
-//					Console.WriteLine("-interface: "+i.Name );
-//			}
-//			Console.WriteLine("plugin-search yielded: "+GetPluginNamespace( asm ) );
-//			
-//		}
 
 		/// <summary>
 		/// Returns he Fullname of the first class in the assembly that implements IPlugin
@@ -502,7 +444,6 @@ namespace NielsRask.FnordBot
 			bool found = false;
 			if (asm == null) 
 			{
-//				WriteLogMessage("GetPluginNamespace() called with NULL argument");
 				log.Warn("GetPluginNamespace() called with NULL argument");
 				return "ERROR";
 			}
@@ -530,7 +471,6 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e) 
 			{
-//				WriteLogMessage("Error in GetPluginNamespace( "+asm.FullName+" ). found="+found+": "+e);
 				log.Error("Error in GetPluginNamespace( "+asm.FullName+" ). found="+found, e);
 			}
 			return "ERROR";
@@ -541,7 +481,6 @@ namespace NielsRask.FnordBot
 
 		private void AttachEvents() 
 		{
-//			irc.OnLogMessage += new Client.LogMessageHandler(WriteLogMessage);
 			irc.Protocol.Network.OnDisconnect += new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
 			irc.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicMessage);
 			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
@@ -587,66 +526,82 @@ namespace NielsRask.FnordBot
 		/// Occurs when a public message is received
 		/// </summary>
 		public event MessageHandler OnPublicMessage;
+
 		/// <summary>
 		/// Occurs when a private message is received
 		/// </summary>
 		public event MessageHandler OnPrivateMessage;
+
 		/// <summary>
 		/// Occurs when a private notice is received
 		/// </summary>
 		public event MessageHandler OnPublicNotice;
+
 		/// <summary>
 		/// Occurs when a private notice is received
 		/// </summary>
 		public event MessageHandler OnPrivateNotice;
+
 		/// <summary>
 		/// Occurs when a channel changes topic
 		/// </summary>
 		public event ChannelTopicHandler OnTopicChange;
+
 		/// <summary>
 		/// Occurs when someone joins a channel
 		/// </summary>
 		public event ChannelActionHandler OnChannelJoin;
+
 		/// <summary>
 		/// Occurs when someone leaves a channel
 		/// </summary>
 		public event ChannelActionHandler OnChannelPart;
+
 		/// <summary>
 		/// Occurs when someone quits IRC entirely
 		/// </summary>
 		public event ChannelActionHandler OnServerQuit;
+
 		/// <summary>
 		/// Occurs when someone changes the mode of a channel
 		/// </summary>
 		public event ChannelActionHandler OnChannelMode;
+
 		/// <summary>
 		/// Occurs when someone is kicked from a channel
 		/// </summary>
 		public event ChannelActionHandler OnChannelKick;
+
 		/// <summary>
 		/// Occurs when someone changes their nickname
 		/// </summary>
 		public event NickChangeHandler OnNickChange;
+
 		/// <summary>
 		/// Occurs when the bot talks to a channel
 		/// </summary>
 		public event BotMessageHandler OnSendToChannel;
+
 		/// <summary>
 		/// Occurs when the bot talks to a user
 		/// </summary>
 		public event BotMessageHandler OnSendToUser;
+
 		/// <summary>
 		/// Occurs when the bot sends a notice
 		/// </summary>
 		public event BotMessageHandler OnSendNotice;
+
 		/// <summary>
 		/// Occurs when the bot changes channel mode
 		/// </summary>
 		public event BotMessageHandler OnSetMode;
+
 		/// <summary>
 		/// Occurs when an action is sent to a channel
 		/// </summary>
 		public event MessageHandler OnPublicAction;
+
 		/// <summary>
 		/// Occurs when an action is sent by a user
 		/// </summary>
@@ -656,22 +611,27 @@ namespace NielsRask.FnordBot
 		/// Delegate or received messages
 		/// </summary>
 		public delegate void MessageHandler(NielsRask.FnordBot.User user, string channel, string message);
+
 		/// <summary>
 		/// Delegate for topic changes
 		/// </summary>
 		public delegate void ChannelTopicHandler(NielsRask.FnordBot.User user, string channel, string topic);
+	
 		/// <summary>
 		/// Delegate for userlist events
 		/// </summary>
 		public delegate void ChannelUserListHandler(string channel, string[] list);
+	
 		/// <summary>
 		/// delegate for channel actions
 		/// </summary>
 		public delegate void ChannelActionHandler(string text, string channel, string target, string senderNick, string senderHost);
+	
 		/// <summary>
 		/// Delegate for nickname changes
 		/// </summary>
 		public delegate void NickChangeHandler(  string newname, string oldname, NielsRask.FnordBot.User user );
+	
 		/// <summary>
 		/// Delegate for Messages from the bot itself
 		/// </summary>
@@ -682,41 +642,49 @@ namespace NielsRask.FnordBot
 			if( OnPublicMessage != null ) 
 				OnPublicMessage( GetUser(senderNick, senderHost), target, message );
 		}
+	
 		private void irc_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
 			if( OnPrivateMessage != null ) 
 				OnPrivateMessage( GetUser(senderNick, senderHost), target, message );
 		}
+
 		private void irc_OnPublicNotice(string message, string target, string senderNick, string senderHost)
 		{
 			if( OnPublicNotice != null ) 
 				OnPublicNotice( GetUser(senderNick, senderHost), target, message );
 		}
+
 		private void irc_OnPrivateNotice(string message, string target, string senderNick, string senderHost)
 		{
 			if( OnPrivateNotice != null ) 
 				OnPrivateNotice( GetUser(senderNick, senderHost), target, message );
 		}
+
 		private void Protocol_OnChannelJoin(string text, string channel, string target, string senderNick, string senderHost)
 		{
 			if( OnChannelJoin != null ) 
 				OnChannelJoin( text, channel, target, senderNick, senderHost );
 		}
+
 		private void Protocol_OnChannelKick(string text, string channel, string target, string senderNick, string senderHost)
 		{
 			if( OnChannelKick != null ) 
 				OnChannelKick( text, channel, target, senderNick, senderHost );
 		}
+
 		private void Protocol_OnChannelMode(string text, string channel, string target, string senderNick, string senderHost)
 		{
 			if( OnChannelMode != null ) 
 				OnChannelMode( text, channel, target, senderNick, senderHost );
 		}
+
 		private void Protocol_OnChannelPart(string text, string channel, string target, string senderNick, string senderHost)
 		{
 			if( OnChannelPart != null ) 
 				OnChannelPart( text, channel, target, senderNick, senderHost );
 		}
+
 		private void Protocol_OnTopicChange(string newTopic, string channel, string changerNick, string changerHost)
 		{
 			if( OnTopicChange != null ) 
@@ -751,12 +719,14 @@ namespace NielsRask.FnordBot
 		{
 			if( OnNickChange != null ) 
 				OnNickChange( newname, oldname, GetUser(newname, hostmask) );
-		}		
+		}	
+	
 		private void Network_OnDisconnect()
 		{
 //			WriteLogMessage("Ooops, seems we lost our connection!");
-			log.Warn("Network_OnDisconnect(): Ooops, seems we lost our connection!");
+			//log.Warn("Fnordbot.Network_OnDisconnect(): Ooops, seems we lost our connection!");
 		}
+	
 		private void Protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
 			if (message == "!whoami") 
@@ -834,6 +804,7 @@ namespace NielsRask.FnordBot
 			this.comparer = new CaseInsensitiveComparer();
 			this.hcp = new CaseInsensitiveHashCodeProvider();
 		}
+
 		/// <summary>
 		/// Adds the specified queue.
 		/// </summary>
@@ -874,10 +845,7 @@ namespace NielsRask.FnordBot
 		/// <value></value>
 		public StringQueue this[string queueName]
 		{
-			get
-			{
-				return (StringQueue)base[queueName];
-			}
+			get { return (StringQueue)base[queueName]; }
 		}
 
 	}
@@ -953,7 +921,8 @@ namespace NielsRask.FnordBot
 		{
 			try 
 			{
-				if (Count < dmsg ) return true; // vi har ikke nået max endnu
+				if (Count < dmsg ) 
+					return true; // vi har ikke nået max endnu
 				else 
 				{
 					TimeSpan dt = DateTime.Now-Peek().TimeStamp; // dT siden første item
@@ -966,7 +935,6 @@ namespace NielsRask.FnordBot
 			catch (Exception e) 
 			{
 				log.Error("CanEnqueue failed", e);
-//				Console.WriteLine("CanEnqueue failed: "+e);
 			}
 			return false;
 		}
@@ -998,8 +966,8 @@ namespace NielsRask.FnordBot
 		public string Text 
 		{
 			get { return text; }
-//			set { text = value; }
 		}
+
 		/// <summary>
 		/// Gets the time stamp.
 		/// </summary>
@@ -1007,7 +975,6 @@ namespace NielsRask.FnordBot
 		public DateTime TimeStamp 
 		{
 			get { return timeStamp; }
-//			set { timeStamp = value; }
 		}
 	}
 }

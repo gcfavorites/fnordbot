@@ -12,6 +12,7 @@ namespace NielsRask.LibIrc
 		/// Reply is a list of users in a channel
 		/// </summary>
 		RPL_NAMREPLY = 353,
+
 		// :panda.droso.net 366 BimseBot #craYon :End of /NAMES list.
 		/// <summary>
 		/// A complete namelist has been sent
@@ -22,10 +23,12 @@ namespace NielsRask.LibIrc
 		/// MOTD will be sent
 		/// </summary>
 		RPL_MOTDSTART = 375,
+
 		/// <summary>
 		/// MOTD of the server
 		/// </summary>
 		RPL_MOTD = 372,
+
 		/// <summary>
 		/// MOTD has been sent
 		/// </summary>
@@ -35,6 +38,7 @@ namespace NielsRask.LibIrc
 		/// Topic for a channel, triggered at join and change
 		/// </summary>
 		RPL_TOPIC = 332,
+
 		/// <summary>
 		/// The channel has no topic
 		/// </summary>
@@ -44,6 +48,7 @@ namespace NielsRask.LibIrc
 		/// 
 		/// </summary>
 		RPL_LIST = 322,
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -53,6 +58,7 @@ namespace NielsRask.LibIrc
 		/// 
 		/// </summary>
 		RPL_TIME = 391, 
+
 		/// <summary>
 		/// This nickname is in use, select another one
 		/// </summary>
