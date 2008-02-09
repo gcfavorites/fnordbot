@@ -125,7 +125,7 @@ namespace NielsRask.FnordBotService
 		Thread thread;
 		NielsRask.FnordBot.FnordBot bot;
 		string installationFolderPath;
-		StreamWriter swlog;
+		//StreamWriter swlog;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		public BotHandler() 
@@ -155,23 +155,6 @@ namespace NielsRask.FnordBotService
 			catch (Exception e) 
 			{
 				log.Error("Error in bothandler constructor", e);
-			}
-		}
-
-		private void WriteLogMessage(string message) 
-		{
-			try 
-			{
-				swlog = new StreamWriter(installationFolderPath+"log.txt",true, System.Text.Encoding.Default);
-				swlog.WriteLine( DateTime.Now.ToLongTimeString()+": "+message );
-			} 
-			catch (Exception e) 
-			{
-				log.Error("Error writing to log ",e);
-			} 
-			finally 
-			{
-				swlog.Close();
 			}
 		}
 
