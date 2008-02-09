@@ -102,7 +102,7 @@ namespace NielsRask.Logger
 
 		private void bot_OnChannelMode(string text, string channel, string target, string senderNick, string senderHost)
 		{
-			if (channel != "")
+			if (channel.Length > 0)
 				WriteToFile( channel, "*** "+senderNick+" sets mode "+text );
 		}
 
@@ -199,7 +199,7 @@ namespace NielsRask.Logger
 		{
 			try 
 			{
-				if (file != "")
+				if (file.Length > 0)
 				{
 					using ( writer = new StreamWriter(logFolderPath+file+".log", true, System.Text.Encoding.Default) ) 
 					{

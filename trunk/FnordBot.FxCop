@@ -108,6 +108,67 @@
  </Rules>
  <FxCopReport Version="1.35">
   <Targets>
+   <Target Name="$(ProjectDir)/FnordBot Service/bin/Debug/FnordBotService.exe">
+    <Modules>
+     <Module Name="fnordbotservice.exe">
+      <Namespaces>
+       <Namespace Name="NielsRask.FnordBotService">
+        <Types>
+         <Type Name="BotHandler">
+          <Members>
+           <Member Name=".ctor()">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2008-02-09 13:47:25Z">
+              <Issue>
+               <Item>BotHandler.BotHandler()</Item>
+               <Item>AppDomain.add_UnhandledException(UnhandledExceptionEventHandler):Void</Item>
+               <Item>&#xD;&#xA;-&gt;System.AppDomain.add_UnhandledException(System.UnhandledExceptionEventHandler) : Void&#xD;&#xA;-&gt;NielsRask.FnordBotService.BotHandler.#ctor : Void</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="swlog">
+            <Messages>
+             <Message TypeName="AvoidUnusedPrivateFields" Category="Microsoft.Performance" CheckId="CA1823" Created="2008-02-09 13:47:25Z">
+              <Issue>
+               <Item>BotHandler.swlog</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+      </Namespaces>
+     </Module>
+    </Modules>
+   </Target>
+   <Target Name="$(ProjectDir)/FnordBot/bin/Debug/FnordBot.dll">
+    <Modules>
+     <Module Name="fnordbot.dll">
+      <Namespaces>
+       <Namespace Name="NielsRask.FnordBot">
+        <Types>
+         <Type Name="FnordBot">
+          <Members>
+           <Member Name="irc_OnPrivateAction(System.String,System.String,System.String,System.String):System.Void">
+            <Messages>
+             <Message TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811" Created="2008-02-09 13:42:57Z">
+              <Issue>
+               <Item>FnordBot.irc_OnPrivateAction(String, String, String, String):Void</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+      </Namespaces>
+     </Module>
+    </Modules>
+   </Target>
    <Target Name="$(ProjectDir)/LibIrc2/bin/Debug/LibIrc2.dll">
     <Modules>
      <Module Name="libirc2.dll">
@@ -140,6 +201,33 @@
                 <Note Id="1" />
                </User>
               </Notes>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+      </Namespaces>
+     </Module>
+    </Modules>
+   </Target>
+   <Target Name="$(ProjectDir)/Logger/bin/Debug/Logger.dll">
+    <Modules>
+     <Module Name="logger.dll">
+      <Namespaces>
+       <Namespace Name="NielsRask.Logger">
+        <Types>
+         <Type Name="DelegateCaller">
+          <Members>
+           <Member Name="Execute():System.Void">
+            <Messages>
+             <Message Id="t" TypeName="RemoveUnusedLocals" Category="Microsoft.Performance" CheckId="CA1804" Created="2008-02-09 13:42:57Z">
+              <Issue>
+               <Item>DelegateCaller.Execute():Void</Item>
+               <Item>t</Item>
+               <Item>System.Threading.Thread</Item>
+              </Issue>
              </Message>
             </Messages>
            </Member>
@@ -206,12 +294,21 @@
    <Rule TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811">
     <Resolution Name="Default">'{0}' appears to have no upstream public or protected callers.</Resolution>
    </Rule>
+   <Rule TypeName="AvoidUnusedPrivateFields" Category="Microsoft.Performance" CheckId="CA1823">
+    <Resolution Name="Default">It appears that field '{0}' is never used or is only ever assigned to. Use this field or remove it.</Resolution>
+   </Rule>
    <Rule TypeName="DoNotConcatenateStringsInsideLoops" Category="Microsoft.Performance" CheckId="CA1818">
     <Resolution Name="Default">Change {0} to use StringBuilder instead of String.Concat or +=</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122">
+    <Resolution Name="Default">{0} calls into {1} which has a LinkDemand. By making this call, {1} is indirectly exposed to user code. Review the following call stack that might expose a way to circumvent security protection: {2}</Resolution>
    </Rule>
    <Rule TypeName="OverrideEqualsAndOperatorEqualsOnValueTypes" Category="Microsoft.Performance" CheckId="CA1815">
     <Resolution Name="Equals">'{0}' should override Equals.</Resolution>
     <Resolution Name="op_Equality">'{0}' should override the equality (==) and inequality (!=) operators.</Resolution>
+   </Rule>
+   <Rule TypeName="RemoveUnusedLocals" Category="Microsoft.Performance" CheckId="CA1804">
+    <Resolution Name="Default">{0} declares a local, '{1}', of type {2}, which is never used or is only assigned to. Use this local or remove it.</Resolution>
    </Rule>
   </Rules>
  </FxCopReport>
