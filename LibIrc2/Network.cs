@@ -150,8 +150,8 @@ namespace NielsRask.LibIrc
 					while ( (inputLine = reader.ReadLine() ) != null) 
 					{
 						network.CallOnServerMessage(inputLine);
-						//if (!inputLine.StartsWith("PING :"))
-						log.Debug("Received line: "+inputLine);
+						if (!inputLine.StartsWith("PING :"))
+							log.Debug("Received line: "+inputLine);
 					} 
 				}
 			} 
