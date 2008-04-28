@@ -213,7 +213,7 @@ namespace NielsRask.LibIrc
 //			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
 
 			// pinglistener skal opdage når vi ikke har fået pings længe
-			pingListener = new PingListener();
+			pingListener = new PingListener(network);
 			network.OnServerMessage += new NielsRask.LibIrc.Network.ServerMessageHandler(pingListener.ProcessMessage);
 			Thread tPingListen = new Thread( new ThreadStart( pingListener.Start ) );
 			tPingListen.Name = "PingListenerThread";
@@ -806,21 +806,38 @@ namespace NielsRask.LibIrc
 		}
 	}
 
+	/// <exclude>
 	public class PingListener 
 	{
 		private DateTime lastPing = DateTime.Now;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		
+		private Network network;
+
+		/// <exclude>
+		public PingListener(Network network)
+		{
+			this.network = network;
+		}
+
+		/// <exclude>
 		public void Start() 
 		{
 			log.Info("PingListener was started ...");
-			while (true) 
+			bool alive = true;
+			while (alive) 
 			{
-				if ( lastPing < DateTime.Now.AddMinutes(-5) )
+				if ( lastPing < DateTime.Now.AddMinutes(-5) ) 
+				{
 					log.Warn("Last ping was recieved at "+lastPing+" - connection might be lost!");
-				Thread.Sleep( new TimeSpan(0, 5, 0) );
+					network.CallOnDisconnect();
+					alive = false;
+				}
+				else
+					Thread.Sleep( new TimeSpan(0, 5, 0) );
 			}
 		}
+	
+		/// <exclude>
 		public void ProcessMessage(string line) 
 		{
 			if ( line.StartsWith("PING") ) 
