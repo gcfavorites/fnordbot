@@ -126,11 +126,6 @@ namespace NielsRask.FnordBot
 	/// </summary>
 	public class HostmaskCollection : CollectionBase
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="HostmaskCollection"/> class.
-		/// </summary>
-		public HostmaskCollection() {}
-
 		internal static HostmaskCollection UnpackHostmasks( XmlNodeList masks ) 
 		{
 			HostmaskCollection mskcol = new HostmaskCollection();
