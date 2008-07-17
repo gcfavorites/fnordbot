@@ -67,21 +67,26 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public void Connect(string host, int port) 
 		{
-			log.Debug("Network: Connecting to server "+host+":"+port+" ...");
-			server = new TcpClient(host,port);
-			if (OnConnect!=null) OnConnect();
-			log.Debug("Network: Successfully connected, starting listener...");
-			
-			stream = server.GetStream();
+            try
+            {
+                log.Debug("Network: Connecting to server " + host + ":" + port + " ...");
+                server = new TcpClient(host, port);
+                if (OnConnect != null) OnConnect();
+                log.Debug("Network: Successfully connected, starting listener...");
 
-			listener = new IrcListener(this);
+                stream = server.GetStream();
 
-//			listener.OnLogMessage += new IrcListener.LogMessageHandler(WriteLogMessage);
-			
-			listener.Start(stream);
-			writer = new StreamWriter(stream,System.Text.Encoding.Default);
-			log.Debug("Network: Writer and listener threads started.");
+                listener = new IrcListener(this);
 
+                //			listener.OnLogMessage += new IrcListener.LogMessageHandler(WriteLogMessage);
+
+                listener.Start(stream);
+                writer = new StreamWriter(stream, System.Text.Encoding.Default);
+                log.Debug("Network: Writer and listener threads started.");
+            } catch (Exception e)
+		    {
+                throw new ConnectionRefusedException("Unable to connect to server '"+host+"'", e);
+		    }
 		}
 
 		/// <summary>

@@ -334,7 +334,7 @@ namespace NielsRask.LibIrc
                     log.Warn("Reconnected to server");
                     connected = true;                // this will break the while-block
                 }
-                catch
+                catch (ConnectionRefusedException)
                 {}
             }
 	    }

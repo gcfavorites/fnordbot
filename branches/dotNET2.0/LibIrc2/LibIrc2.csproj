@@ -98,6 +98,7 @@
     <Compile Include="Enum.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Exceptions.cs" />
     <Compile Include="Network.cs">
       <SubType>Code</SubType>
     </Compile>
