@@ -318,25 +318,28 @@ namespace NielsRask.LibIrc
 			} 
 			return chn;
 		}
+
+        // this is called when the network layer detects a disconnect
         private void Network_OnDisconnect()
         {
-            log.Warn("Got disconnected event - taking a wee nap");
-            System.Threading.Thread.Sleep(30 * 1000);
-            try
+            log.Warn("Got disconnected event - Starting reconnect loop");
+            bool connected = false;
+            while (!connected)
             {
-                log.Info("Reconnecting ...");
-                Connect();
-                log.Warn("Reconnected to server");
-
+                System.Threading.Thread.Sleep(30 * 1000);   // sleep for a bit before trying to reconnect
+                try
+                {
+                    log.Info("Reconnecting ...");
+                    Connect();                       // try reconnecting
+                    log.Warn("Reconnected to server");
+                    connected = true;                // this will break the while-block
+                }
+                catch
+                {}
             }
-            catch (Exception e)
-            {
-                log.Error("Reconnect failed, re-calling Network_OnDisconnect()", e);
-                Network_OnDisconnect();	// holder det?
-            }
-        }
+	    }
 
-        #endregion
+	    #endregion
 
         #region event forwards
 
