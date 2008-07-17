@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Threading;
@@ -92,8 +91,9 @@ namespace NielsRask.LibIrc
 		public void SendToServer(string text) 
 		{
 			//if (!text.StartsWith("PONG :")) 
-				log.Debug("Sending to server: '"+text+"'");
-			lock( writer ) 
+			log.Debug("Sending to server: '"+text+"'");
+			
+            lock( writer ) 
 			{
 				writer.WriteLine(text);
 				writer.Flush();
@@ -122,7 +122,7 @@ namespace NielsRask.LibIrc
 		internal IrcListener(Network network) 
 		{
 			this.network = network;
-			listener = new Thread (new ThreadStart (this.Run) );
+			listener = new Thread( this.Run );
 			listener.IsBackground = true;
 			listener.Name = "ListenerThread";
 		}
@@ -133,7 +133,7 @@ namespace NielsRask.LibIrc
 		/// <param name="stream"></param>
 		internal void Start(NetworkStream stream) 
 		{
-			this.reader = new StreamReader(stream,System.Text.Encoding.Default);
+			reader = new StreamReader(stream,System.Text.Encoding.Default);
 			listener.Start();
 			log.Info("Listener thread started.");
 		}
