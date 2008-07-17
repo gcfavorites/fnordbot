@@ -17,7 +17,7 @@ namespace NielsRask.FnordBot
 	public class FnordBot 
 	{
 		// the client layer
-		NielsRask.LibIrc.Client irc;
+		Client irc;
 		// channels to join at startup
 		StringCollection channelsToJoin;
 //		NielsRask.FnordBot.Users.Module userModule;
@@ -397,7 +397,7 @@ namespace NielsRask.FnordBot
 		#region config loading
 		private void LoadConfig() 
 		{
-			string cfgpath = "";
+			string cfgpath;
 			if (File.Exists(installationFolderPath+"Config.xml") )
 				cfgpath = installationFolderPath+"Config.xml";				
 			else if (File.Exists("Config.xml")) 
@@ -481,25 +481,25 @@ namespace NielsRask.FnordBot
 
 		private void AttachEvents() 
 		{
-			irc.Protocol.Network.OnDisconnect += new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
-			irc.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicMessage);
-			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
-			irc.OnPrivateNotice += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateNotice);
-			irc.OnPublicNotice += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicNotice);
-			irc.OnSendNotice +=new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendNotice);
-			irc.OnSendToChannel += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendToChannel);
-			irc.OnSendToUser += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendToUser);
-			irc.OnSetMode += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSetMode);
-			irc.OnNickChange += new NielsRask.LibIrc.Client.NickChangeHandler(irc_OnNickChange);
-			irc.Protocol.OnChannelJoin += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelJoin);
-			irc.Protocol.OnChannelKick += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelKick);
-			irc.Protocol.OnChannelMode += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelMode);
-			irc.Protocol.OnChannelPart += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelPart);
-			irc.Protocol.OnServerQuit += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnServerQuit);
-			irc.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(Protocol_OnTopicChange);
-			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(Protocol_OnPrivateMessage);
-			irc.OnPublicAction += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicAction);
-			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
+			irc.Protocol.Network.OnDisconnect += Network_OnDisconnect;
+			irc.OnPublicMessage += irc_OnPublicMessage;
+			irc.OnPrivateMessage += irc_OnPrivateMessage;
+			irc.OnPrivateNotice += irc_OnPrivateNotice;
+			irc.OnPublicNotice += irc_OnPublicNotice;
+			irc.OnSendNotice += irc_OnSendNotice;
+			irc.OnSendToChannel += irc_OnSendToChannel;
+			irc.OnSendToUser += irc_OnSendToUser;
+			irc.OnSetMode += irc_OnSetMode;
+			irc.OnNickChange += irc_OnNickChange;
+			irc.Protocol.OnChannelJoin += Protocol_OnChannelJoin;
+			irc.Protocol.OnChannelKick += Protocol_OnChannelKick;
+			irc.Protocol.OnChannelMode += Protocol_OnChannelMode;
+			irc.Protocol.OnChannelPart += Protocol_OnChannelPart;
+			irc.Protocol.OnServerQuit += Protocol_OnServerQuit;
+			irc.OnTopicChange += Protocol_OnTopicChange;
+			irc.OnPrivateMessage += Protocol_OnPrivateMessage;
+			irc.OnPublicAction += irc_OnPublicAction;
+			irc.OnPrivateMessage += irc_OnPrivateMessage;
 		}
 
 
@@ -508,7 +508,7 @@ namespace NielsRask.FnordBot
 			User user = users.GetByHostMatch( hostMask );
 			if (user == null) // no user was found, make a pseudouser
 			{
-				user = new User( nickName, new UserCollection.SaveUsersDelegate( SaveUsers ) ); // this ctor wont make citizens
+				user = new User( nickName, SaveUsers ); // this ctor wont make citizens
 				user.Hostmasks.Add( new Hostmask( hostMask ) );
 				bool learningMode = false;
 				if (learningMode)// registrer alle users vi ser
@@ -721,7 +721,7 @@ namespace NielsRask.FnordBot
 				OnNickChange( newname, oldname, GetUser(newname, hostmask) );
 		}	
 	
-		private void Network_OnDisconnect()
+		private void Network_OnDisconnect() // this is handled in irclib2
 		{
 //			WriteLogMessage("Ooops, seems we lost our connection!");
 			//log.Warn("Fnordbot.Network_OnDisconnect(): Ooops, seems we lost our connection!");
