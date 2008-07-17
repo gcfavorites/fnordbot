@@ -5,7 +5,6 @@ using System.Xml;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Specialized;
-using NielsRask.FnordBot.Users;
 using System.Diagnostics;
 using log4net;
 
@@ -47,7 +46,7 @@ namespace NielsRask.FnordBot
 		/// <param name="installationFolderPath">The installation folder path.</param>
 		public FnordBot( string installationFolderPath )
 		{	
-			this.queues = new StringQueueHash(); // hent fra config
+			queues = new StringQueueHash(); // hent fra config
 			this.installationFolderPath = installationFolderPath;
 			// fix the install-path
 			if ( !installationFolderPath.EndsWith("\\") ) 
@@ -68,24 +67,25 @@ namespace NielsRask.FnordBot
 			// attach to the events that the client layer can throw
 			AttachEvents();
 		}
-		string usersFilePath = "";
+
+	    string usersFilePath = "";
 
 		private UserCollection LoadUsers() 
 		{
-			XmlDocument xdoc = new XmlDocument();
+			XmlDocument myxdoc = new XmlDocument();
 			if (File.Exists(usersFilePath)) 
 			{
-				xdoc.Load( usersFilePath );
+                myxdoc.Load(usersFilePath);
 
-				XmlNodeList usrlst = xdoc.DocumentElement.SelectNodes("user");
+                XmlNodeList usrlst = myxdoc.DocumentElement.SelectNodes("user");
 				log.Info("Found "+usrlst.Count+" usernodes");
 			
-				return UserCollection.UnpackUsers( usrlst, new UserCollection.SaveUsersDelegate( SaveUsers ) );		
+				return UserCollection.UnpackUsers( usrlst, SaveUsers );		
 			}
 			else 
 			{
 				log.Info("No userlist found, creating a new one.");
-				return new UserCollection( new UserCollection.SaveUsersDelegate( SaveUsers ) );
+				return new UserCollection( SaveUsers );
 			}
 		}
 
@@ -93,9 +93,9 @@ namespace NielsRask.FnordBot
 		private void SaveUsers() 
 		{
 			log.Info("Saving userlist");
-			XmlDocument xdoc = new XmlDocument();
-			xdoc.LoadXml( users.ToXmlString() );
-			xdoc.Save( usersFilePath );
+			XmlDocument myxdoc = new XmlDocument();
+            myxdoc.LoadXml(users.ToXmlString());
+            myxdoc.Save(usersFilePath);
 		}
 
 		/// <summary>
@@ -179,7 +179,7 @@ namespace NielsRask.FnordBot
 		{
 			try		
 			{
-				irc.OnMotd += new NielsRask.LibIrc.Protocol.ServerDataHandler(irc_OnMotd);
+				irc.OnMotd += irc_OnMotd;
 				// connect to server
 				irc.Connect();
 			} 
@@ -268,13 +268,11 @@ namespace NielsRask.FnordBot
 						{
 //							WriteLogMessage("queues[\""+channel+"\"] returned null??");
 							log.Warn("SendToChannel: queues[\""+channel+"\"] returned null??");
-						}
-						if ( queue.CanEnqueue() ) 
+						} else if ( queue.CanEnqueue() ) 
 						{
 							queues[channel].Enqueue( text ); // auto-dequeues if too long
 							irc.SendToChannel( channel, text );
-						} 
-							// we're not alowed to send - maybe we should signal that somehow
+						} // we're not alowed to send - maybe we should signal that somehow		
 						else 
 						{
 							log.Debug("Message '"+text.Substring(0,15)+(text.Length>15?"[...]":"")+"' was blocked by floodqueue");
@@ -413,7 +411,7 @@ namespace NielsRask.FnordBot
 			xdoc.Load( cfgpath );
 		}
 
-		private string GetXPathValue(XmlDocument xdoc, string xpath) 
+		private static string GetXPathValue(XmlDocument xdoc, string xpath) 
 		{
 			XmlNode node = xdoc.DocumentElement.SelectSingleNode( xpath );
 			if ( node != null) 
@@ -438,7 +436,7 @@ namespace NielsRask.FnordBot
 		/// </summary>
 		/// <param name="asm"></param>
 		/// <returns></returns>
-		private string GetPluginNamespace(Assembly asm) 
+		private static string GetPluginNamespace(Assembly asm) 
 		{
 			int i=0;
 			bool found = false;
@@ -503,7 +501,7 @@ namespace NielsRask.FnordBot
 		}
 
 
-		private NielsRask.FnordBot.User GetUser( string nickName, string hostMask ) 
+		private User GetUser( string nickName, string hostMask ) 
 		{
 			User user = users.GetByHostMatch( hostMask );
 			if (user == null) // no user was found, make a pseudouser
@@ -610,12 +608,12 @@ namespace NielsRask.FnordBot
 		/// <summary>
 		/// Delegate or received messages
 		/// </summary>
-		public delegate void MessageHandler(NielsRask.FnordBot.User user, string channel, string message);
+		public delegate void MessageHandler(User user, string channel, string message);
 
 		/// <summary>
 		/// Delegate for topic changes
 		/// </summary>
-		public delegate void ChannelTopicHandler(NielsRask.FnordBot.User user, string channel, string topic);
+		public delegate void ChannelTopicHandler(User user, string channel, string topic);
 	
 		/// <summary>
 		/// Delegate for userlist events
@@ -630,7 +628,7 @@ namespace NielsRask.FnordBot
 		/// <summary>
 		/// Delegate for nickname changes
 		/// </summary>
-		public delegate void NickChangeHandler(  string newname, string oldname, NielsRask.FnordBot.User user );
+		public delegate void NickChangeHandler(  string newname, string oldname, User user );
 	
 		/// <summary>
 		/// Delegate for Messages from the bot itself
@@ -858,10 +856,10 @@ namespace NielsRask.FnordBot
 	/// </remarks>
 	public class StringQueue : Queue
 	{
-		string name;
-		int dmsg;
-		int dmin;
-		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//		string name;
+	    readonly int dmsg;
+	    readonly int dmin;
+		private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueue"/> class.
@@ -870,7 +868,7 @@ namespace NielsRask.FnordBot
 		/// <param name="dmin">delta-min. bottom part of he messages/time rate. specifie in minutes</param>
 		public StringQueue(int dmsg, int dmin ) : base( dmsg )
 		{
-			this.name = name;
+//			this.name = name;
 			this.dmsg = dmsg;
 			this.dmin = dmin;
 		}
