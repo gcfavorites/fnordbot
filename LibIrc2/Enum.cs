@@ -1,11 +1,9 @@
-using System;
-
 namespace NielsRask.LibIrc
 {
 	/// <summary>
 	/// Enumeration of supported replycoldes
 	/// </summary>
-	public enum ReplyCode :int 
+	public enum ReplyCode
 	{
 		// :panda.droso.net 353 BimseBot = #craYon :BimseBot NetRanger smcRanger NordCore Maverick cyberzed Pornoting |Hunter-| Modena
 		/// <summary>

@@ -10,15 +10,15 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class Protocol
 	{
-		Network network;
+	    readonly Network network;
 		private string versionReply = "";
 		private string nickName = "";
 		private string fingerReply = "";
 		private string altNick = "";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		private PingListener pingListener;
+		private readonly PingListener pingListener;
 
-		#region event-forwarding
+		#region events
 		/// <summary>
 		/// Occurs when a public message is received in a channel
 		/// </summary>
@@ -209,13 +209,13 @@ namespace NielsRask.LibIrc
 		public Protocol()
 		{
 			network = new Network();
-			network.OnServerMessage += new Network.ServerMessageHandler( ProcessMessage );
+			network.OnServerMessage += ProcessMessage;
 //			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
 
 			// pinglistener skal opdage når vi ikke har fået pings længe
 			pingListener = new PingListener(network);
-			network.OnServerMessage += new NielsRask.LibIrc.Network.ServerMessageHandler(pingListener.ProcessMessage);
-			Thread tPingListen = new Thread( new ThreadStart( pingListener.Start ) );
+			network.OnServerMessage += pingListener.ProcessMessage;
+			Thread tPingListen = new Thread( pingListener.Start );
 			tPingListen.Name = "PingListenerThread";
 			tPingListen.IsBackground = true;
 			tPingListen.Start();
@@ -229,7 +229,7 @@ namespace NielsRask.LibIrc
 		/// <param name="realname">The realname.</param>
 		public void Register(string nickname, string username, string realname) 
 		{
-			this.nickName = nickname;
+			nickName = nickname;
 			Thread.Sleep(1000);
 
 			network.SendToServer("USER "+username+" a b :"+realname);//"USER foo bar baz :botting");
@@ -610,7 +610,7 @@ namespace NielsRask.LibIrc
 			else if (decoded_message.StartsWith("VERSION")) 
 				network.SendToServer("NOTICE "+rd.Username+" :\u0001VERSION "+VersionInfo+"\u0001");
 			else if (decoded_message.StartsWith("TIME")) 
-				network.SendToServer("NOTICE "+rd.Username+" :\u0001TIME "+DateTime.Now.ToString()+"\u0001");
+				network.SendToServer("NOTICE "+rd.Username+" :\u0001TIME "+DateTime.Now+"\u0001");
 			else if (decoded_message.StartsWith("FINGER")) 
 				network.SendToServer("NOTICE "+rd.Username+" :\u0001FINGER "+FingerInfo+"\u0001");
 			else if (decoded_message.StartsWith("ACTION"))
@@ -663,7 +663,8 @@ namespace NielsRask.LibIrc
 			{
 				reply = (ReplyCode)int.Parse( parts[1] );
 			} 
-			catch (Exception) {}
+			catch (Exception)
+			{}
 
 			if (reply == ReplyCode.RPL_MOTD) 
 			{
@@ -722,7 +723,7 @@ namespace NielsRask.LibIrc
 		#endregion
 
 		#region helper methods
-		private bool IsNumericReply(string txt) 
+		private static bool IsNumericReply(string txt) 
 		{
 			return Regex.IsMatch( txt, "\\d{3}" );
 		}
@@ -732,7 +733,7 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		/// <param name="quotedstring"></param>
 		/// <returns></returns>
-		private string CTCPDequote(string quotedstring) 
+		private static string CTCPDequote(string quotedstring) 
 		{
 			quotedstring = quotedstring.Substring(1);
 			if (quotedstring.ToCharArray()[quotedstring.Length-1] == 1) 
@@ -811,7 +812,7 @@ namespace NielsRask.LibIrc
 	{
 		private DateTime lastPing = DateTime.Now;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		private Network network;
+		private readonly Network network;
 
 		/// <exclude>
 		public PingListener(Network network)
