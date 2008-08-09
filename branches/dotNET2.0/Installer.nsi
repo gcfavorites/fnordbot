@@ -102,7 +102,7 @@ Section -Post
   FileWrite $9 "		<username>bimmerfooo</username>$\r$\n"
   FileWrite $9 "		<channels>$\r$\n"
   FileWrite $9 "			<channel>$\r$\n"
-  FileWrite $9 "				<name>#bottest</name>$\r$\n"
+  FileWrite $9 "				<name>#craYon</name>$\r$\n"
   FileWrite $9 "				<messagerate messages=$\"5$\" minutes=$\"15$\"/>$\r$\n"
   FileWrite $9 "			</channel>$\r$\n"
   FileWrite $9 "		</channels>$\r$\n"
