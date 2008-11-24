@@ -420,10 +420,15 @@ namespace NielsRask.LibIrc
 			{
 				ParseNumericReply( line );
 			}
-			else 
-			{
-				log.Warn("Fell through ProcessMessage cases on string '"+line+"'");
-			}
+            else if (parts[1] == "ERROR")
+            {
+                // TODO: implementering
+                // ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)
+            }
+            else
+            {
+                log.Warn("Fell through ProcessMessage cases on string '" + line + "'");
+            }
 		}
 
 		private void ParseNickChange( string line ) 
