@@ -1,0 +1,11 @@
+2008-09-02 13:20:51,481 [ListenerThread:WARN] It seems nickname 'BimseBot' is in use
+2008-09-02 13:20:51,481 [ListenerThread:INFO] Trying random nick 'BimseBot0331'
+2008-09-02 13:20:51,481 [ListenerThread:DEBUG] Sending to server: 'NICK BimseBot0331'
+2008-09-02 13:20:51,481 [ListenerThread:DEBUG] Received line: :koala.droso.net 433 * BimseBot :Nickname is already in use.
+
+
+2008-09-02 13:36:03,075 [ListenerThread:DEBUG] Received line: :BimseBot0455!~bimmerfoo@87.51.7.71 QUIT :Ping timeout: 240 seconds
+2008-09-02 13:36:03,075 [ListenerThread:WARN] Fell through ProcessMessage cases on string 'ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)'
+2008-09-02 13:36:03,075 [ListenerThread:DEBUG] Received line: ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)
+2008-09-02 13:36:03,075 [ListenerThread:WARN] Calling network.CallOnDisconnect()
+
