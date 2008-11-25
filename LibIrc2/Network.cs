@@ -83,7 +83,8 @@ namespace NielsRask.LibIrc
                 listener.Start(stream);
                 writer = new StreamWriter(stream, System.Text.Encoding.Default);
                 log.Debug("Network: Writer and listener threads started.");
-            } catch (Exception e)
+            } 
+            catch (Exception e)
 		    {
                 throw new ConnectionRefusedException("Unable to connect to server '"+host+"'", e);
 		    }
@@ -112,10 +113,10 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class IrcListener 
 	{
-		private Thread listener;
+		private readonly Thread listener;
 		private StreamReader reader;
 		private string inputLine;
-		private Network network;
+		private readonly Network network;
 
 		// Create a logger for use in this class
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
