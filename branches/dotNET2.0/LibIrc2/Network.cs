@@ -47,7 +47,7 @@ namespace NielsRask.LibIrc
 		/// <summary>
 		/// Calls the OnServerMessage event if a subscriber exists
 		/// </summary>
-		private void CallOnServerMessage(string message) 
+		internal void CallOnServerMessage(string message) 
 		{
 			if (OnServerMessage != null) 
 				OnServerMessage(message); 
