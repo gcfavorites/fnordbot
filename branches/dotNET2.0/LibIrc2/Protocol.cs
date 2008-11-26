@@ -18,7 +18,7 @@ namespace NielsRask.LibIrc
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 		private readonly PingListener pingListener;
 
-		#region events
+		#region events and delegates
 		/// <summary>
 		/// Occurs when a public message is received in a channel
 		/// </summary>
@@ -424,6 +424,7 @@ namespace NielsRask.LibIrc
             {
                 // TODO: implementering
                 // ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)
+                log.Warn("Got 'Error': "+line);
             }
             else
             {
