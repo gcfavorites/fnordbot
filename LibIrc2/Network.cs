@@ -47,7 +47,7 @@ namespace NielsRask.LibIrc
 		/// <summary>
 		/// Calls the OnServerMessage event if a subscriber exists
 		/// </summary>
-		internal void CallOnServerMessage(string message) 
+		private void CallOnServerMessage(string message) 
 		{
 			if (OnServerMessage != null) 
 				OnServerMessage(message); 
@@ -56,7 +56,7 @@ namespace NielsRask.LibIrc
 		/// <summary>
 		/// Calls the OnDisconnect event if a subscriber exists
 		/// </summary>
-		internal void CallOnDisconnect() 
+        internal void CallOnDisconnect() 
 		{ 
 			if (OnDisconnect != null) 
 				OnDisconnect(); 
@@ -77,8 +77,6 @@ namespace NielsRask.LibIrc
                 stream = server.GetStream();
 
                 listener = new IrcListener(this);
-
-                //			listener.OnLogMessage += new IrcListener.LogMessageHandler(WriteLogMessage);
 
                 listener.Start(stream);
                 writer = new StreamWriter(stream, System.Text.Encoding.Default);

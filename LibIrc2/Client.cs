@@ -16,7 +16,7 @@ namespace NielsRask.LibIrc
 		string nickname = "Bimsebot";
 		string username = "bimse";
 		string realname = "B. Imse";
-		string altNick = "";
+		string altNick = "Bimmer";
 		string fingerInfo = "fnord";
 		string versionInfo = "LibIrc "+System.Reflection.Assembly.GetCallingAssembly().GetName().Version;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);

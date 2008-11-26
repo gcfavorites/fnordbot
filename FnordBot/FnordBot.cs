@@ -508,14 +508,14 @@ namespace NielsRask.FnordBot
 			{
 				user = new User( nickName, SaveUsers ); // this ctor wont make citizens
 				user.Hostmasks.Add( new Hostmask( hostMask ) );
-				bool learningMode = false;
-				if (learningMode)// registrer alle users vi ser
-				{
-					// TODO: save evt den nye user - evt tilføj learning mode
-					user.MakeCitizen();
-					users.Add( user );
-					users.Save();
-				}
+                //bool learningMode = false;
+                //if (learningMode)// registrer alle users vi ser
+                //{
+                //    // TODO: save evt den nye user - evt tilføj learning mode
+                //    user.MakeCitizen();
+                //    users.Add( user );
+                //    users.Save();
+                //}
 			}
 			return user;
 		}
@@ -797,8 +797,8 @@ namespace NielsRask.FnordBot
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueueHash"/> class.
 		/// </summary>
-		public StringQueueHash(): base() 
-		{
+		public StringQueueHash()
+        {
 			this.comparer = new CaseInsensitiveComparer();
 			this.hcp = new CaseInsensitiveHashCodeProvider();
 		}
@@ -810,7 +810,7 @@ namespace NielsRask.FnordBot
 		/// <param name="value">The value.</param>
 		public void Add(string queueName, StringQueue value)
 		{
-			Console.WriteLine("adding queue "+queueName);
+			//Console.WriteLine("adding queue "+queueName);
 			base.Add (queueName, value);
 		}
 
@@ -943,7 +943,7 @@ namespace NielsRask.FnordBot
 	/// </summary>
 	public class StringQueueItem 
 	{
-		string text;
+	    readonly string text;
 		DateTime timeStamp;
 
 		/// <summary>
