@@ -80,7 +80,7 @@ SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  !insertmacro SERVICE "create" "FnordBot" "path=$INSTDIR\FnordBotService.exe;autostart=0;interact=0;display=FnordBot Service;"
+  !insertmacro SERVICE "create" "FnordBot" "path=$INSTDIR\FnordBotService.exe;autostart=1;interact=0;display=FnordBot Service;"
   ;WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\FnordBotService.exe"
   WriteRegStr HKLM "Software\NielsRask\FnordBot" "InstallationFolderPath" "$INSTDIR"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
