@@ -797,13 +797,10 @@ namespace NielsRask.FnordBot
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueueHash"/> class.
 		/// </summary>
-		public StringQueueHash()
-        {
-			this.comparer = new CaseInsensitiveComparer();
-			this.hcp = new CaseInsensitiveHashCodeProvider();
-		}
+        public StringQueueHash() : base( StringComparer.CurrentCultureIgnoreCase)
+		{}
 
-		/// <summary>
+	    /// <summary>
 		/// Adds the specified queue.
 		/// </summary>
 		/// <param name="queueName">Name of the queue.</param>
