@@ -9,3 +9,7 @@
 2008-09-02 13:36:03,075 [ListenerThread:DEBUG] Received line: ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)
 2008-09-02 13:36:03,075 [ListenerThread:WARN] Calling network.CallOnDisconnect()
 
+mulig årsag/effekt - pinglistener tråden dør og kan ikke signalere at der skal signaleres genstart
+
+todo:
+voting-plug
