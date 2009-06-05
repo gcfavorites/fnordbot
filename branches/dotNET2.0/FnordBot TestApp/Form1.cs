@@ -278,16 +278,33 @@ namespace NielsRask.FnordBot
 		}
 
 		NielsRask.FnordBot.FnordBot bot;
+//        private void btnConnect2_Click(object sender, System.EventArgs e)
+//        {
+//            // HACK: There is an unresolved issue concerning finding the config files for the fnordbot assembly,
+//            // when running from within visual studio. The problem is that we're unable to find the directory
+//            // of the FnordBot2 project, as the assembly is copied to the launcher programs /bin directory
+//            // the solution is to edit the following relative path (starts in the launcher directory)
+//            // this should be resolved in the final releases
+//            bot = new NielsRask.FnordBot.FnordBot("..\\..\\..\\FnordBot\\");
+//            bot.Init();
+////			bot.OnLogMessage += new NielsRask.FnordBot.FnordBot.LogMessageHandler(bot_OnLogMessage);
+//            bot.Connect();
+//        }
+
 		private void btnConnect2_Click(object sender, System.EventArgs e)
 		{
-			// HACK: There is an unresolved issue concerning finding the config files for the fnordbot assembly,
-			// when running from within visual studio. The problem is that we're unable to find the directory
-			// of the FnordBot2 project, as the assembly is copied to the launcher programs /bin directory
-			// the solution is to edit the following relative path (starts in the launcher directory)
-			// this should be resolved in the final releases
-			bot = new NielsRask.FnordBot.FnordBot("..\\..\\..\\FnordBot\\");
-			bot.Init();
-//			bot.OnLogMessage += new NielsRask.FnordBot.FnordBot.LogMessageHandler(bot_OnLogMessage);
+			bot = new FnordBot();
+			bot.Client.Port = 6667;
+			bot.Client.Server = "10.0.0.101";
+			bot.Client.Username = "bimmerfoo";
+			bot.Client.Realname = "B. Imse";
+			bot.Client.Nickname = "Bimsebot";
+			bot.Client.AlternativeNick = "BimmerBot";
+
+			bot.ChannelsToJoin.Add("#craYon");
+
+			bot.DirectInit();
+
 			bot.Connect();
 		}
 
