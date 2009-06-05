@@ -62,6 +62,7 @@ namespace NielsRask.LibIrc
 				OnDisconnect(); 
 		}
 
+		private Ident ident;
 		/// <summary>
 		/// Connects to a server
 		/// </summary>
@@ -69,6 +70,9 @@ namespace NielsRask.LibIrc
 		{
             try
             {
+				ident = new Ident();
+				Thread identThread = new Thread(new ThreadStart(ident.Start));
+				identThread.Start();
                 log.Debug("Network: Connecting to server " + host + ":" + port + " ...");
                 server = new TcpClient(host, port);
                 if (OnConnect != null) OnConnect();
