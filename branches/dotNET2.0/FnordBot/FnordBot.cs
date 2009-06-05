@@ -455,7 +455,7 @@ namespace NielsRask.FnordBot
 				return "";
 		}
 
-		private void LoadPlugin( string type, string path, XmlNode pluginNode ) 
+		public void LoadPlugin( string type, string path, XmlNode pluginNode ) 
 		{
 			Assembly pAsm = Assembly.LoadFrom( path );
 			log.Info("Loading plugin "+pAsm.CodeBase);

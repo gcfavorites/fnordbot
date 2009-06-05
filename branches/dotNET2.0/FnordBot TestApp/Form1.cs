@@ -305,6 +305,8 @@ namespace NielsRask.FnordBot
 
 			bot.DirectInit();
 
+			//bot.LoadPlugin("", "", xmlnode);
+
 			bot.Connect();
 		}
 
