@@ -68,6 +68,24 @@ namespace NielsRask.FnordBot
 			AttachEvents();
 		}
 
+		public FnordBot()
+		{
+			queues = new StringQueueHash(); // hent fra config
+			//this.installationFolderPath = installationFolderPath;	//needed?
+			rnd = new Random();
+			channelsToJoin = new StringCollection();
+
+			// initialize the client layer - maybe we should use the protocol layer directly?
+			irc = new Client();
+			// attach to the events that the client layer can throw
+			AttachEvents();
+		}
+
+		public Client Client
+		{
+			get { return irc;}	
+		}
+
 	    string usersFilePath = "";
 
 		private UserCollection LoadUsers() 
@@ -98,6 +116,24 @@ namespace NielsRask.FnordBot
             myxdoc.Save(usersFilePath);
 		}
 
+		public StringCollection ChannelsToJoin
+		{
+			get { return channelsToJoin; }
+		}
+
+		public void DirectInit()
+		{
+
+			foreach ( string channel in channelsToJoin )
+			{
+				queues.Add( channel, dMsg, dMin ); // initiate the antiflood queue
+			}
+
+			// mangler indlæsning af plugins
+		}
+		int dMsg = 5;	// defasult values
+		int dMin = 60;	// max 5 msg/hr
+
 		/// <summary>
 		/// Inits this instance.
 		/// </summary>
@@ -125,8 +161,6 @@ namespace NielsRask.FnordBot
 					string name = node.SelectSingleNode("name/text()").Value;
 					channelsToJoin.Add( name );
 					log.Debug("channel to join: "+name);
-					int dMsg = 5;	// defasult values
-					int dMin = 60;	// max 5 msg/hr
 					if (node.SelectSingleNode("messagerate") != null) 
 					{
 						dMsg = int.Parse( node.SelectSingleNode("messagerate/@messages").Value );
@@ -136,6 +170,7 @@ namespace NielsRask.FnordBot
 					queues.Add(name, dMsg, dMin); // initiate the antiflood queue
 
 				}
+
 
 				// load the specified plugins
 				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("plugins/plugin")) 
