@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading;
 using log4net;
 
 namespace NielsRask.LibIrc
@@ -245,6 +246,9 @@ namespace NielsRask.LibIrc
 			protocol.FingerInfo = fingerInfo;
 			protocol.VersionInfo = versionInfo;
 			protocol.Connect( server, port );
+		
+			// Det skal vi imkke gøre endnu, først når vi har fået MOTD tror jeg
+			Thread.Sleep(1500);
 			protocol.Register( nickname, username, realname );
 		}
 

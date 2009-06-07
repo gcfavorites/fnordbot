@@ -32,6 +32,7 @@ namespace NielsRask.LibIrc
 			Console.WriteLine( "Ident started" );
 			listener.Start();
 			TcpClient client = listener.AcceptTcpClient();
+			listener.Stop();
 			Console.WriteLine( "Ident got a connection" );
 			using (NetworkStream s = client.GetStream() ) 
 			{
