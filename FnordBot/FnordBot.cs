@@ -38,6 +38,10 @@ namespace NielsRask.FnordBot
 			{
 				return installationFolderPath;
 			}
+			set
+			{
+				installationFolderPath = value;
+			}
 		}
 
 		/// <summary>
@@ -74,6 +78,8 @@ namespace NielsRask.FnordBot
 			//this.installationFolderPath = installationFolderPath;	//needed?
 			rnd = new Random();
 			channelsToJoin = new StringCollection();
+			users = LoadUsers();
+
 
 			// initialize the client layer - maybe we should use the protocol layer directly?
 			irc = new Client();
@@ -285,10 +291,10 @@ namespace NielsRask.FnordBot
 				if (channel.Length == 0 || text.Length == 0) 
 				{
 					// someone made an error, dont send the message. maybe we should throw something :)
-					throw new ArgumentException("Langth and text cannot be empty");
+					throw new ArgumentException("Length and text cannot be empty");
 				}
 				// override requested and is allowed - send to channel
-				else if (overrideQueue && IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) 
+				else if (overrideQueue )//&& IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) 
 				{
 					irc.SendToChannel( channel, text );
 				}
@@ -321,8 +327,8 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e) 
 			{
-				string chan = channel==null?"NULL":channel;
-				string txt = text==null?"NULL":text;
+				string chan = channel ?? "NULL";
+				string txt = text ?? "NULL";
 				log.Error("Error in SendToChannel( \""+chan+"\", \""+txt+"\", "+overrideQueue+" )", e);
 			}
 		}
@@ -346,6 +352,7 @@ namespace NielsRask.FnordBot
 			get { return irc.Nickname; }
 		}
 
+		private bool overrideIsAllowed = true;	// workaround for local testing
 		#region permission logic
 		/// <summary>
 		/// Checks if a permission is set for a plugin
@@ -355,6 +362,9 @@ namespace NielsRask.FnordBot
 		/// <returns></returns>
 		private bool IsAllowed( Assembly asm, string permission ) 
 		{
+			if (overrideIsAllowed)
+				return true;
+
 			string xpath = "";
 			string typename = "(unset)";
 			if (asm == null) 
@@ -464,6 +474,28 @@ namespace NielsRask.FnordBot
 			plugin.Attach( this );
 			plugin.Init( pluginNode );
 			log.Info("Attached plugin "+type);
+		}
+
+		public void LoadPlugin( string typeName, string assemblyPath, 
+			System.Collections.Generic.Dictionary<string, string> settings, 
+			System.Collections.Generic.Dictionary<string, bool> permissions)
+		{
+			string xml;
+			xml = ""
+			      + "<plugin typename=\""+typeName+"\" path=\""+assemblyPath+"\" >"
+			      + "<settings>";
+			foreach (string key in settings.Keys)
+				xml += "<" + key + ">" + settings[key] + "</" + key + ">";
+			xml += "</settings><permissions>";
+			foreach (string key in settings.Keys)
+				xml += "<permission name=\"" + key + "\" value=\"" + settings[key] + "\" />";
+			xml += "</permissions></plugin>";
+				
+			XmlDocument xdoc2 = new XmlDocument();
+			xdoc2.LoadXml( xml );
+
+			LoadPlugin(typeName,assemblyPath, xdoc2.DocumentElement);
+
 		}
 
 		/// <summary>

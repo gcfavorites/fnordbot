@@ -670,59 +670,59 @@ namespace NielsRask.LibIrc
 				reply = (ReplyCode)int.Parse( parts[1] );
 			} 
 			catch (Exception)
-			{}
-
-			if (reply == ReplyCode.RPL_MOTD) 
 			{
-				// :koala.droso.net 372 BimseBot :- This is ircd-hybrid MOTD replace it with something better
-				string motdline = line.Split(new Char[] {' '}, 4)[3];
-				if (motdline.Length>1) 
-					motd += motdline.Substring(1);
-			} 
-			else if (reply == ReplyCode.RPL_MOTDSTART) 
-			{
-				motd = "";// nulstil eksisterende motd
+				Console.WriteLine("Could not parse "+parts[1]+" as numeric reply code");
 			}
-			else if (reply == ReplyCode.RPL_ENDOFMOTD)
-			{	// vi formodes allerede at have opsamlet motd - vi signalerer nu at den er færdig
-				if (OnMotd != null) 
-					OnMotd( motd );
-			}
-			else if (reply == ReplyCode.RPL_NAMREPLY) 
+			switch (reply)
 			{
-				// :koala.droso.net 353 BimseBot = #bottest :BimseBot @NordCore
-				string[] users = new string[parts.Length-5];
-				for (int i=5; i<parts.Length; i++) 
-					users[i-5] = parts[i];
-				if (OnChannelUserList != null) 
-					OnChannelUserList( parts[4], users );
-			} 
-			else if (reply == ReplyCode.RPL_TOPIC ) 
-			{
-				// :koala.droso.net 332 BimseBot #bottest :dingeling
-				if (OnTopicChange != null) 
-					OnTopicChange(parts[4].Substring(1),parts[3],"",""); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
-			}
-			else if (reply == ReplyCode.RPL_NOTOPIC ) 
-			{
-				if (OnTopicChange != null) 
-					OnTopicChange("",parts[3],"","" );
-			} 
-			else if (reply == ReplyCode.ERR_NICKINUSE ) 
-			{
-				log.Warn("It seems nickname '"+nickName+"' is in use");
-				if (altNick.Length > 0) 
-				{
-					log.Info("Trying alternative nick '"+altNick+"'");
-					network.SendToServer( "NICK "+altNick );
-					altNick = "";	// next time we get this message, we'll generate a new nick
-				} 
-				else 
-				{
-					string randnick = parts[3]+new Random().Next(999).ToString("0000");
-					log.Info("Trying random nick '"+randnick+"'");
-					network.SendToServer( "NICK "+randnick );
-				}
+				case ReplyCode.RPL_MOTD:
+					// :koala.droso.net 372 BimseBot :- This is ircd-hybrid MOTD replace it with something better
+					string motdline = line.Split( new Char[] { ' ' }, 4 )[3];
+					if ( motdline.Length > 1 )
+						motd += motdline.Substring( 1 );
+					break;
+				case ReplyCode.RPL_MOTDSTART:
+					motd = "";// nulstil eksisterende motd
+					break;
+				case ReplyCode.RPL_ENDOFMOTD:
+					// vi formodes allerede at have opsamlet motd - vi signalerer nu at den er færdig
+					if ( OnMotd != null )
+						OnMotd( motd );
+					break;
+				case ReplyCode.RPL_NAMREPLY:
+					// :koala.droso.net 353 BimseBot = #bottest :BimseBot @NordCore
+					string[] users = new string[parts.Length - 5];
+					for ( int i = 5; i < parts.Length; i++ )
+						users[i - 5] = parts[i];
+					if ( OnChannelUserList != null )
+						OnChannelUserList( parts[4], users );
+					break;
+				case ReplyCode.RPL_TOPIC:
+					// :koala.droso.net 332 BimseBot #bottest :dingeling
+					if ( OnTopicChange != null )
+						OnTopicChange( parts[4].Substring( 1 ), parts[3], "", "" ); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
+					break;
+				case ReplyCode.RPL_NOTOPIC:
+					if ( OnTopicChange != null )
+						OnTopicChange( "", parts[3], "", "" );
+					break;
+				case ReplyCode.ERR_NICKINUSE:
+					log.Warn( "It seems nickname '" + nickName + "' is in use" );
+					if ( altNick.Length > 0 )
+					{
+						log.Info( "Trying alternative nick '" + altNick + "'" );
+						network.SendToServer( "NICK " + altNick );
+						altNick = "";	// next time we get this message, we'll generate a new nick
+					}
+					else
+					{
+						string randnick = parts[3] + new Random().Next( 999 ).ToString( "0000" );
+						log.Info( "Trying random nick '" + randnick + "'" );
+						network.SendToServer( "NICK " + randnick );
+					}
+					break;
+				case ReplyCode.RPL_ENDOFNAMES:
+					break;
 			}
 		}
 
@@ -813,7 +813,7 @@ namespace NielsRask.LibIrc
 		}
 	}
 
-	/// <exclude>
+	/// <exclude />
 	public class PingListener 
 	{
 		private DateTime lastPing = DateTime.Now;

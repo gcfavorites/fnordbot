@@ -70,9 +70,11 @@ namespace NielsRask.LibIrc
 		{
             try
             {
-				ident = new Ident();
-				Thread identThread = new Thread(new ThreadStart(ident.Start));
+				ident = new Ident( "foo" );
+				Thread identThread = new Thread( new ThreadStart( ident.Start ) );
+            	identThread.Name = "IdentServerThread";
 				identThread.Start();
+
                 log.Debug("Network: Connecting to server " + host + ":" + port + " ...");
                 server = new TcpClient(host, port);
                 if (OnConnect != null) OnConnect();
@@ -101,7 +103,7 @@ namespace NielsRask.LibIrc
 			//if (!text.StartsWith("PONG :")) 
 			log.Debug("Sending to server: '"+text+"'");
 			
-            lock( writer ) 
+			lock( writer ) 
 			{
 				writer.WriteLine(text);
 				writer.Flush();
@@ -157,10 +159,12 @@ namespace NielsRask.LibIrc
 				{ 
 					while ( (inputLine = reader.ReadLine() ) != null) 
 					{
+						log.Debug( "->" + inputLine );
 						network.CallOnServerMessage(inputLine);
-						if (!inputLine.StartsWith("PING :"))
-							log.Debug("Received line: "+inputLine);
+						//if (!inputLine.StartsWith("PING :"))
+						//    log.Debug("Received line: "+inputLine);
 					} 
+					log.Warn("Exited network.Run-loop? ");
 				}
 			} 
 			catch (Exception e) 
