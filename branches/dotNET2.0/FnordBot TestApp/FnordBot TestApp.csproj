@@ -96,15 +96,11 @@
       <Name>FnordBot</Name>
       <Project>{C841E838-D150-4BF3-A001-61996ED81377}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
+      <Private>True</Private>
     </ProjectReference>
     <ProjectReference Include="..\LibIrc2\LibIrc2.csproj">
       <Name>LibIrc2</Name>
       <Project>{7C8B4F84-4003-4230-983F-915E0681431A}</Project>
-      <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
-    </ProjectReference>
-    <ProjectReference Include="..\Logger\Logger.csproj">
-      <Name>Logger</Name>
-      <Project>{7A5A0EE1-0495-4D5F-A01A-76D82B5A0967}</Project>
       <Package>{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</Package>
     </ProjectReference>
   </ItemGroup>

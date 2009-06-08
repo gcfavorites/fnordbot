@@ -214,11 +214,11 @@ namespace NielsRask.LibIrc
 
 			// pinglistener skal opdage når vi ikke har fået pings længe
 			pingListener = new PingListener(network);
-			network.OnServerMessage += pingListener.ProcessMessage;
 			Thread tPingListen = new Thread( pingListener.Start );
 			tPingListen.Name = "PingListenerThread";
 			tPingListen.IsBackground = true;
 			tPingListen.Start();
+			network.OnServerMessage += pingListener.ProcessMessage;
 		} 
 
 		/// <summary>
@@ -372,7 +372,7 @@ namespace NielsRask.LibIrc
 		private void ProcessMessage(string line) 
 		{
 			string[] parts = line.Split(new Char[] {' '},4);
-
+			//log.Debug("Processing: line "+line);
 			if ( line.StartsWith("PING :") ) 
 			{
 				network.SendToServer( "PONG :"+line.Substring(6) );
@@ -430,6 +430,8 @@ namespace NielsRask.LibIrc
             {
                 log.Warn("Fell through ProcessMessage cases on string '" + line + "'");
             }
+			//log.Debug( "Processing ended: line " + line );
+
 		}
 
 		private void ParseNickChange( string line ) 
@@ -583,23 +585,29 @@ namespace NielsRask.LibIrc
 		}
 
 		// håndterer tekstsvar
-		private void ParseMessage(string line) 
+		private void ParseMessage(string line)
 		{
 			//:NordCore!~nordcore@0x3e42a834.adsl.cybercity.dk PRIVMSG #bottest :fooo
-			string[] parts = line.Split(new Char[] {' '},4);
+			//:NordCore!NordCore@i.love.debian.org PRIVMSG Bimmer :foo
+			string[] parts = line.Split(new Char[] {' '}, 4);
 
-			ReplyData rd = ReplyData.GetFromArray( parts );
+			ReplyData rd = ReplyData.GetFromArray(parts);
 			string target = parts[2];
 			string message = parts[3].Substring(1);
 
-			if (message.ToCharArray()[0] == 1) 
+			if (message.ToCharArray()[0] == 1)
 				ParseCTCP(line);
-			else if (target.StartsWith("#")) 
-				if (OnPublicMessage != null) 
+			else if (target.StartsWith("#"))
+			{
+				if (OnPublicMessage != null)
 					OnPublicMessage(message, target, rd.Username, rd.Hostmask);
-			else 
-				if (OnPrivateMessage != null) 
+			}
+			else
+			{
+				Console.WriteLine("onprivatemessage: "+message);
+				if (OnPrivateMessage != null)
 					OnPrivateMessage(message, target, rd.Username, rd.Hostmask);
+			}
 		}
 
 		private void ParseCTCP( string line ) 

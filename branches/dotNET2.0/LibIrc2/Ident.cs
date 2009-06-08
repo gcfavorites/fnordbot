@@ -14,6 +14,7 @@ namespace NielsRask.LibIrc
 	{
 		private TcpListener listener;
 		private string userId;
+		private static readonly ILog log = LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType );
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Ident"/> class.
 		/// </summary>
@@ -42,10 +43,13 @@ namespace NielsRask.LibIrc
 
 				StreamWriter writer = new StreamWriter( s );
 				Console.WriteLine("Ident got: "+str+", sending reply");
-				writer.WriteLine( str + " : USERID : UNIX : NordCore" );
+				writer.WriteLine( str + " : USERID : UNIX : "+userId );
 				writer.Flush();
 				Console.WriteLine( "Ident sent reply" );
 			}
+			log.Debug("Ident server exiting");
+			Console.WriteLine( "Ident server exiting" );
+
 		}
 	}
 }

@@ -122,11 +122,18 @@ namespace NielsRask.FnordBot
             myxdoc.Save(usersFilePath);
 		}
 
+		/// <summary>
+		/// Gets the channels to join.
+		/// </summary>
+		/// <value>The channels to join.</value>
 		public StringCollection ChannelsToJoin
 		{
 			get { return channelsToJoin; }
 		}
 
+		/// <summary>
+		/// Directs the init.
+		/// </summary>
 		public void DirectInit()
 		{
 
@@ -137,7 +144,7 @@ namespace NielsRask.FnordBot
 
 			// mangler indlæsning af plugins
 		}
-		int dMsg = 5;	// defasult values
+		int dMsg = 15;	// defasult values
 		int dMin = 60;	// max 5 msg/hr
 
 		/// <summary>
@@ -274,7 +281,8 @@ namespace NielsRask.FnordBot
 		/// <param name="text"></param>
 		public void SendToChannel( string channel, string text ) 
 		{
-			SendToChannel( channel, text, true ); 
+			//SendToChannel( channel, text, true );
+			irc.SendToChannel( channel, text );
 		}
 
 		/// <summary>
@@ -549,6 +557,7 @@ namespace NielsRask.FnordBot
 			irc.Protocol.Network.OnDisconnect += Network_OnDisconnect;
 			irc.OnPublicMessage += irc_OnPublicMessage;
 			irc.OnPrivateMessage += irc_OnPrivateMessage;
+			irc.OnPrivateMessage += Protocol_OnPrivateMessage;
 			irc.OnPrivateNotice += irc_OnPrivateNotice;
 			irc.OnPublicNotice += irc_OnPublicNotice;
 			irc.OnSendNotice += irc_OnSendNotice;
@@ -556,15 +565,14 @@ namespace NielsRask.FnordBot
 			irc.OnSendToUser += irc_OnSendToUser;
 			irc.OnSetMode += irc_OnSetMode;
 			irc.OnNickChange += irc_OnNickChange;
+			irc.OnTopicChange += Protocol_OnTopicChange;
+			irc.OnPublicAction += irc_OnPublicAction;
 			irc.Protocol.OnChannelJoin += Protocol_OnChannelJoin;
 			irc.Protocol.OnChannelKick += Protocol_OnChannelKick;
 			irc.Protocol.OnChannelMode += Protocol_OnChannelMode;
 			irc.Protocol.OnChannelPart += Protocol_OnChannelPart;
 			irc.Protocol.OnServerQuit += Protocol_OnServerQuit;
-			irc.OnTopicChange += Protocol_OnTopicChange;
-			irc.OnPrivateMessage += Protocol_OnPrivateMessage;
-			irc.OnPublicAction += irc_OnPublicAction;
-			irc.OnPrivateMessage += irc_OnPrivateMessage;
+			//irc.OnPrivateMessage += irc_OnPrivateMessage;
 		}
 
 
@@ -704,7 +712,7 @@ namespace NielsRask.FnordBot
 
 		private void irc_OnPublicMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPublicMessage != null ) 
+			if ( OnPublicMessage != null ) 
 				OnPublicMessage( GetUser(senderNick, senderHost), target, message );
 		}
 	
