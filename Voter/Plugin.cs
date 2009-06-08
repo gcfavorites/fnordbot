@@ -31,7 +31,7 @@ namespace NielsRask.Voter
 
 		public void Attach( NielsRask.FnordBot.FnordBot bot )
 		{
-			log.Info( "Attaching logger plugin" );
+			log.Info( "Attaching voter plugin" );
 			try
 			{
 				this.bot = bot;
@@ -40,29 +40,34 @@ namespace NielsRask.Voter
 			}
 			catch (Exception e)
 			{
-				log.Error( "Failed in Logger.Attach", e );
+				log.Error( "Failed in voter.Attach", e );
 			}
 		}
 
 		void bot_OnPrivateMessage( User user, string channel, string message )
 		{
-			if (message.StartsWith( "StartVote" ))
+			if (message.StartsWith("!startvote"))
 			{
-				if (!reflist.ContainsKey( user.NickName ))
+				if (!reflist.ContainsKey(user.NickName))
 				{
-					reflist.Add( user.NickName, new Referendum( user.NickName, bot ) );	// opret i liste hvis den ikke er der
+					reflist.Add(user.NickName, new Referendum(user.NickName, bot)); // opret i liste hvis den ikke er der
 					reflist[user.NickName].StartWizard();
 				}
 				else
 				{
 					//der er allerede en igang
+					bot.SendToUser(user.NickName, "another vote is running, please wait");
 				}
+				return;
 			}
-			if (message.StartsWith( "vote" ))
-				reflist[user.NickName].AcceptVote( user.NickName, message );
-
-			if (reflist.ContainsKey( user.NickName ))
-				reflist[user.NickName].ProcessMessage( message ); // hvis der er oprettet et ref på denne user, send besked videre
+			if ( message.StartsWith( "!vote " ) )
+			{
+				reflist[user.NickName].AcceptVote(user.NickName, message);
+			}
+			else if ( reflist.ContainsKey( user.NickName ) )
+			{
+				reflist[user.NickName].ProcessMessage( message ); // hvis der er oprettet et ref på denne user, send besked videre}
+			}
 		}
 
 		public void Init( System.Xml.XmlNode pluginNode )
@@ -79,7 +84,7 @@ namespace NielsRask.Voter
 			}
 			catch (Exception e)
 			{
-				log.Error( "Error in logger init", e );
+				log.Error( "Error in voter init", e );
 			}
 		}
 
@@ -100,6 +105,7 @@ namespace NielsRask.Voter
 		private string creator;
 		private string resultchannel;
 		private Dictionary<string, int> votes;
+		private static readonly ILog log = LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType );
 
 		public Referendum( string creator, FnordBot.FnordBot bot )
 		{
@@ -110,6 +116,7 @@ namespace NielsRask.Voter
 
 		public void Start()
 		{
+			IsOpen = true;
 			foreach( string str in scope)
 			{
 				if (str.StartsWith( "#" ))
@@ -119,7 +126,7 @@ namespace NielsRask.Voter
 					{
 						bot.SendToChannel(str, i + ": " + options[i]);
 					}
-					bot.SendToChannel(str, "Write /msg BimseBot vote 1 to vote for option 1, etc."
+					bot.SendToChannel(str, "Write /msg BimseBot vote 1 to vote for option 1, etc.");
 				}
 			}
 			Thread closerThread = new Thread(new ThreadStart(WaitUntilEnd));
@@ -137,7 +144,7 @@ namespace NielsRask.Voter
 		{
 			if (IsOpen)
 			{
-				IsOpen = false; // den kan lukkes når ale har svaret..
+				IsOpen = false; // den kan lukkes når alle har svaret..
 				ShowResults();
 			}
 		}
@@ -146,21 +153,39 @@ namespace NielsRask.Voter
 		{
 			if (resultScope == ResultScope.Creator)
 			{
-				SendResults( "" );
+				SendResults( ""+creator );
 			}
 			else if (resultScope == ResultScope.Participans)
 			{
-				SendResults( "" );
+				SendResults( "#crayon" );
 			}
 			else
 			{
-				SendResults( "" );
+				SendResults( "#crayon" );
 			}
 		}
 
 		private void SendResults( string user )
 		{
 			// formatter resultaterne og bot.SendTouser / channel
+			bot.SendToUser( creator, "Results for '"+question+"':");
+			//foreach (string option in options)
+			for ( int i = 0; i < options.Length; i++ )
+			{
+				bot.SendToUser( creator, "Option '" + options[i] + "': " + GetVotesByOption( i ) + " votes" );
+			}
+		}
+
+		private int GetVotesByOption( int option)
+		{
+			int count = 0;
+			//for ( int i = 0; i < votes.Count; i++ )
+			//    if ( votes.Keys[i] == option )
+			//        count++;
+			foreach ( int key in votes.Values )
+				if ( key == option )
+					count++;
+			return count;
 		}
 
 		public void StartWizard()
@@ -173,18 +198,27 @@ namespace NielsRask.Voter
 		public void AcceptVote( string user, string message )
 		{
 			// tjek om de er med, hvis det ikke er en channel-vote
-			int option = int.Parse(message);
-			if (!votes.ContainsKey(user))
+			if ( message.StartsWith( "!vote " ) )
+				message = message.Substring(6);
+			try
 			{
-				votes.Add(user, option);
-				// thanks for voting for ""
-				if (votes.Count == scope.Length) // kun hvis ikek en kanal
-					{}//showsummary();
-
-			}
-			else
+				int option = int.Parse(message);
+				if (!votes.ContainsKey(user))
+				{
+					votes.Add(user, option);
+					// thanks for voting for ""
+					log.Info("A vote was cast for '"+options[option]+"' by "+user);
+					if (votes.Count == scope.Length) // kun hvis ikek en kanal
+					{
+					} //showsummary();
+				}
+				else
+				{
+					// you have already voted!
+				}
+			} catch (Exception e)
 			{
-				// you have already voted!
+				log.Error("error in AcceptVote with message \""+message+"\"", e);
 			}
 		}
 
@@ -196,13 +230,20 @@ namespace NielsRask.Voter
 				case 1:
 					question = message;
 					bot.SendToUser( creator, "Registered question \"" + question + "\"" );
-					bot.SendToUser( creator, "Enter each option [in brackets] [Separated by spaces]";);
+					bot.SendToUser( creator, "Enter each option [in brackets] [Separated by spaces]");
 					wizStep++;
 					break;
 				case 2:
-					options = Regex.Split(message, "] [");
-					for (int i=0; i< options.Length; i++)
-						bot.SendToUser(creator, i + ": " + options[i]);
+					//options = Regex.Split(message, "] [");
+					//for (int i=0; i< options.Length; i++)
+					//    bot.SendToUser(creator, i + ": " + options[i]);
+					string pattern = @"\[(.+?)\]";
+					MatchCollection mcol = Regex.Matches(message, pattern);
+					options = new string[mcol.Count];
+					for ( int i = 0; i < mcol.Count; i++ )
+						options[i] = mcol[i].Groups[1].Value;
+					for ( int i = 0; i < options.Length; i++ )
+						bot.SendToUser( creator, i + ": " + options[i] );
 					bot.SendToUser( creator, "Who should be polled? enter a #channel or nicknames separated by spaces" );
 					wizStep++;
 					break;
