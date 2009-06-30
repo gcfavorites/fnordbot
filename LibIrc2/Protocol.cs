@@ -848,7 +848,7 @@ namespace NielsRask.LibIrc
 					alive = false;
 				}
 				else
-					Thread.Sleep( new TimeSpan(0, 5, 0) );
+					Thread.Sleep( new TimeSpan(0, 1, 0) );
 			}
 		}
 	
