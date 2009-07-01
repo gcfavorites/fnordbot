@@ -448,6 +448,8 @@ namespace NielsRask.FnordBot
 		#region config loading
 		private void LoadConfig() 
 		{
+			if ( !installationFolderPath.EndsWith( @"\" ) )
+				installationFolderPath += @"\";
 			string cfgpath;
 			if (File.Exists(installationFolderPath+"Config.xml") )
 				cfgpath = installationFolderPath+"Config.xml";				
