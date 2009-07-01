@@ -40,7 +40,7 @@
 !include "servicelib.nsh"
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Setup.exe"
+OutFile "Fnordbot Setup.exe"
 InstallDir "$PROGRAMFILES\NielsRask\Fnordbot"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -76,6 +76,9 @@ Section "Plugins" SEC02
   File "Wordgame\bin\Debug\Wordgame.dll"
   File "Wordgame\bin\Debug\Wordgame.pdb"
   File "Wordgame\wordlist.dat"
+  SetOutPath "$INSTDIR\Plugins\Voter"
+  File "Voter\bin\Debug\Voter.dll"
+  File "Voter\bin\Debug\Voter.pdb"
 SectionEnd
 
 Section -Post
@@ -95,7 +98,7 @@ Section -Post
   FileWrite $9 "<?xml version=$\"1.0$\" encoding=$\"iso-8859-1$\" ?> $\r$\n"
   FileWrite $9 "<config>$\r$\n"
   FileWrite $9 "	<client>$\r$\n"
-  FileWrite $9 "		<server port=$\"6667$\">irc.droso.net</server>$\r$\n"
+  FileWrite $9 "		<server port=$\"6667$\">10.0.0.101</server>$\r$\n"
   FileWrite $9 "		<nickname>BimseBot</nickname>$\r$\n"
   FileWrite $9 "		<altnick>BimmerBot</altnick>$\r$\n"
   FileWrite $9 "		<realname>B. Imse</realname>$\r$\n"
@@ -143,6 +146,12 @@ Section -Post
   FileWrite $9 "				<permission name=$\"CanOverrideSendToChannel$\" value=$\"True$\" />$\r$\n"
   FileWrite $9 "			</permissions>$\r$\n"
   FileWrite $9 "		</plugin>$\r$\n"
+  FileWrite $9 "		<plugin typename=$\"NielsRask.Voter.Voter$\" path=$\"plugins\Voter\Voter.dll$\" >$\r$\n"
+  FileWrite $9 "			<settings />$\r$\n"
+  FileWrite $9 "			<permissions>$\r$\n"
+  FileWrite $9 "				<permission name=$\"CanOverrideSendToChannel$\" value=$\"True$\" />$\r$\n"
+  FileWrite $9 "			</permissions>$\r$\n"
+  FileWrite $9 "		</plugin>$\r$\n"
   FileWrite $9 "	</plugins>$\r$\n"
   FileWrite $9 "</config>$\r$\n"
   FileClose $9 ;Closes the filled file
@@ -174,7 +183,9 @@ Section Uninstall
   Delete "$INSTDIR\Plugins\SortSnak\SortSnak.pdb"
   Delete "$INSTDIR\Plugins\SortSnak\SortSnak.dll"
   Delete "$INSTDIR\Plugins\Logger\Logger.pdb"
-  Delete "$INSTDIR\Plugins\Logger\Logger.dll"
+  Delete "$INSTDIR\Plugins\Logger\Logger.dll" 
+  Delete "$INSTDIR\Plugins\Voter\Voter.pdb"
+  Delete "$INSTDIR\Plugins\Voter\Voter.dll"
   Delete "$INSTDIR\NielsRask.Fnordbot.xml"
   Delete "$INSTDIR\FnordBot.dll"
   Delete "$INSTDIR\FnordBot.pdb"
@@ -191,6 +202,7 @@ Section Uninstall
   RMDir "$INSTDIR\Plugins\Stat"
   RMDir "$INSTDIR\Plugins\SortSnak"
   RMDir "$INSTDIR\Plugins\Logger"
+  RMDir "$INSTDIR\Plugins\Voter"
   RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
