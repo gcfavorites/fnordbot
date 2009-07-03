@@ -1,24 +1,20 @@
 using System;
-using NielsRask.FnordBot;
-using System.IO;
-using log4net;
 using System.Collections.Generic;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using log4net;
+using NielsRask.FnordBot;
 
 namespace NielsRask.Voter
 {
 
 	/**
-	 * TODO:
-	 * hvad nu hvis der er flere afstemninger igang - måske må der kun være een kørende af gangen
-	 * 
+	 * TODO: hvad nu hvis der er flere afstemninger igang - måske må der kun være een kørende af gangen
 	 */
 	public class Voter : IPlugin
 	{
 		private FnordBot.FnordBot bot;
-		private Dictionary<string, Referendum> reflist;
+		private readonly Dictionary<string, Referendum> reflist;
 
 		private static readonly ILog log = LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType );
 
@@ -29,13 +25,13 @@ namespace NielsRask.Voter
 
 		#region IPlugin Members
 
-		public void Attach( NielsRask.FnordBot.FnordBot bot )
+		public void Attach( FnordBot.FnordBot bot )
 		{
 			log.Info( "Attaching voter plugin" );
 			try
 			{
 				this.bot = bot;
-				bot.OnPrivateMessage += new NielsRask.FnordBot.FnordBot.MessageHandler( bot_OnPrivateMessage );
+				bot.OnPrivateMessage += bot_OnPrivateMessage;
 
 			}
 			catch (Exception e)
@@ -101,20 +97,20 @@ namespace NielsRask.Voter
 		private string[] options; // muligheder
 		private TimeSpan runtime; // hvor lang tid der er til at stemme
 		private ResultScope resultScope; // hvem skal have resultatet
-		private FnordBot.FnordBot bot;
-		private string creator;
+		private readonly FnordBot.FnordBot bot;
+		private readonly string creator;
 		private string resultchannel;
 		/// <summary>
 		/// collection of user, vote
 		/// </summary>
-		private Dictionary<string, int> votes;
+		private readonly Dictionary<string, int> votes;
 		private static readonly ILog log = LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType );
 
 		public Referendum( string creator, FnordBot.FnordBot bot )
 		{
 			this.creator = creator;
 			this.bot = bot;
-			this.votes = new Dictionary<string, int>();
+			votes = new Dictionary<string, int>();
 		}
 
 		public void Start()
@@ -132,7 +128,7 @@ namespace NielsRask.Voter
 					bot.SendToChannel(str, "Write /msg BimseBot !vote 1 to vote for option 1, etc.");
 				}
 			}
-			Thread closerThread = new Thread(new ThreadStart(WaitUntilEnd));
+			Thread closerThread = new Thread(WaitUntilEnd);
 			closerThread.Start();
 		}
 
@@ -166,15 +162,15 @@ namespace NielsRask.Voter
 			else
 			{
 				// channel
-				foreach ( string user in scope )
-					SendResults( user );
+			//	foreach ( string user in scope )
+				SendResults( resultchannel );
 			}
 		}
 
 		private void SendResults( string user )
 		{
 			// formatter resultaterne og bot.SendTouser / channel
-			bot.SendToUser( creator, "Results for '"+question+"':");
+			bot.SendToUser( user, "Results for '" + question + "':" );
 			//foreach (string option in options)
 			int totalVotes = GetTotalVotes();
 			//int votes;
@@ -192,7 +188,7 @@ namespace NielsRask.Voter
 			}
 			for ( int i = 0; i < theVotes.Length; i++ )
 			{
-				bot.SendToUser( creator, "Option '" + options[i] + "' got " + votes + " votes (" + ( theVotes[i] * 100f / totalVotes ) + ")" + ( maxVotesIndex == i ? " - WINS!" : "" ) );
+				bot.SendToUser( user, "Option '" + options[i] + "' got " + votes + " votes (" + ( theVotes[i] * 100f / totalVotes ) + ")" + ( maxVotesIndex == i ? " - WINS!" : "" ) );
 			}
 		}
 
