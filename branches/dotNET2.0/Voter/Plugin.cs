@@ -104,6 +104,9 @@ namespace NielsRask.Voter
 		private FnordBot.FnordBot bot;
 		private string creator;
 		private string resultchannel;
+		/// <summary>
+		/// collection of user, vote
+		/// </summary>
 		private Dictionary<string, int> votes;
 		private static readonly ILog log = LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType );
 
@@ -126,7 +129,7 @@ namespace NielsRask.Voter
 					{
 						bot.SendToChannel(str, i + ": " + options[i]);
 					}
-					bot.SendToChannel(str, "Write /msg BimseBot vote 1 to vote for option 1, etc.");
+					bot.SendToChannel(str, "Write /msg BimseBot !vote 1 to vote for option 1, etc.");
 				}
 			}
 			Thread closerThread = new Thread(new ThreadStart(WaitUntilEnd));
@@ -157,11 +160,14 @@ namespace NielsRask.Voter
 			}
 			else if (resultScope == ResultScope.Participans)
 			{
-				SendResults( "#crayon" );
+				foreach (string user in scope)
+					SendResults( user );
 			}
 			else
 			{
-				SendResults( "#crayon" );
+				// channel
+				foreach ( string user in scope )
+					SendResults( user );
 			}
 		}
 
@@ -170,18 +176,38 @@ namespace NielsRask.Voter
 			// formatter resultaterne og bot.SendTouser / channel
 			bot.SendToUser( creator, "Results for '"+question+"':");
 			//foreach (string option in options)
+			int totalVotes = GetTotalVotes();
+			//int votes;
+			int[] theVotes = new int[options.Length];
+			int maxVotes = 0;
+			int maxVotesIndex = 0;
 			for ( int i = 0; i < options.Length; i++ )
 			{
-				bot.SendToUser( creator, "Option '" + options[i] + "': " + GetVotesByOption( i ) + " votes" );
+				theVotes[i] = GetVotesByOption( i );
+				if ( theVotes[i] >= maxVotes )
+				{
+					maxVotes = theVotes[i];
+					maxVotesIndex = i;
+				}
 			}
+			for ( int i = 0; i < theVotes.Length; i++ )
+			{
+				bot.SendToUser( creator, "Option '" + options[i] + "' got " + votes + " votes (" + ( theVotes[i] * 100f / totalVotes ) + ")" + ( maxVotesIndex == i ? " - WINS!" : "" ) );
+			}
+		}
+
+		private int GetTotalVotes()
+		{
+			//int count = 0;
+			//foreach ( int key in votes.Keys )
+			//    count++;
+			//return count;
+			return votes.Keys.Count;
 		}
 
 		private int GetVotesByOption( int option)
 		{
 			int count = 0;
-			//for ( int i = 0; i < votes.Count; i++ )
-			//    if ( votes.Keys[i] == option )
-			//        count++;
 			foreach ( int key in votes.Values )
 				if ( key == option )
 					count++;
@@ -190,8 +216,8 @@ namespace NielsRask.Voter
 
 		public void StartWizard()
 		{
-			bot.SendToUser( creator, "VoterWizard 0.1 :)" );
-			bot.SendToUser( creator, "Please enter the question for the vote:" );
+			bot.SendToUser( creator, "VoterWizard 1.0 :)" );
+			bot.SendToUser( creator, "Please enter the subject of the vote:" );
 			wizStep++;
 		}
 
@@ -207,10 +233,12 @@ namespace NielsRask.Voter
 				{
 					votes.Add(user, option);
 					// thanks for voting for ""
+					bot.SendToUser(user, "Thanks for voting.");
 					log.Info("A vote was cast for '"+options[option]+"' by "+user);
-					if (votes.Count == scope.Length) // kun hvis ikek en kanal
+					if (!scope[0].StartsWith("#") && votes.Count == scope.Length) // kun hvis ikke en kanal
 					{
-					} //showsummary();
+						//showsummary();
+					} 
 				}
 				else
 				{
@@ -230,7 +258,7 @@ namespace NielsRask.Voter
 				case 1:
 					question = message;
 					bot.SendToUser( creator, "Registered question \"" + question + "\"" );
-					bot.SendToUser( creator, "Enter each option [in brackets] [Separated by spaces]");
+					bot.SendToUser( creator, "Enter each option [in brackets] on the same line");
 					wizStep++;
 					break;
 				case 2:
@@ -249,7 +277,7 @@ namespace NielsRask.Voter
 					break;
 				case 3:
 					scope = message.Split(' ');
-					bot.SendToUser( creator, "Registered " + scope.Length+ " participants." );
+					bot.SendToUser( creator, "Registered " + scope.Length+ " participants."+(scope.Length==1?" ("+scope+")":"") );
 					bot.SendToUser( creator, "For how many minutes should the poll be active? max is 30" );
 					wizStep++;
 					break;
@@ -273,17 +301,18 @@ namespace NielsRask.Voter
 						resultScope = ResultScope.Channel;
 						resultchannel = message;
 					}
-					bot.SendToUser(creator, "Ok, now type \"start\" to sart the voting ");
+					bot.SendToUser(creator, "Ok, now type \"start\" to start the voting ");
 					wizStep++;
 					break;
 				case 6:
 					if (message == "start")
 					{
+						bot.SendToUser( creator, "Voting started, will end "+DateTime.Now.Add(runtime).ToLongTimeString() );
 						Start();
 					}
 					wizStep++;
 					break;
-			}	// vi skal vel også lige have registreret om botten skal sige hvem der kalder til afstemning ...?
+			}	// TODO: vi skal vel også lige have registreret om botten skal sige hvem der kalder til afstemning ...?
 		}
 	}
 
