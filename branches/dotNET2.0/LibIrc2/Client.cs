@@ -330,7 +330,7 @@ namespace NielsRask.LibIrc
             bool connected = false;
             while (!connected)
             {
-                System.Threading.Thread.Sleep(30 * 1000);   // sleep for a bit before trying to reconnect
+                Thread.Sleep(30 * 1000);   // sleep for a bit before trying to reconnect
                 try
                 {
                     log.Info("Reconnecting ...");

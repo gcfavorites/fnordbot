@@ -5,60 +5,66 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public enum ReplyCode
 	{
-		// :panda.droso.net 353 BimseBot = #craYon :BimseBot NetRanger smcRanger NordCore Maverick cyberzed Pornoting |Hunter-| Modena
+		// see http://www.irchelp.org/irchelp/rfc/chapter6.html
+
 		/// <summary>
-		/// Reply is a list of users in a channel
+		/// (321)
+		/// </summary>
+		RPL_LISTSTART = 321,
+
+		/// <summary>
+		/// (322)
+		/// </summary>
+		RPL_LIST = 322,
+
+		/// <summary>
+		/// (323)
+		/// </summary>
+		RPL_LISTEND = 323,
+
+		/// <summary>
+		/// The channel has no topic (331)
+		/// </summary>
+		RPL_NOTOPIC = 331,
+
+		/// <summary>
+		/// Topic for a channel, triggered at join and change (332)
+		/// </summary>
+		RPL_TOPIC = 332,
+
+		/// <summary>
+		/// Reply is a list of users in a channel (353)
 		/// </summary>
 		RPL_NAMREPLY = 353,
 
 		// :panda.droso.net 366 BimseBot #craYon :End of /NAMES list.
 		/// <summary>
-		/// A complete namelist has been sent
+		/// A complete namelist has been sent (366)
 		/// </summary>
 		RPL_ENDOFNAMES = 366,
 
 		/// <summary>
-		/// MOTD will be sent
-		/// </summary>
-		RPL_MOTDSTART = 375,
-
-		/// <summary>
-		/// MOTD of the server
+		/// MOTD of the server (372)
 		/// </summary>
 		RPL_MOTD = 372,
 
 		/// <summary>
-		/// MOTD has been sent
+		/// MOTD will be sent (375)
+		/// </summary>
+		RPL_MOTDSTART = 375,
+
+		/// <summary>
+		/// MOTD has been sent (376)
 		/// </summary>
 		RPL_ENDOFMOTD = 376,
 
 		/// <summary>
-		/// Topic for a channel, triggered at join and change
-		/// </summary>
-		RPL_TOPIC = 332,
-
-		/// <summary>
-		/// The channel has no topic
-		/// </summary>
-		RPL_NOTOPIC = 331,
-
-		/// <summary>
-		/// 
-		/// </summary>
-		RPL_LIST = 322,
-
-		/// <summary>
-		/// 
-		/// </summary>
-		RPL_LISTEND = 323,
-
-		/// <summary>
-		/// 
+		/// (391)
 		/// </summary>
 		RPL_TIME = 391, 
 
 		/// <summary>
-		/// This nickname is in use, select another one
+		/// This nickname is in use, select another one (433)
 		/// </summary>
 		ERR_NICKINUSE = 433,
 

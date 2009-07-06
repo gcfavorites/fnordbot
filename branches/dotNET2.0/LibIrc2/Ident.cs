@@ -1,8 +1,7 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
-using System.Threading;
 using log4net;
 
 namespace NielsRask.LibIrc
@@ -12,8 +11,8 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class Ident
 	{
-		private TcpListener listener;
-		private string userId;
+		private readonly TcpListener listener;
+		private readonly string userId;
 		private static readonly ILog log = LogManager.GetLogger( System.Reflection.MethodBase.GetCurrentMethod().DeclaringType );
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Ident"/> class.

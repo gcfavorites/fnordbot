@@ -16,16 +16,16 @@ namespace NielsRask.FnordBot
 	public class FnordBot 
 	{
 		// the client layer
-		Client irc;
+		readonly Client irc;
 		// channels to join at startup
-		StringCollection channelsToJoin;
+		readonly StringCollection channelsToJoin;
 //		NielsRask.FnordBot.Users.Module userModule;
-		UserCollection users;
-		Random rnd;
-		StringQueueHash queues;
+		readonly UserCollection users;
+		readonly Random rnd;
+		readonly StringQueueHash queues;
 		string installationFolderPath;
-		XmlDocument xdoc = new XmlDocument();
-		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		readonly XmlDocument xdoc = new XmlDocument();
+		private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 
 		/// <summary>
@@ -72,6 +72,9 @@ namespace NielsRask.FnordBot
 			AttachEvents();
 		}
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FnordBot"/> class.
+		/// </summary>
 		public FnordBot()
 		{
 			queues = new StringQueueHash(); // hent fra config
@@ -87,6 +90,10 @@ namespace NielsRask.FnordBot
 			AttachEvents();
 		}
 
+		/// <summary>
+		/// Gets the client.
+		/// </summary>
+		/// <value>The client.</value>
 		public Client Client
 		{
 			get { return irc;}	
@@ -374,7 +381,6 @@ namespace NielsRask.FnordBot
 				return true;
 
 			string xpath = "";
-			string typename = "(unset)";
 			if (asm == null) 
 			{
 				log.Error("IsAllowed called on NULL assembly");
@@ -382,7 +388,7 @@ namespace NielsRask.FnordBot
 			}
 			try 
 			{
-				typename = GetPluginNamespace( asm ); 
+				string typename = GetPluginNamespace( asm ); 
 				xpath = "plugins/plugin[@typename='"+typename+"']/permissions/permission[@name='"+permission+"']/@value";
 				XmlNode node = xdoc.DocumentElement.SelectSingleNode( xpath );
 				if (node != null) 
@@ -475,6 +481,12 @@ namespace NielsRask.FnordBot
 				return "";
 		}
 
+		/// <summary>
+		/// Loads the plugin.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <param name="path">The path.</param>
+		/// <param name="pluginNode">The plugin node.</param>
 		public void LoadPlugin( string type, string path, XmlNode pluginNode ) 
 		{
 			Assembly pAsm = Assembly.LoadFrom( path );
@@ -486,6 +498,13 @@ namespace NielsRask.FnordBot
 			log.Info("Attached plugin "+type);
 		}
 
+		/// <summary>
+		/// Loads the plugin.
+		/// </summary>
+		/// <param name="typeName">Name of the type.</param>
+		/// <param name="assemblyPath">The assembly path.</param>
+		/// <param name="settings">The settings.</param>
+		/// <param name="permissions">The permissions.</param>
 		public void LoadPlugin( string typeName, string assemblyPath, 
 			System.Collections.Generic.Dictionary<string, string> settings, 
 			System.Collections.Generic.Dictionary<string, bool> permissions)
@@ -1018,7 +1037,7 @@ namespace NielsRask.FnordBot
 	public class StringQueueItem 
 	{
 	    readonly string text;
-		DateTime timeStamp;
+		readonly DateTime timeStamp;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueueItem"/> class.

@@ -13,10 +13,10 @@ namespace NielsRask.FnordBot
 		string name = "";
 		string nickName = "";
 		string password = "";
-		HostmaskCollection hostmasks;
-		CustomSettingCollection customSettings;
+		readonly HostmaskCollection hostmasks;
+		readonly CustomSettingCollection customSettings;
 		bool isCitizen;
-		UserCollection.SaveUsersDelegate saveUsers;
+		readonly UserCollection.SaveUsersDelegate saveUsers;
 //		Module mdl;
 
 		/// <summary>
@@ -79,8 +79,8 @@ namespace NielsRask.FnordBot
 		public User( string name, UserCollection.SaveUsersDelegate saveUsers ) 
 		{
 			this.name = name;
-			this.nickName = name;
-			this.password = name;
+			nickName = name;
+			password = name;
 			this.saveUsers = saveUsers;
 			hostmasks = new	HostmaskCollection();
 			customSettings = new CustomSettingCollection( saveUsers );
@@ -147,7 +147,8 @@ namespace NielsRask.FnordBot
 		/// Delegate for saving the users.xml
 		/// </summary>
 		public delegate void SaveUsersDelegate();
-		SaveUsersDelegate saveUsers;
+
+		readonly SaveUsersDelegate saveUsers;
 
 		/// <summary>
 		/// Unpacks the users.
@@ -179,10 +180,10 @@ namespace NielsRask.FnordBot
 		/// Adds the specified user node.
 		/// </summary>
 		/// <param name="userNode">The user node.</param>
-		/// <param name="saveUsers">The delegate for saving the users file.</param>
-		internal void Add( XmlNode userNode, SaveUsersDelegate saveUsers ) 
+		/// <param name="saveUsersDel">The delegate for saving the users file.</param>
+		internal void Add( XmlNode userNode, SaveUsersDelegate saveUsersDel ) 
 		{
-			Add( new User( userNode, saveUsers ) );
+			Add( new User( userNode, saveUsersDel ) );
 		}
 
 		/// <summary>
