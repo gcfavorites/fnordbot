@@ -707,8 +707,10 @@ namespace NielsRask.LibIrc
 					break;
 				case ReplyCode.RPL_TOPIC:
 					// :koala.droso.net 332 BimseBot #bottest :dingeling
+					Console.WriteLine("subject: "+line);
+					parts = line.Split(" ".ToCharArray(), 5);	// avoid losing rest of topic to the split() function :)
 					if ( OnTopicChange != null )
-						OnTopicChange( parts[4].Substring( 1 ), parts[3], "", "" ); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
+						OnTopicChange( parts[4].Substring( 1 ), parts[3], parts[2], "" ); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
 					break;
 				case ReplyCode.RPL_NOTOPIC:
 					if ( OnTopicChange != null )

@@ -290,7 +290,7 @@ namespace NielsRask.FnordBot
 			bot = new FnordBot();
 			bot.InstallationFolderPath = Path.GetFullPath( "..\\..\\..\\FnordBot\\" );
 			bot.Client.Port = 6667;
-			bot.Client.Server = "10.0.0.101";
+			bot.Client.Server = "10.0.0.100";
 			//bot.Client.Server = "irc.droso.net";
 			bot.Client.Username = "bimmerfoo";
 			bot.Client.Realname = "B. Imse";
