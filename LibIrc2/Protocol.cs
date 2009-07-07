@@ -400,7 +400,8 @@ namespace NielsRask.LibIrc
 			} 
 			else if ( parts[1] == "MODE" ) 
 			{
-				ParseChannelMode( line );
+				if ( parts[2] != nickName || parts[3] !=":+i" )		// vi gider ikke have bottens eget +i mode-skift med
+					ParseChannelMode( line );
 			} 
 			else if ( parts[1] == "TOPIC" ) 
 			{
