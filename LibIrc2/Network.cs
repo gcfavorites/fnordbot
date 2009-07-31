@@ -63,6 +63,8 @@ namespace NielsRask.LibIrc
 		}
 
 		private Ident ident;
+		private Thread identThread;
+		private Thread identKiller;
 		/// <summary>
 		/// Connects to a server
 		/// </summary>
@@ -71,10 +73,16 @@ namespace NielsRask.LibIrc
             try
             {
 				ident = new Ident( "foo" );
-				Thread identThread = new Thread( ident.Start );
+				identThread = new Thread( ident.Start );
 				identThread.Name = "IdentServerThread";
-            	identThread.IsBackground = true;
+				identThread.IsBackground = false;//true;
 				identThread.Start();
+				
+				identKiller = new Thread( KillIdent );
+				identKiller.Name = "IdentKillerThread";
+            	identKiller.IsBackground = false;//true;
+				identKiller.Start();
+
 
                 log.Debug("Network: Connecting to server " + host + ":" + port + " ...");
                 server = new TcpClient(host, port);
@@ -94,6 +102,17 @@ namespace NielsRask.LibIrc
 		    {
                 throw new ConnectionRefusedException("Unable to connect to server '"+host+"'", e);
 		    }
+		}
+
+		private void KillIdent()
+		{
+			Thread.Sleep(120*1000);
+			if ( identThread.IsAlive )
+			{
+				Console.WriteLine("Will now kill the ident-server");
+				identThread.Abort();
+				log.Debug( "Network: Stopping Ident server" );
+			}
 		}
 
 		/// <summary>
