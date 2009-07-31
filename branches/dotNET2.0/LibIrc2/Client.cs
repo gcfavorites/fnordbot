@@ -243,6 +243,7 @@ namespace NielsRask.LibIrc
 		public void Connect() 
 		{
 			log.Info("Client: connecting to "+server+":"+port+"");
+			Console.WriteLine( "Client.connect" );
 			protocol.FingerInfo = fingerInfo;
 			protocol.VersionInfo = versionInfo;
 			protocol.Connect( server, port );
@@ -334,7 +335,8 @@ namespace NielsRask.LibIrc
                 try
                 {
                     log.Info("Reconnecting ...");
-                    Connect();                       // try reconnecting
+					Console.WriteLine( "Network_OnDisconnect: reconnecting" );
+					Connect();                       // try reconnecting
                     log.Warn("Reconnected to server");
                     connected = true;                // this will break the while-block
                 }

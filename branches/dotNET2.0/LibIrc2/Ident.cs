@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using log4net;
+using System.Threading;
 
 namespace NielsRask.LibIrc
 {
@@ -29,11 +30,9 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		public void Start()
 		{
-			Console.WriteLine( "Ident started" );
 			listener.Start();
 			TcpClient client = listener.AcceptTcpClient();
 			listener.Stop();
-			Console.WriteLine( "Ident got a connection" );
 			using (NetworkStream s = client.GetStream() ) 
 			{
 				StreamReader reader = new StreamReader( s );
