@@ -11,7 +11,7 @@ using log4net;
 namespace NielsRask.FnordBot
 {
 	/// <summary>
-	/// The FbordBot irc-bot. supports flood-limiting, plugins and permissions. someday maybe even users :)
+	/// The FnordBot irc-bot. Supports flood-limiting, plugins and permissions. Someday maybe even users :)
 	/// </summary>
 	public class FnordBot 
 	{
@@ -604,14 +604,21 @@ namespace NielsRask.FnordBot
 			{
 				user = new User( nickName, SaveUsers ); // this ctor wont make citizens
 				user.Hostmasks.Add( new Hostmask( hostMask ) );
-                //bool learningMode = false;
-                //if (learningMode)// registrer alle users vi ser
-                //{
-                //    // TODO: save evt den nye user - evt tilføj learning mode
-                //    user.MakeCitizen();
-                //    users.Add( user );
-                //    users.Save();
-                //}
+				try
+				{
+					bool learningMode = true;
+					if (learningMode) // registrer alle users vi ser
+					{
+						// TODO: save evt den nye user - evt tilføj learning mode
+						user.MakeCitizen();
+						users.Add(user);
+						users.Save();
+					}
+				} 
+				catch (Exception e)
+				{
+					log.Error("Error when saving user "+nickName, e);
+				}
 			}
 			return user;
 		}
@@ -731,28 +738,131 @@ namespace NielsRask.FnordBot
 		/// </summary>
 		public delegate void BotMessageHandler( string botName, string target, string text );
 
+
+		/*
+		protected virtual void OnMyEvent()
+		{
+			EventHandler eventHandler = null;
+			lock(this) //lock the current instance so that other threads cannot change del.
+			{
+					eventHandler = _myEvent;
+			}            
+			if(eventHandler != null)
+				{
+				   foreach(EventHandler handler in eventHandler.GetInvocationList())
+				   {
+						try
+						{
+								handler(this, new EventArgs());
+						}
+						catch(Exception e)
+						{
+							Console.WriteLine("Error in the handler {0}: {1}", 
+							handler.Method.Name, e.Message);
+						}
+				   }
+			}
+		}
+
+		 */
 		private void irc_OnPublicMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if ( OnPublicMessage != null ) 
-				OnPublicMessage( GetUser(senderNick, senderHost), target, message );
+			//if ( OnPublicMessage != null ) 
+			//    OnPublicMessage( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock(this)
+			{
+				eventHandler = OnPublicMessage;
+			}
+			if (eventHandler != null)
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch (Exception e)
+					{
+						log.Error( "Error in OnPublicMessage handler "+handler.Method.Name+": "+e );
+					}
+				}
+			}
 		}
 	
 		private void irc_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPrivateMessage != null ) 
-				OnPrivateMessage( GetUser(senderNick, senderHost), target, message );
+			//if( OnPrivateMessage != null ) 
+			//    OnPrivateMessage( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock ( this )
+			{
+				eventHandler = OnPrivateMessage;
+			}
+			if ( eventHandler != null )
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch ( Exception e )
+					{
+						log.Error( "Error in OnPrivateMessage handler " + handler.Method.Name + ": " + e );
+					}
+				}
+			}
 		}
 
 		private void irc_OnPublicNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPublicNotice != null ) 
-				OnPublicNotice( GetUser(senderNick, senderHost), target, message );
+			//if( OnPublicNotice != null ) 
+			//    OnPublicNotice( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock ( this )
+			{
+				eventHandler = OnPublicNotice;
+			}
+			if ( eventHandler != null )
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch ( Exception e )
+					{
+						log.Error( "Error in OnPublicNotice handler " + handler.Method.Name + ": " + e );
+					}
+				}
+			}
 		}
 
 		private void irc_OnPrivateNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPrivateNotice != null ) 
-				OnPrivateNotice( GetUser(senderNick, senderHost), target, message );
+			//if( OnPrivateNotice != null ) 
+			//    OnPrivateNotice( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock ( this )
+			{
+				eventHandler = OnPrivateNotice;
+			}
+			if ( eventHandler != null )
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch ( Exception e )
+					{
+						log.Error( "Error in OnPrivateNotice handler " + handler.Method.Name + ": " + e );
+					}
+				}
+			}
 		}
 
 		private void Protocol_OnChannelJoin(string text, string channel, string target, string senderNick, string senderHost)
