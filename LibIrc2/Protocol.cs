@@ -831,13 +831,13 @@ namespace NielsRask.LibIrc
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 		private readonly Network network;
 
-		/// <exclude>
+		/// <exclude />
 		public PingListener(Network network)
 		{
 			this.network = network;
 		}
 
-		/// <exclude>
+		/// <exclude />
 		public void Start() 
 		{
 			log.Info("PingListener was started ...");
@@ -855,7 +855,7 @@ namespace NielsRask.LibIrc
 			}
 		}
 	
-		/// <exclude>
+		/// <exclude />
 		public void ProcessMessage(string line) 
 		{
 			if ( line.StartsWith("PING") ) 

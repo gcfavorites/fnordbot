@@ -166,6 +166,9 @@ namespace NielsRask.LibIrc
         #endregion
 
         #region forwards from network
+		/// <summary>
+		/// Occurs when the server sends us a message
+		/// </summary>
         public event Network.ServerMessageHandler OnServerMessage;
         #endregion
 
