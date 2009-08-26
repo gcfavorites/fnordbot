@@ -52,11 +52,13 @@ ShowUnInstDetails show
 Section "Base" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  File "FnordBot Service\bin\Debug\log4net.dll"
+;  File "FnordBot Service\bin\Debug\log4net.dll"
+;  File "FnordBot Service\bin\Debug\log4net.xml"
+  File "log4net.dll"
+  File "log4net.xml"
   File "FnordBot Service\bin\Debug\FnordBotService.pdb"
   File "FnordBot Service\bin\Debug\FnordBotService.exe.config"
   File "FnordBot Service\bin\Debug\FnordBotService.exe"
-  File "FnordBot Service\bin\Debug\log4net.xml"
   File "LibIrc2\bin\Debug\LibIrc2.pdb"
   File "LibIrc2\bin\Debug\LibIrc2.dll"
   File "LibIrc2\bin\Debug\NielsRask.LibIrc.xml"
