@@ -607,13 +607,13 @@ namespace NielsRask.FnordBot
 				try
 				{
 					bool learningMode = true;
-					if (learningMode) // registrer alle users vi ser
-					{
-						// TODO: save evt den nye user - evt tilføj learning mode
-						user.MakeCitizen();
-						users.Add(user);
-						users.Save();
-					}
+					//if (learningMode) // registrer alle users vi ser
+					//{
+					//    // TODO: save evt den nye user - evt tilføj learning mode
+					//    user.MakeCitizen();
+					//    users.Add(user);
+					//    users.Save();
+					//}
 				} 
 				catch (Exception e)
 				{
