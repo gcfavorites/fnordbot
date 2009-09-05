@@ -235,56 +235,63 @@ namespace NielsRask.SortSnak
 		// hmm ... this should really be a switch-case
 		private void bot_OnPublicMessage(NielsRask.FnordBot.User user, string channel, string message)
 		{
-			// message is not a command and is more than 2 words - add to vocabulary
-			if (!message.StartsWith("!") && message.Split(' ').Length > 2) 
+			try
 			{
-				ParseLine(message);
-			}
-
-			// make the bot say something random
-			if (message == "!talk")	
-			{
-				bot.SendToChannel( channel, GenerateLine() );
-			} 
-				// saves the vocabulary - need to trig it by a timer
-			else if (message == "!save")	
-			{
-				SaveVocabulary();
-			} 
-				// loads the vocabulary - why? we load it at startup
-			else if (message == "!load")
-			{
-				LoadVocabulary();
-			} 
-				// non-commands are ignored
-			else if ( message.StartsWith("!") ) 
-			{
-			} 
-				// someone mentioned the bot by name - cant let that go unanswered
-			else if (message.Split(' ').Length >= 2) 
-			{
-				if (message.ToLower().IndexOf( bot.NickName.ToLower() ) >= 0)	
+				// message is not a command and is more than 2 words - add to vocabulary
+				if (!message.StartsWith("!") && message.Split(' ').Length > 2)
 				{
-					// remove the bots name from the message
-					string baseline = message.Replace( bot.NickName+":", "" );	
-					baseline = message.Replace( bot.NickName, "" );
-
-					// generate a reply based on the modified message
-					string line = GenerateAnswer( baseline );
-
-					// if reply contains the bot name, generate another one - potentially lots of tries here!
-					while ( line.ToLower().IndexOf( bot.NickName.ToLower() )>0 ) 
-						line = GenerateAnswer(message); 
-
-					bot.SendToChannel( channel, line ); 
+					ParseLine(message);
 				}
-					
-				// roll the dice to see if we'll answer
-				else if ( bot.TakeChance(sortSnakAnswerChance) )
+
+				// make the bot say something random
+				if (message == "!talk")
 				{
-					string line = GenerateAnswer( message );
-					if (line.Length > 0) bot.SendToChannel( channel, line );
+					bot.SendToChannel(channel, GenerateLine());
 				}
+					// saves the vocabulary - need to trig it by a timer
+				else if (message == "!save")
+				{
+					SaveVocabulary();
+				}
+					// loads the vocabulary - why? we load it at startup
+				else if (message == "!load")
+				{
+					LoadVocabulary();
+				}
+					// non-commands are ignored
+				else if (message.StartsWith("!"))
+				{
+				}
+					// someone mentioned the bot by name - cant let that go unanswered
+				else if (message.Split(' ').Length >= 2)
+				{
+					if (message.ToLower().IndexOf(bot.NickName.ToLower()) >= 0)
+					{
+						// remove the bots name from the message
+						string baseline = message.Replace(bot.NickName + ":", "");
+						baseline = message.Replace(bot.NickName, "");
+
+						// generate a reply based on the modified message
+						string line = GenerateAnswer(baseline);
+
+						// if reply contains the bot name, generate another one - potentially lots of tries here!
+						while (line.ToLower().IndexOf(bot.NickName.ToLower()) > 0)
+							line = GenerateAnswer(message);
+
+						bot.SendToChannel(channel, line);
+					}
+
+						// roll the dice to see if we'll answer
+					else if (bot.TakeChance(sortSnakAnswerChance))
+					{
+						string line = GenerateAnswer(message);
+						if (line.Length > 0)
+							bot.SendToChannel(channel, line);
+					}
+				}
+			} catch(Exception e)
+			{
+				log.Error( "Error in bot_OnPublicMessage with message \""+message+"\"", e );
 			}
 		}
 
@@ -327,55 +334,61 @@ namespace NielsRask.SortSnak
 
 		// parse private messages
 		private void bot_OnPrivateMessage(NielsRask.FnordBot.User user, string channel, string message)
-		{ //try omkring
-			if ( message.StartsWith("!set_sortsnak_answerchance") ) 
+		{
+			try
 			{
-				string[] parts = message.Split(' ');
-				sortSnakAnswerChance = int.Parse( parts[1] );
-			} 
-			else if ( message.StartsWith("!get_sortsnak_answerchance") ) 
+				if (message.StartsWith("!set_sortsnak_answerchance"))
+				{
+					string[] parts = message.Split(' ');
+					sortSnakAnswerChance = int.Parse(parts[1]);
+				}
+				else if (message.StartsWith("!get_sortsnak_answerchance"))
+				{
+					bot.SendToUser(user.Name, sortSnakAnswerChance + "");
+				}
+				else if (message.StartsWith("!set_sortsnak_minimumoverlap"))
+				{
+					string[] parts = message.Split(' ');
+					vocab.MinimumOverlap = int.Parse(parts[1]);
+				}
+				else if (message.StartsWith("!get_sortsnak_minimumoverlap"))
+				{
+					bot.SendToUser(user.Name, vocab.MinimumOverlap + "");
+				}
+				else if (message.StartsWith("!set_sortsnak_simplechance"))
+				{
+					string[] parts = message.Split(' ');
+					vocab.SimpleMatchChance = int.Parse(parts[1]);
+				}
+				else if (message.StartsWith("!get_sortsnak_simplechance"))
+				{
+					bot.SendToUser(user.Name, vocab.SimpleMatchChance + "");
+				}
+				else if (message.StartsWith("!set_sortsnak_ambientsimplechance"))
+				{
+					string[] parts = message.Split(' ');
+					vocab.MinimumOverlap = int.Parse(parts[1]);
+				}
+				else if (message.StartsWith("!get_sortsnak_ambientsimplechance"))
+				{
+					bot.SendToUser(user.Name, vocab.AmbientSimpleMatchChance + "");
+				}
+				else if (message.StartsWith("!get_sortsnak_stat"))
+				{
+					bot.SendToUser(user.Name, "Words known: " + vocab.Words.Count);
+					bot.SendToUser(user.Name, "Fragments known: " + vocab.CenterSortedFragments.Count);
+				}
+				else if (message.StartsWith("!help sortsnak"))
+				{
+					bot.SendToUser(user.Name, "get/set_sortsnak_answerchance value");
+					bot.SendToUser(user.Name, "get/set_sortsnak_minimumoverlap value");
+					bot.SendToUser(user.Name, "get/set_sortsnak_simplechance value");
+					bot.SendToUser(user.Name, "get/set_sortsnak_ambientsimplechance value");
+					bot.SendToUser(user.Name, "get_sortsnak_stat");
+				}
+			} catch (Exception e)
 			{
-				bot.SendToUser(user.Name, sortSnakAnswerChance+"");
-			}
-			else if ( message.StartsWith("!set_sortsnak_minimumoverlap") ) 
-			{
-				string[] parts = message.Split(' ');
-				vocab.MinimumOverlap = int.Parse( parts[1] );
-			}
-			else if ( message.StartsWith("!get_sortsnak_minimumoverlap") ) 
-			{
-				bot.SendToUser(user.Name, vocab.MinimumOverlap+"");
-			}
-			else if ( message.StartsWith("!set_sortsnak_simplechance") ) 
-			{
-				string[] parts = message.Split(' ');
-				vocab.SimpleMatchChance = int.Parse( parts[1] );
-			}
-			else if ( message.StartsWith("!get_sortsnak_simplechance") ) 
-			{
-				bot.SendToUser(user.Name, vocab.SimpleMatchChance+"");
-			}
-			else if ( message.StartsWith("!set_sortsnak_ambientsimplechance") ) 
-			{
-				string[] parts = message.Split(' ');
-				vocab.MinimumOverlap = int.Parse( parts[1] );
-			}
-			else if ( message.StartsWith("!get_sortsnak_ambientsimplechance") ) 
-			{
-				bot.SendToUser(user.Name, vocab.AmbientSimpleMatchChance+"");
-			}
-			else if ( message.StartsWith("!get_sortsnak_stat") ) 
-			{
-				bot.SendToUser(user.Name, "Words known: "+vocab.Words.Count);
-				bot.SendToUser(user.Name, "Fragments known: "+vocab.CenterSortedFragments.Count);
-			}
-			else if ( message.StartsWith("!help sortsnak") ) 
-			{
-				bot.SendToUser(user.Name, "get/set_sortsnak_answerchance value");
-				bot.SendToUser(user.Name, "get/set_sortsnak_minimumoverlap value");
-				bot.SendToUser(user.Name, "get/set_sortsnak_simplechance value");
-				bot.SendToUser(user.Name, "get/set_sortsnak_ambientsimplechance value");
-				bot.SendToUser(user.Name, "get_sortsnak_stat");
+				log.Error( "Error in bot_OnPrivateMessage with message \""+message+"\"", e );
 			}
 		}
 	}

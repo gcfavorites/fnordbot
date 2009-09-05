@@ -1,0 +1,63 @@
+2008-09-02 13:20:51,481 [ListenerThread:WARN] It seems nickname 'BimseBot' is in use
+2008-09-02 13:20:51,481 [ListenerThread:INFO] Trying random nick 'BimseBot0331'
+2008-09-02 13:20:51,481 [ListenerThread:DEBUG] Sending to server: 'NICK BimseBot0331'
+2008-09-02 13:20:51,481 [ListenerThread:DEBUG] Received line: :koala.droso.net 433 * BimseBot :Nickname is already in use.
+
+
+2008-09-02 13:36:03,075 [ListenerThread:DEBUG] Received line: :BimseBot0455!~bimmerfoo@87.51.7.71 QUIT :Ping timeout: 240 seconds
+2008-09-02 13:36:03,075 [ListenerThread:WARN] Fell through ProcessMessage cases on string 'ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)'
+2008-09-02 13:36:03,075 [ListenerThread:DEBUG] Received line: ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)
+2008-09-02 13:36:03,075 [ListenerThread:WARN] Calling network.CallOnDisconnect()
+
+mulig årsag/effekt - pinglistener tråden dør og kan ikke signalere at der skal signaleres genstart
+
+dump start:
+2009-07-01 22:11:25,500 [ListenerThread:DEBUG] ->:NordCore!NordCore@i.love.debian.org PRIVMSG #craYon :!talk
+2009-07-01 22:11:25,510 [ListenerThread:ERROR] Fragment[0]
+System.ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection.
+Parameter name: index
+   at System.Collections.ArrayList.get_Item(Int32 index)
+   at NielsRask.SortSnak.FragmentList.get_Item(Int32 index) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\SortSnak\Fragment.cs:line 308
+2009-07-01 22:11:25,570 [ListenerThread:ERROR] Error in listener.run, connection probably lost.
+System.ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection.
+Parameter name: index
+   at System.Collections.ArrayList.get_Item(Int32 index)
+   at NielsRask.SortSnak.FragmentList.get_Item(Int32 index) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\SortSnak\Fragment.cs:line 313
+   at NielsRask.SortSnak.Vocabulary.GetRandomStartFragment() in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\SortSnak\Vocabulary.cs:line 84
+   at NielsRask.SortSnak.Plugin.GenerateLine() in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\SortSnak\Plugin.cs:line 105
+   at NielsRask.SortSnak.Plugin.bot_OnPublicMessage(User user, String channel, String message) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\SortSnak\Plugin.cs:line 247
+   at NielsRask.FnordBot.FnordBot.MessageHandler.Invoke(User user, String channel, String message)
+   at NielsRask.FnordBot.FnordBot.irc_OnPublicMessage(String message, String target, String senderNick, String senderHost) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\FnordBot\FnordBot.cs:line 718
+   at NielsRask.LibIrc.Client.protocol_OnPublicMessage(String message, String target, String senderNick, String senderHost) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\LibIrc2\Client.cs:line 359
+   at NielsRask.LibIrc.Protocol.ParseMessage(String line) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\LibIrc2\Protocol.cs:line 603
+   at NielsRask.LibIrc.Protocol.ProcessMessage(String line) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\LibIrc2\Protocol.cs:line 382
+   at NielsRask.LibIrc.Network.ServerMessageHandler.Invoke(String message)
+   at NielsRask.LibIrc.Network.CallOnServerMessage(String message) in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\LibIrc2\Network.cs:line 53
+   at NielsRask.LibIrc.IrcListener.Run() in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\LibIrc2\Network.cs:line 165
+2009-07-01 22:11:25,580 [ListenerThread:WARN] Calling network.CallOnDisconnect()
+2009-07-01 22:11:25,580 [ListenerThread:WARN] Got disconnected event - Starting reconnect loop
+2009-07-01 22:11:55,583 [ListenerThread:INFO] Reconnecting ...
+2009-07-01 22:11:55,583 [ListenerThread:INFO] Client: connecting to 10.0.0.101:6667
+2009-07-01 22:11:55,583 [ListenerThread:DEBUG] Network: Connecting to server 10.0.0.101:6667 ...
+2009-07-01 22:11:55,583 [ListenerThread:DEBUG] Network: Successfully connected, starting listener...
+2009-07-01 22:11:55,583 [ListenerThread:DEBUG] ->:hybrid7.debian.local NOTICE AUTH :*** Looking up your hostname...
+2009-07-01 22:11:55,583 [ListenerThread:DEBUG] ->:hybrid7.debian.local NOTICE AUTH :*** Checking Ident
+2009-07-01 22:11:55,583 [ListenerThread:INFO] Listener thread started.
+2009-07-01 22:11:55,583 [ListenerThread:DEBUG] Network: Writer and listener threads started.
+2009-07-01 22:11:55,633 [IdentServerThread:ERROR] An unhandled exception was caught
+2009-07-01 22:11:55,633 [IdentServerThread:ERROR] Details of unhandled exception: 
+System.Net.Sockets.SocketException: Only one usage of each socket address (protocol/network address/port) is normally permitted
+   at System.Net.Sockets.Socket.DoBind(EndPoint endPointSnapshot, SocketAddress socketAddress)
+   at System.Net.Sockets.Socket.Bind(EndPoint localEP)
+   at System.Net.Sockets.TcpListener.Start(Int32 backlog)
+   at System.Net.Sockets.TcpListener.Start()
+   at NielsRask.LibIrc.Ident.Start() in C:\Documents and Settings\Niels\My Documents\Visual Studio 2005\Projects\FnordBot\LibIrc2\Ident.cs:line 34
+   at System.Threading.ThreadHelper.ThreadStart_Context(Object state)
+   at System.Threading.ExecutionContext.Run(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.ThreadHelper.ThreadStart()
+2009-07-01 22:11:55,723 [ListenerThread:DEBUG] ->:hybrid7.debian.local NOTICE AUTH :*** Couldn't look up your hostname
+dump slut.
+mulig årsag: Sortsnak mangler sin data-fil, og crasher hele botten. sekundært fejler oprettelsen af ident_server ved reconnect, da den gamle stadig kører
+
+todo:
+voting-plug

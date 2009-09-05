@@ -1,5 +1,4 @@
 using System;
-using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Threading;
@@ -57,32 +56,63 @@ namespace NielsRask.LibIrc
 		/// <summary>
 		/// Calls the OnDisconnect event if a subscriber exists
 		/// </summary>
-		internal void CallOnDisconnect() 
+        internal void CallOnDisconnect() 
 		{ 
 			if (OnDisconnect != null) 
 				OnDisconnect(); 
 		}
 
+		private Ident ident;
+		private Thread identThread;
+		private Thread identKiller;
 		/// <summary>
 		/// Connects to a server
 		/// </summary>
 		public void Connect(string host, int port) 
 		{
-			log.Debug("Network: Connecting to server "+host+":"+port+" ...");
-			server = new TcpClient(host,port);
-			if (OnConnect!=null) OnConnect();
-			log.Debug("Network: Successfully connected, starting listener...");
-			
-			stream = server.GetStream();
+            try
+            {
+				ident = new Ident( "foo" );
+				identThread = new Thread( ident.Start );
+				identThread.Name = "IdentServerThread";
+				identThread.IsBackground = false;//true;
+				identThread.Start();
+				
+				identKiller = new Thread( KillIdent );
+				identKiller.Name = "IdentKillerThread";
+            	identKiller.IsBackground = false;//true;
+				identKiller.Start();
 
-			listener = new IrcListener(this);
 
-//			listener.OnLogMessage += new IrcListener.LogMessageHandler(WriteLogMessage);
-			
-			listener.Start(stream);
-			writer = new StreamWriter(stream,System.Text.Encoding.Default);
-			log.Debug("Network: Writer and listener threads started.");
+                log.Debug("Network: Connecting to server " + host + ":" + port + " ...");
+                server = new TcpClient(host, port);
+                if (OnConnect != null) 
+					OnConnect();
+                log.Debug("Network: Successfully connected, starting listener...");
 
+                stream = server.GetStream();
+
+                listener = new IrcListener(this);
+
+                listener.Start(stream);
+                writer = new StreamWriter(stream, System.Text.Encoding.Default);
+                log.Debug("Network: Writer and listener threads started.");
+            } 
+            catch (Exception e)
+		    {
+                throw new ConnectionRefusedException("Unable to connect to server '"+host+"'", e);
+		    }
+		}
+
+		private void KillIdent()
+		{
+			Thread.Sleep(120*1000);
+			if ( identThread.IsAlive )
+			{
+				Console.WriteLine("Will now kill the ident-server");
+				identThread.Abort();
+				log.Debug( "Network: Stopping Ident server" );
+			}
 		}
 
 		/// <summary>
@@ -92,12 +122,13 @@ namespace NielsRask.LibIrc
 		public void SendToServer(string text) 
 		{
 			//if (!text.StartsWith("PONG :")) 
-				log.Debug("Sending to server: '"+text+"'");
-			lock( writer ) 
-			{
+			log.Debug("Sending to server: '"+text+"'");
+
+			//lock ( writer )
+			//{
 				writer.WriteLine(text);
 				writer.Flush();
-			}
+			//}
 		}
 
 	}
@@ -107,10 +138,10 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class IrcListener 
 	{
-		private Thread listener;
+		private readonly Thread listener;
 		private StreamReader reader;
 		private string inputLine;
-		private Network network;
+		private readonly Network network;
 
 		// Create a logger for use in this class
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -122,7 +153,7 @@ namespace NielsRask.LibIrc
 		internal IrcListener(Network network) 
 		{
 			this.network = network;
-			listener = new Thread (new ThreadStart (this.Run) );
+			listener = new Thread( this.Run );
 			listener.IsBackground = true;
 			listener.Name = "ListenerThread";
 		}
@@ -133,7 +164,7 @@ namespace NielsRask.LibIrc
 		/// <param name="stream"></param>
 		internal void Start(NetworkStream stream) 
 		{
-			this.reader = new StreamReader(stream,System.Text.Encoding.Default);
+			reader = new StreamReader(stream,System.Text.Encoding.Default);
 			listener.Start();
 			log.Info("Listener thread started.");
 		}
@@ -145,15 +176,17 @@ namespace NielsRask.LibIrc
 		{
 			try 
 			{
-				lock (reader) 
-				{ 
+				//lock (reader) 
+				//{ 
 					while ( (inputLine = reader.ReadLine() ) != null) 
 					{
+						log.Debug( "->" + inputLine );
 						network.CallOnServerMessage(inputLine);
-						if (!inputLine.StartsWith("PING :"))
-							log.Debug("Received line: "+inputLine);
+						//if (!inputLine.StartsWith("PING :"))
+						//    log.Debug("Received line: "+inputLine);
 					} 
-				}
+					log.Warn("Exited network.Run-loop? ");
+				//}
 			} 
 			catch (Exception e) 
 			{

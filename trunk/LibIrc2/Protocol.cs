@@ -10,15 +10,15 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class Protocol
 	{
-		Network network;
+	    readonly Network network;
 		private string versionReply = "";
 		private string nickName = "";
 		private string fingerReply = "";
 		private string altNick = "";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		private PingListener pingListener;
+		private readonly PingListener pingListener;
 
-		#region event-forwarding
+		#region events and delegates
 		/// <summary>
 		/// Occurs when a public message is received in a channel
 		/// </summary>
@@ -209,16 +209,16 @@ namespace NielsRask.LibIrc
 		public Protocol()
 		{
 			network = new Network();
-			network.OnServerMessage += new Network.ServerMessageHandler( ProcessMessage );
+			network.OnServerMessage += ProcessMessage;
 //			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
 
 			// pinglistener skal opdage når vi ikke har fået pings længe
 			pingListener = new PingListener(network);
-			network.OnServerMessage += new NielsRask.LibIrc.Network.ServerMessageHandler(pingListener.ProcessMessage);
-			Thread tPingListen = new Thread( new ThreadStart( pingListener.Start ) );
+			Thread tPingListen = new Thread( pingListener.Start );
 			tPingListen.Name = "PingListenerThread";
 			tPingListen.IsBackground = true;
 			tPingListen.Start();
+			network.OnServerMessage += pingListener.ProcessMessage;
 		} 
 
 		/// <summary>
@@ -229,7 +229,7 @@ namespace NielsRask.LibIrc
 		/// <param name="realname">The realname.</param>
 		public void Register(string nickname, string username, string realname) 
 		{
-			this.nickName = nickname;
+			nickName = nickname;
 			Thread.Sleep(1000);
 
 			network.SendToServer("USER "+username+" a b :"+realname);//"USER foo bar baz :botting");
@@ -372,7 +372,7 @@ namespace NielsRask.LibIrc
 		private void ProcessMessage(string line) 
 		{
 			string[] parts = line.Split(new Char[] {' '},4);
-
+			//log.Debug("Processing: line "+line);
 			if ( line.StartsWith("PING :") ) 
 			{
 				network.SendToServer( "PONG :"+line.Substring(6) );
@@ -400,7 +400,8 @@ namespace NielsRask.LibIrc
 			} 
 			else if ( parts[1] == "MODE" ) 
 			{
-				ParseChannelMode( line );
+				if ( parts[2] != nickName || parts[3] !=":+i" )		// vi gider ikke have bottens eget +i mode-skift med
+					ParseChannelMode( line );
 			} 
 			else if ( parts[1] == "TOPIC" ) 
 			{
@@ -420,10 +421,18 @@ namespace NielsRask.LibIrc
 			{
 				ParseNumericReply( line );
 			}
-			else 
-			{
-				log.Warn("Fell through ProcessMessage cases on string '"+line+"'");
-			}
+            else if (parts[1] == "ERROR")
+            {
+                // TODO: implementering
+                // ERROR :Closing Link: 87.51.7.71 (Ping timeout: 240 seconds)
+                log.Warn("Got 'Error': "+line);
+            }
+            else
+            {
+                log.Warn("Fell through ProcessMessage cases on string '" + line + "'");
+            }
+			//log.Debug( "Processing ended: line " + line );
+
 		}
 
 		private void ParseNickChange( string line ) 
@@ -577,23 +586,29 @@ namespace NielsRask.LibIrc
 		}
 
 		// håndterer tekstsvar
-		private void ParseMessage(string line) 
+		private void ParseMessage(string line)
 		{
 			//:NordCore!~nordcore@0x3e42a834.adsl.cybercity.dk PRIVMSG #bottest :fooo
-			string[] parts = line.Split(new Char[] {' '},4);
+			//:NordCore!NordCore@i.love.debian.org PRIVMSG Bimmer :foo
+			string[] parts = line.Split(new Char[] {' '}, 4);
 
-			ReplyData rd = ReplyData.GetFromArray( parts );
+			ReplyData rd = ReplyData.GetFromArray(parts);
 			string target = parts[2];
 			string message = parts[3].Substring(1);
 
-			if (message.ToCharArray()[0] == 1) 
+			if (message.ToCharArray()[0] == 1)
 				ParseCTCP(line);
-			else if (target.StartsWith("#")) 
-				if (OnPublicMessage != null) 
+			else if (target.StartsWith("#"))
+			{
+				if (OnPublicMessage != null)
 					OnPublicMessage(message, target, rd.Username, rd.Hostmask);
-			else 
-				if (OnPrivateMessage != null) 
+			}
+			else
+			{
+				Console.WriteLine("onprivatemessage: "+message);
+				if (OnPrivateMessage != null)
 					OnPrivateMessage(message, target, rd.Username, rd.Hostmask);
+			}
 		}
 
 		private void ParseCTCP( string line ) 
@@ -610,7 +625,7 @@ namespace NielsRask.LibIrc
 			else if (decoded_message.StartsWith("VERSION")) 
 				network.SendToServer("NOTICE "+rd.Username+" :\u0001VERSION "+VersionInfo+"\u0001");
 			else if (decoded_message.StartsWith("TIME")) 
-				network.SendToServer("NOTICE "+rd.Username+" :\u0001TIME "+DateTime.Now.ToString()+"\u0001");
+				network.SendToServer("NOTICE "+rd.Username+" :\u0001TIME "+DateTime.Now+"\u0001");
 			else if (decoded_message.StartsWith("FINGER")) 
 				network.SendToServer("NOTICE "+rd.Username+" :\u0001FINGER "+FingerInfo+"\u0001");
 			else if (decoded_message.StartsWith("ACTION"))
@@ -663,66 +678,69 @@ namespace NielsRask.LibIrc
 			{
 				reply = (ReplyCode)int.Parse( parts[1] );
 			} 
-			catch (Exception) {}
-
-			if (reply == ReplyCode.RPL_MOTD) 
+			catch (Exception)
 			{
-				// :koala.droso.net 372 BimseBot :- This is ircd-hybrid MOTD replace it with something better
-				string motdline = line.Split(new Char[] {' '}, 4)[3];
-				if (motdline.Length>1) 
-					motd += motdline.Substring(1);
-			} 
-			else if (reply == ReplyCode.RPL_MOTDSTART) 
-			{
-				motd = "";// nulstil eksisterende motd
+				Console.WriteLine("Could not parse "+parts[1]+" as numeric reply code");
 			}
-			else if (reply == ReplyCode.RPL_ENDOFMOTD)
-			{	// vi formodes allerede at have opsamlet motd - vi signalerer nu at den er færdig
-				if (OnMotd != null) 
-					OnMotd( motd );
-			}
-			else if (reply == ReplyCode.RPL_NAMREPLY) 
+			switch (reply)
 			{
-				// :koala.droso.net 353 BimseBot = #bottest :BimseBot @NordCore
-				string[] users = new string[parts.Length-5];
-				for (int i=5; i<parts.Length; i++) 
-					users[i-5] = parts[i];
-				if (OnChannelUserList != null) 
-					OnChannelUserList( parts[4], users );
-			} 
-			else if (reply == ReplyCode.RPL_TOPIC ) 
-			{
-				// :koala.droso.net 332 BimseBot #bottest :dingeling
-				if (OnTopicChange != null) 
-					OnTopicChange(parts[4].Substring(1),parts[3],"",""); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
-			}
-			else if (reply == ReplyCode.RPL_NOTOPIC ) 
-			{
-				if (OnTopicChange != null) 
-					OnTopicChange("",parts[3],"","" );
-			} 
-			else if (reply == ReplyCode.ERR_NICKINUSE ) 
-			{
-				log.Warn("It seems nickname '"+nickName+"' is in use");
-				if (altNick.Length > 0) 
-				{
-					log.Info("Trying alternative nick '"+altNick+"'");
-					network.SendToServer( "NICK "+altNick );
-					altNick = "";	// next time we get this message, we'll generate a new nick
-				} 
-				else 
-				{
-					string randnick = parts[3]+new Random().Next(999).ToString("0000");
-					log.Info("Trying random nick '"+randnick+"'");
-					network.SendToServer( "NICK "+randnick );
-				}
+				case ReplyCode.RPL_MOTD:
+					// :koala.droso.net 372 BimseBot :- This is ircd-hybrid MOTD replace it with something better
+					string motdline = line.Split( new Char[] { ' ' }, 4 )[3];
+					if ( motdline.Length > 1 )
+						motd += motdline.Substring( 1 );
+					break;
+				case ReplyCode.RPL_MOTDSTART:
+					motd = "";// nulstil eksisterende motd
+					break;
+				case ReplyCode.RPL_ENDOFMOTD:
+					// vi formodes allerede at have opsamlet motd - vi signalerer nu at den er færdig
+					if ( OnMotd != null )
+						OnMotd( motd );
+					break;
+				case ReplyCode.RPL_NAMREPLY:
+					// :koala.droso.net 353 BimseBot = #bottest :BimseBot @NordCore
+					string[] users = new string[parts.Length - 5];
+					for ( int i = 5; i < parts.Length; i++ )
+						users[i - 5] = parts[i];
+					if ( OnChannelUserList != null )
+						OnChannelUserList( parts[4], users );
+					break;
+				case ReplyCode.RPL_TOPIC:
+					// :koala.droso.net 332 BimseBot #bottest :dingeling
+					Console.WriteLine("subject: "+line);
+					parts = line.Split(" ".ToCharArray(), 5);	// avoid losing rest of topic to the split() function :)
+					if ( OnTopicChange != null )
+						OnTopicChange( parts[4].Substring( 1 ), parts[3], parts[2], "" ); // dem kan vi kun få opdateret i en 333(rpl_topicauthor)
+					break;
+				case ReplyCode.RPL_NOTOPIC:
+					if ( OnTopicChange != null )
+						OnTopicChange( "", parts[3], "", "" );
+					break;
+				case ReplyCode.ERR_NICKINUSE:
+					log.Warn( "It seems nickname '" + nickName + "' is in use" );
+					if ( altNick.Length > 0 )
+					{
+						log.Info( "Trying alternative nick '" + altNick + "'" );
+						network.SendToServer( "NICK " + altNick );
+						altNick = "";	// next time we get this message, we'll generate a new nick
+					}
+					else
+					{
+						string randnick = parts[3] + new Random().Next( 999 ).ToString( "0000" );
+						log.Info( "Trying random nick '" + randnick + "'" );
+						network.SendToServer( "NICK " + randnick );
+					}
+					break;
+				case ReplyCode.RPL_ENDOFNAMES:
+					break;
 			}
 		}
 
 		#endregion
 
 		#region helper methods
-		private bool IsNumericReply(string txt) 
+		private static bool IsNumericReply(string txt) 
 		{
 			return Regex.IsMatch( txt, "\\d{3}" );
 		}
@@ -732,7 +750,7 @@ namespace NielsRask.LibIrc
 		/// </summary>
 		/// <param name="quotedstring"></param>
 		/// <returns></returns>
-		private string CTCPDequote(string quotedstring) 
+		private static string CTCPDequote(string quotedstring) 
 		{
 			quotedstring = quotedstring.Substring(1);
 			if (quotedstring.ToCharArray()[quotedstring.Length-1] == 1) 
@@ -806,20 +824,20 @@ namespace NielsRask.LibIrc
 		}
 	}
 
-	/// <exclude>
+	/// <exclude />
 	public class PingListener 
 	{
 		private DateTime lastPing = DateTime.Now;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		private Network network;
+		private readonly Network network;
 
-		/// <exclude>
+		/// <exclude />
 		public PingListener(Network network)
 		{
 			this.network = network;
 		}
 
-		/// <exclude>
+		/// <exclude />
 		public void Start() 
 		{
 			log.Info("PingListener was started ...");
@@ -833,11 +851,11 @@ namespace NielsRask.LibIrc
 					alive = false;
 				}
 				else
-					Thread.Sleep( new TimeSpan(0, 5, 0) );
+					Thread.Sleep( new TimeSpan(0, 1, 0) );
 			}
 		}
 	
-		/// <exclude>
+		/// <exclude />
 		public void ProcessMessage(string line) 
 		{
 			if ( line.StartsWith("PING") ) 

@@ -226,13 +226,15 @@ namespace NielsRask.Wordgame
 			string path = wordListPath;
 //			FileInfo fi = new FileInfo( System.Reflection.Assembly.GetExecutingAssembly().Location );
 //			path = fi.DirectoryName+"\\";
-//			Console.WriteLine("basepath: "+path);
+			//Console.WriteLine( "basepath: " + path );
+			//System.Diagnostics.Trace.WriteLine( "wordlistpath: " + wordListPath );
+			//log.Debug( "wordlist path: " + wordListPath );
 			if ( File.Exists(path+".\\wordlist.dat") ) path += ".\\wordlist.dat";
 			else if ( File.Exists(path+"..\\..\\wordlist.dat") ) path += "..\\..\\wordlist.dat";
 			else 
 			{	
 //				Console.WriteLine("cannot read wordlist");
-				log.Error("Cannot read wordlist");
+				log.Error("Cannot read wordlist from "+path);
 //				Assembly.GetCallingAssembly().
 				return "error:Wordlist_not_loaded";
 			}
@@ -300,15 +302,25 @@ namespace NielsRask.Wordgame
 						bot.SendToChannel( channel, "Woohoo "+user.Name+"!! You got it... "+secretWord+"", true );
 						string strOldScore = user.CustomSettings.GetCustomValue("wordgame", "score");
 						int oldScore = 0;
-						try 
+						try
 						{
-							if (strOldScore == null || strOldScore.Length == 0)
+							if ( strOldScore == null || strOldScore.Length == 0 )
 								strOldScore = "0";
-							oldScore = int.Parse(strOldScore);
+							oldScore = int.Parse( strOldScore );
+						}
+						catch ( Exception e )
+						{
+							log.Error("error parsiong old score", e);
+						}
+						try
+						{
+							user.CustomSettings.SetCustomValue("wordgame", "score", (oldScore + 1) + "");
+							user.Save();
 						} 
-						catch {}
-						user.CustomSettings.SetCustomValue("wordgame", "score", (oldScore+1)+"");
-						user.Save();
+						catch ( Exception e)
+						{
+							log.Error("error saving user score",e);
+						}
 					}
 				}
 			}
