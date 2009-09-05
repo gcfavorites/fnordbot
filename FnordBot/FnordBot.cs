@@ -5,28 +5,27 @@ using System.Xml;
 using System.Reflection;
 using System.Collections;
 using System.Collections.Specialized;
-using NielsRask.FnordBot.Users;
 using System.Diagnostics;
 using log4net;
 
 namespace NielsRask.FnordBot
 {
 	/// <summary>
-	/// The FbordBot irc-bot. supports flood-limiting, plugins and permissions. someday maybe even users :)
+	/// The FnordBot irc-bot. Supports flood-limiting, plugins and permissions. Someday maybe even users :)
 	/// </summary>
 	public class FnordBot 
 	{
 		// the client layer
-		NielsRask.LibIrc.Client irc;
+		readonly Client irc;
 		// channels to join at startup
-		StringCollection channelsToJoin;
+		readonly StringCollection channelsToJoin;
 //		NielsRask.FnordBot.Users.Module userModule;
-		UserCollection users;
-		Random rnd;
-		StringQueueHash queues;
+		readonly UserCollection users;
+		readonly Random rnd;
+		readonly StringQueueHash queues;
 		string installationFolderPath;
-		XmlDocument xdoc = new XmlDocument();
-		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+		readonly XmlDocument xdoc = new XmlDocument();
+		private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 
 		/// <summary>
@@ -39,6 +38,10 @@ namespace NielsRask.FnordBot
 			{
 				return installationFolderPath;
 			}
+			set
+			{
+				installationFolderPath = value;
+			}
 		}
 
 		/// <summary>
@@ -47,7 +50,7 @@ namespace NielsRask.FnordBot
 		/// <param name="installationFolderPath">The installation folder path.</param>
 		public FnordBot( string installationFolderPath )
 		{	
-			this.queues = new StringQueueHash(); // hent fra config
+			queues = new StringQueueHash(); // hent fra config
 			this.installationFolderPath = installationFolderPath;
 			// fix the install-path
 			if ( !installationFolderPath.EndsWith("\\") ) 
@@ -68,24 +71,52 @@ namespace NielsRask.FnordBot
 			// attach to the events that the client layer can throw
 			AttachEvents();
 		}
-		string usersFilePath = "";
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="FnordBot"/> class.
+		/// </summary>
+		public FnordBot()
+		{
+			queues = new StringQueueHash(); // hent fra config
+			//this.installationFolderPath = installationFolderPath;	//needed?
+			rnd = new Random();
+			channelsToJoin = new StringCollection();
+			users = LoadUsers();
+
+
+			// initialize the client layer - maybe we should use the protocol layer directly?
+			irc = new Client();
+			// attach to the events that the client layer can throw
+			AttachEvents();
+		}
+
+		/// <summary>
+		/// Gets the client.
+		/// </summary>
+		/// <value>The client.</value>
+		public Client Client
+		{
+			get { return irc;}	
+		}
+
+	    string usersFilePath = "";
 
 		private UserCollection LoadUsers() 
 		{
-			XmlDocument xdoc = new XmlDocument();
+			XmlDocument myxdoc = new XmlDocument();
 			if (File.Exists(usersFilePath)) 
 			{
-				xdoc.Load( usersFilePath );
+                myxdoc.Load(usersFilePath);
 
-				XmlNodeList usrlst = xdoc.DocumentElement.SelectNodes("user");
+                XmlNodeList usrlst = myxdoc.DocumentElement.SelectNodes("user");
 				log.Info("Found "+usrlst.Count+" usernodes");
 			
-				return UserCollection.UnpackUsers( usrlst, new UserCollection.SaveUsersDelegate( SaveUsers ) );		
+				return UserCollection.UnpackUsers( usrlst, SaveUsers );		
 			}
 			else 
 			{
 				log.Info("No userlist found, creating a new one.");
-				return new UserCollection( new UserCollection.SaveUsersDelegate( SaveUsers ) );
+				return new UserCollection( SaveUsers );
 			}
 		}
 
@@ -93,10 +124,35 @@ namespace NielsRask.FnordBot
 		private void SaveUsers() 
 		{
 			log.Info("Saving userlist");
-			XmlDocument xdoc = new XmlDocument();
-			xdoc.LoadXml( users.ToXmlString() );
-			xdoc.Save( usersFilePath );
+			XmlDocument myxdoc = new XmlDocument();
+            myxdoc.LoadXml(users.ToXmlString());
+            myxdoc.Save(usersFilePath);
 		}
+
+		/// <summary>
+		/// Gets the channels to join.
+		/// </summary>
+		/// <value>The channels to join.</value>
+		public StringCollection ChannelsToJoin
+		{
+			get { return channelsToJoin; }
+		}
+
+		/// <summary>
+		/// Directs the init.
+		/// </summary>
+		public void DirectInit()
+		{
+
+			foreach ( string channel in channelsToJoin )
+			{
+				queues.Add( channel, dMsg, dMin ); // initiate the antiflood queue
+			}
+
+			// mangler indlæsning af plugins
+		}
+		int dMsg = 15;	// defasult values
+		int dMin = 60;	// max 5 msg/hr
 
 		/// <summary>
 		/// Inits this instance.
@@ -125,8 +181,6 @@ namespace NielsRask.FnordBot
 					string name = node.SelectSingleNode("name/text()").Value;
 					channelsToJoin.Add( name );
 					log.Debug("channel to join: "+name);
-					int dMsg = 5;	// defasult values
-					int dMin = 60;	// max 5 msg/hr
 					if (node.SelectSingleNode("messagerate") != null) 
 					{
 						dMsg = int.Parse( node.SelectSingleNode("messagerate/@messages").Value );
@@ -136,6 +190,7 @@ namespace NielsRask.FnordBot
 					queues.Add(name, dMsg, dMin); // initiate the antiflood queue
 
 				}
+
 
 				// load the specified plugins
 				foreach (XmlNode node in xdoc.DocumentElement.SelectNodes("plugins/plugin")) 
@@ -179,7 +234,7 @@ namespace NielsRask.FnordBot
 		{
 			try		
 			{
-				irc.OnMotd += new NielsRask.LibIrc.Protocol.ServerDataHandler(irc_OnMotd);
+				irc.OnMotd += irc_OnMotd;
 				// connect to server
 				irc.Connect();
 			} 
@@ -233,7 +288,8 @@ namespace NielsRask.FnordBot
 		/// <param name="text"></param>
 		public void SendToChannel( string channel, string text ) 
 		{
-			SendToChannel( channel, text, true ); 
+			//SendToChannel( channel, text, true );
+			irc.SendToChannel( channel, text );
 		}
 
 		/// <summary>
@@ -250,10 +306,10 @@ namespace NielsRask.FnordBot
 				if (channel.Length == 0 || text.Length == 0) 
 				{
 					// someone made an error, dont send the message. maybe we should throw something :)
-					throw new ArgumentException("Langth and text cannot be empty");
+					throw new ArgumentException("Length and text cannot be empty");
 				}
 				// override requested and is allowed - send to channel
-				else if (overrideQueue && IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) 
+				else if (overrideQueue )//&& IsAllowed( GetCallingAssembly(), "CanOverrideSendToChannel" )) 
 				{
 					irc.SendToChannel( channel, text );
 				}
@@ -268,13 +324,11 @@ namespace NielsRask.FnordBot
 						{
 //							WriteLogMessage("queues[\""+channel+"\"] returned null??");
 							log.Warn("SendToChannel: queues[\""+channel+"\"] returned null??");
-						}
-						if ( queue.CanEnqueue() ) 
+						} else if ( queue.CanEnqueue() ) 
 						{
 							queues[channel].Enqueue( text ); // auto-dequeues if too long
 							irc.SendToChannel( channel, text );
-						} 
-							// we're not alowed to send - maybe we should signal that somehow
+						} // we're not alowed to send - maybe we should signal that somehow		
 						else 
 						{
 							log.Debug("Message '"+text.Substring(0,15)+(text.Length>15?"[...]":"")+"' was blocked by floodqueue");
@@ -288,8 +342,8 @@ namespace NielsRask.FnordBot
 			} 
 			catch (Exception e) 
 			{
-				string chan = channel==null?"NULL":channel;
-				string txt = text==null?"NULL":text;
+				string chan = channel ?? "NULL";
+				string txt = text ?? "NULL";
 				log.Error("Error in SendToChannel( \""+chan+"\", \""+txt+"\", "+overrideQueue+" )", e);
 			}
 		}
@@ -313,6 +367,7 @@ namespace NielsRask.FnordBot
 			get { return irc.Nickname; }
 		}
 
+		private bool overrideIsAllowed = true;	// workaround for local testing
 		#region permission logic
 		/// <summary>
 		/// Checks if a permission is set for a plugin
@@ -322,8 +377,10 @@ namespace NielsRask.FnordBot
 		/// <returns></returns>
 		private bool IsAllowed( Assembly asm, string permission ) 
 		{
+			if (overrideIsAllowed)
+				return true;
+
 			string xpath = "";
-			string typename = "(unset)";
 			if (asm == null) 
 			{
 				log.Error("IsAllowed called on NULL assembly");
@@ -331,7 +388,7 @@ namespace NielsRask.FnordBot
 			}
 			try 
 			{
-				typename = GetPluginNamespace( asm ); 
+				string typename = GetPluginNamespace( asm ); 
 				xpath = "plugins/plugin[@typename='"+typename+"']/permissions/permission[@name='"+permission+"']/@value";
 				XmlNode node = xdoc.DocumentElement.SelectSingleNode( xpath );
 				if (node != null) 
@@ -397,7 +454,9 @@ namespace NielsRask.FnordBot
 		#region config loading
 		private void LoadConfig() 
 		{
-			string cfgpath = "";
+			if ( !installationFolderPath.EndsWith( @"\" ) )
+				installationFolderPath += @"\";
+			string cfgpath;
 			if (File.Exists(installationFolderPath+"Config.xml") )
 				cfgpath = installationFolderPath+"Config.xml";				
 			else if (File.Exists("Config.xml")) 
@@ -413,7 +472,7 @@ namespace NielsRask.FnordBot
 			xdoc.Load( cfgpath );
 		}
 
-		private string GetXPathValue(XmlDocument xdoc, string xpath) 
+		private static string GetXPathValue(XmlDocument xdoc, string xpath) 
 		{
 			XmlNode node = xdoc.DocumentElement.SelectSingleNode( xpath );
 			if ( node != null) 
@@ -422,7 +481,13 @@ namespace NielsRask.FnordBot
 				return "";
 		}
 
-		private void LoadPlugin( string type, string path, XmlNode pluginNode ) 
+		/// <summary>
+		/// Loads the plugin.
+		/// </summary>
+		/// <param name="type">The type.</param>
+		/// <param name="path">The path.</param>
+		/// <param name="pluginNode">The plugin node.</param>
+		public void LoadPlugin( string type, string path, XmlNode pluginNode ) 
 		{
 			Assembly pAsm = Assembly.LoadFrom( path );
 			log.Info("Loading plugin "+pAsm.CodeBase);
@@ -434,11 +499,40 @@ namespace NielsRask.FnordBot
 		}
 
 		/// <summary>
+		/// Loads the plugin.
+		/// </summary>
+		/// <param name="typeName">Name of the type.</param>
+		/// <param name="assemblyPath">The assembly path.</param>
+		/// <param name="settings">The settings.</param>
+		/// <param name="permissions">The permissions.</param>
+		public void LoadPlugin( string typeName, string assemblyPath, 
+			System.Collections.Generic.Dictionary<string, string> settings, 
+			System.Collections.Generic.Dictionary<string, bool> permissions)
+		{
+			string xml;
+			xml = ""
+			      + "<plugin typename=\""+typeName+"\" path=\""+assemblyPath+"\" >"
+			      + "<settings>";
+			foreach (string key in settings.Keys)
+				xml += "<" + key + ">" + settings[key] + "</" + key + ">";
+			xml += "</settings><permissions>";
+			foreach (string key in settings.Keys)
+				xml += "<permission name=\"" + key + "\" value=\"" + settings[key] + "\" />";
+			xml += "</permissions></plugin>";
+				
+			XmlDocument xdoc2 = new XmlDocument();
+			xdoc2.LoadXml( xml );
+
+			LoadPlugin(typeName,assemblyPath, xdoc2.DocumentElement);
+
+		}
+
+		/// <summary>
 		/// Returns he Fullname of the first class in the assembly that implements IPlugin
 		/// </summary>
 		/// <param name="asm"></param>
 		/// <returns></returns>
-		private string GetPluginNamespace(Assembly asm) 
+		private static string GetPluginNamespace(Assembly asm) 
 		{
 			int i=0;
 			bool found = false;
@@ -481,42 +575,49 @@ namespace NielsRask.FnordBot
 
 		private void AttachEvents() 
 		{
-			irc.Protocol.Network.OnDisconnect += new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
-			irc.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicMessage);
-			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
-			irc.OnPrivateNotice += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateNotice);
-			irc.OnPublicNotice += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicNotice);
-			irc.OnSendNotice +=new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendNotice);
-			irc.OnSendToChannel += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendToChannel);
-			irc.OnSendToUser += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSendToUser);
-			irc.OnSetMode += new NielsRask.LibIrc.Client.BotMessageHandler(irc_OnSetMode);
-			irc.OnNickChange += new NielsRask.LibIrc.Client.NickChangeHandler(irc_OnNickChange);
-			irc.Protocol.OnChannelJoin += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelJoin);
-			irc.Protocol.OnChannelKick += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelKick);
-			irc.Protocol.OnChannelMode += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelMode);
-			irc.Protocol.OnChannelPart += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnChannelPart);
-			irc.Protocol.OnServerQuit += new NielsRask.LibIrc.Protocol.ChannelActionHandler(Protocol_OnServerQuit);
-			irc.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(Protocol_OnTopicChange);
-			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(Protocol_OnPrivateMessage);
-			irc.OnPublicAction += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPublicAction);
-			irc.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(irc_OnPrivateMessage);
+			irc.Protocol.Network.OnDisconnect += Network_OnDisconnect;
+			irc.OnPublicMessage += irc_OnPublicMessage;
+			irc.OnPrivateMessage += irc_OnPrivateMessage;
+			irc.OnPrivateMessage += Protocol_OnPrivateMessage;
+			irc.OnPrivateNotice += irc_OnPrivateNotice;
+			irc.OnPublicNotice += irc_OnPublicNotice;
+			irc.OnSendNotice += irc_OnSendNotice;
+			irc.OnSendToChannel += irc_OnSendToChannel;
+			irc.OnSendToUser += irc_OnSendToUser;
+			irc.OnSetMode += irc_OnSetMode;
+			irc.OnNickChange += irc_OnNickChange;
+			irc.OnTopicChange += Protocol_OnTopicChange;
+			irc.OnPublicAction += irc_OnPublicAction;
+			irc.Protocol.OnChannelJoin += Protocol_OnChannelJoin;
+			irc.Protocol.OnChannelKick += Protocol_OnChannelKick;
+			irc.Protocol.OnChannelMode += Protocol_OnChannelMode;
+			irc.Protocol.OnChannelPart += Protocol_OnChannelPart;
+			irc.Protocol.OnServerQuit += Protocol_OnServerQuit;
+			//irc.OnPrivateMessage += irc_OnPrivateMessage;
 		}
 
 
-		private NielsRask.FnordBot.User GetUser( string nickName, string hostMask ) 
+		private User GetUser( string nickName, string hostMask ) 
 		{
 			User user = users.GetByHostMatch( hostMask );
 			if (user == null) // no user was found, make a pseudouser
 			{
-				user = new User( nickName, new UserCollection.SaveUsersDelegate( SaveUsers ) ); // this ctor wont make citizens
+				user = new User( nickName, SaveUsers ); // this ctor wont make citizens
 				user.Hostmasks.Add( new Hostmask( hostMask ) );
-				bool learningMode = false;
-				if (learningMode)// registrer alle users vi ser
+				try
 				{
-					// TODO: save evt den nye user - evt tilføj learning mode
-					user.MakeCitizen();
-					users.Add( user );
-					users.Save();
+					bool learningMode = true;
+					//if (learningMode) // registrer alle users vi ser
+					//{
+					//    // TODO: save evt den nye user - evt tilføj learning mode
+					//    user.MakeCitizen();
+					//    users.Add(user);
+					//    users.Save();
+					//}
+				} 
+				catch (Exception e)
+				{
+					log.Error("Error when saving user "+nickName, e);
 				}
 			}
 			return user;
@@ -610,12 +711,12 @@ namespace NielsRask.FnordBot
 		/// <summary>
 		/// Delegate or received messages
 		/// </summary>
-		public delegate void MessageHandler(NielsRask.FnordBot.User user, string channel, string message);
+		public delegate void MessageHandler(User user, string channel, string message);
 
 		/// <summary>
 		/// Delegate for topic changes
 		/// </summary>
-		public delegate void ChannelTopicHandler(NielsRask.FnordBot.User user, string channel, string topic);
+		public delegate void ChannelTopicHandler(User user, string channel, string topic);
 	
 		/// <summary>
 		/// Delegate for userlist events
@@ -630,35 +731,138 @@ namespace NielsRask.FnordBot
 		/// <summary>
 		/// Delegate for nickname changes
 		/// </summary>
-		public delegate void NickChangeHandler(  string newname, string oldname, NielsRask.FnordBot.User user );
+		public delegate void NickChangeHandler(  string newname, string oldname, User user );
 	
 		/// <summary>
 		/// Delegate for Messages from the bot itself
 		/// </summary>
 		public delegate void BotMessageHandler( string botName, string target, string text );
 
+
+		/*
+		protected virtual void OnMyEvent()
+		{
+			EventHandler eventHandler = null;
+			lock(this) //lock the current instance so that other threads cannot change del.
+			{
+					eventHandler = _myEvent;
+			}            
+			if(eventHandler != null)
+				{
+				   foreach(EventHandler handler in eventHandler.GetInvocationList())
+				   {
+						try
+						{
+								handler(this, new EventArgs());
+						}
+						catch(Exception e)
+						{
+							Console.WriteLine("Error in the handler {0}: {1}", 
+							handler.Method.Name, e.Message);
+						}
+				   }
+			}
+		}
+
+		 */
 		private void irc_OnPublicMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPublicMessage != null ) 
-				OnPublicMessage( GetUser(senderNick, senderHost), target, message );
+			//if ( OnPublicMessage != null ) 
+			//    OnPublicMessage( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock(this)
+			{
+				eventHandler = OnPublicMessage;
+			}
+			if (eventHandler != null)
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch (Exception e)
+					{
+						log.Error( "Error in OnPublicMessage handler "+handler.Method.Name+": "+e );
+					}
+				}
+			}
 		}
 	
 		private void irc_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPrivateMessage != null ) 
-				OnPrivateMessage( GetUser(senderNick, senderHost), target, message );
+			//if( OnPrivateMessage != null ) 
+			//    OnPrivateMessage( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock ( this )
+			{
+				eventHandler = OnPrivateMessage;
+			}
+			if ( eventHandler != null )
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch ( Exception e )
+					{
+						log.Error( "Error in OnPrivateMessage handler " + handler.Method.Name + ": " + e );
+					}
+				}
+			}
 		}
 
 		private void irc_OnPublicNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPublicNotice != null ) 
-				OnPublicNotice( GetUser(senderNick, senderHost), target, message );
+			//if( OnPublicNotice != null ) 
+			//    OnPublicNotice( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock ( this )
+			{
+				eventHandler = OnPublicNotice;
+			}
+			if ( eventHandler != null )
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch ( Exception e )
+					{
+						log.Error( "Error in OnPublicNotice handler " + handler.Method.Name + ": " + e );
+					}
+				}
+			}
 		}
 
 		private void irc_OnPrivateNotice(string message, string target, string senderNick, string senderHost)
 		{
-			if( OnPrivateNotice != null ) 
-				OnPrivateNotice( GetUser(senderNick, senderHost), target, message );
+			//if( OnPrivateNotice != null ) 
+			//    OnPrivateNotice( GetUser(senderNick, senderHost), target, message );
+			MessageHandler eventHandler;
+			lock ( this )
+			{
+				eventHandler = OnPrivateNotice;
+			}
+			if ( eventHandler != null )
+			{
+				foreach ( MessageHandler handler in eventHandler.GetInvocationList() )
+				{
+					try
+					{
+						handler( GetUser( senderNick, senderHost ), target, message );
+					}
+					catch ( Exception e )
+					{
+						log.Error( "Error in OnPrivateNotice handler " + handler.Method.Name + ": " + e );
+					}
+				}
+			}
 		}
 
 		private void Protocol_OnChannelJoin(string text, string channel, string target, string senderNick, string senderHost)
@@ -721,7 +925,7 @@ namespace NielsRask.FnordBot
 				OnNickChange( newname, oldname, GetUser(newname, hostmask) );
 		}	
 	
-		private void Network_OnDisconnect()
+		private void Network_OnDisconnect() // this is handled in irclib2
 		{
 //			WriteLogMessage("Ooops, seems we lost our connection!");
 			//log.Warn("Fnordbot.Network_OnDisconnect(): Ooops, seems we lost our connection!");
@@ -799,20 +1003,17 @@ namespace NielsRask.FnordBot
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueueHash"/> class.
 		/// </summary>
-		public StringQueueHash(): base() 
-		{
-			this.comparer = new CaseInsensitiveComparer();
-			this.hcp = new CaseInsensitiveHashCodeProvider();
-		}
+        public StringQueueHash() : base( StringComparer.CurrentCultureIgnoreCase)
+		{}
 
-		/// <summary>
+	    /// <summary>
 		/// Adds the specified queue.
 		/// </summary>
 		/// <param name="queueName">Name of the queue.</param>
 		/// <param name="value">The value.</param>
 		public void Add(string queueName, StringQueue value)
 		{
-			Console.WriteLine("adding queue "+queueName);
+			//Console.WriteLine("adding queue "+queueName);
 			base.Add (queueName, value);
 		}
 
@@ -858,10 +1059,10 @@ namespace NielsRask.FnordBot
 	/// </remarks>
 	public class StringQueue : Queue
 	{
-		string name;
-		int dmsg;
-		int dmin;
-		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+//		string name;
+	    readonly int dmsg;
+	    readonly int dmin;
+		private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueue"/> class.
@@ -870,7 +1071,7 @@ namespace NielsRask.FnordBot
 		/// <param name="dmin">delta-min. bottom part of he messages/time rate. specifie in minutes</param>
 		public StringQueue(int dmsg, int dmin ) : base( dmsg )
 		{
-			this.name = name;
+//			this.name = name;
 			this.dmsg = dmsg;
 			this.dmin = dmin;
 		}
@@ -945,8 +1146,8 @@ namespace NielsRask.FnordBot
 	/// </summary>
 	public class StringQueueItem 
 	{
-		string text;
-		DateTime timeStamp;
+	    readonly string text;
+		readonly DateTime timeStamp;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StringQueueItem"/> class.

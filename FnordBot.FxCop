@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<FxCopProject Version="1.35" Name="My FxCop Project">
+<FxCopProject Version="1.36" Name="My FxCop Project">
  <ProjectOptions>
   <SharedProject>True</SharedProject>
   <Stylesheet Apply="False">http://www.gotdotnet.com/team/fxcop//xsl/1.35/FxCopReport.xsl</Stylesheet>
@@ -13,12 +13,12 @@
   <SourceLookup>True</SourceLookup>
   <AnalysisExceptionsThreshold>10</AnalysisExceptionsThreshold>
   <RuleExceptionsThreshold>1</RuleExceptionsThreshold>
-  <Spelling Locale="en-us" />
-  <VersionAware>False</VersionAware>
+  <Spelling Locale="en-US" />
   <OverrideRuleVisibilities>False</OverrideRuleVisibilities>
   <CustomDictionaries SearchFxCopDir="True" SearchUserProfile="True" SearchProjectDir="True" />
   <SearchGlobalAssemblyCache>False</SearchGlobalAssemblyCache>
   <DeadlockDetectionTimeout>120</DeadlockDetectionTimeout>
+  <IgnoreGeneratedCode>False</IgnoreGeneratedCode>
  </ProjectOptions>
  <Targets>
   <AssemblyReferenceDirectories>
@@ -42,13 +42,9 @@
     <Rule Name="AvoidExcessiveLocals" Enabled="True" />
     <Rule Name="AvoidUncalledPrivateCode" Enabled="True" />
     <Rule Name="AvoidUninstantiatedInternalClasses" Enabled="True" />
-    <Rule Name="AvoidUnnecessaryStringCreation" Enabled="True" />
     <Rule Name="AvoidUnsealedAttributes" Enabled="True" />
     <Rule Name="AvoidUnusedPrivateFields" Enabled="True" />
-    <Rule Name="DisposeMethodsShouldCallSuppressFinalize" Enabled="True" />
-    <Rule Name="DoNotCallPropertiesThatCloneValuesInLoops" Enabled="True" />
     <Rule Name="DoNotCastUnnecessarily" Enabled="True" />
-    <Rule Name="DoNotConcatenateStringsInsideLoops" Enabled="True" />
     <Rule Name="DoNotInitializeUnnecessarily" Enabled="True" />
     <Rule Name="InitializeReferenceTypeStaticFieldsInline" Enabled="True" />
     <Rule Name="OverrideEqualsAndOperatorEqualsOnValueTypes" Enabled="True" />
@@ -67,14 +63,12 @@
     <Rule Name="CollectionPropertiesShouldBeReadOnly" Enabled="True" />
     <Rule Name="DisposableFieldsShouldBeDisposed" Enabled="True" />
     <Rule Name="DisposableTypesShouldDeclareFinalizer" Enabled="True" />
-    <Rule Name="DisposeMethodsShouldCallBaseClassDispose" Enabled="True" />
     <Rule Name="DoNotCallOverridableMethodsInConstructors" Enabled="True" />
     <Rule Name="DoNotDecreaseInheritedMemberVisibility" Enabled="True" />
-    <Rule Name="DoNotDisposeObjectsMultipleTimes" Enabled="True" />
     <Rule Name="DoNotIgnoreMethodResults" Enabled="True" />
     <Rule Name="DoNotMarkEnumsWithFlags" Enabled="True" />
     <Rule Name="DoNotMarkServicedComponentsWithWebMethod" Enabled="True" />
-    <Rule Name="DoNotRaiseExceptionsInFilterBlocks" Enabled="True" />
+    <Rule Name="DoNotRaiseExceptionsInExceptionClauses" Enabled="True" />
     <Rule Name="DoNotShipUnreleasedResourceFormats" Enabled="True" />
     <Rule Name="FinalizersShouldBeProtected" Enabled="True" />
     <Rule Name="FinalizersShouldCallBaseClassFinalizer" Enabled="True" />
@@ -94,7 +88,6 @@
     <Rule Name="OverrideEqualsOnOverloadingOperatorEquals" Enabled="True" />
     <Rule Name="OverrideGetHashCodeOnOverridingEquals" Enabled="True" />
     <Rule Name="PassSystemUriObjectsInsteadOfStrings" Enabled="True" />
-    <Rule Name="ProvideCorrectArgumentsToFormattingMethods" Enabled="True" />
     <Rule Name="ProvideDeserializationMethodsForOptionalFields" Enabled="True" />
     <Rule Name="RethrowToPreserveStackDetails" Enabled="True" />
     <Rule Name="ReviewUnusedParameters" Enabled="True" />
@@ -106,7 +99,7 @@
   <Groups />
   <Settings />
  </Rules>
- <FxCopReport Version="1.35">
+ <FxCopReport Version="1.36">
   <Targets>
    <Target Name="$(ProjectDir)/FnordBot Service/bin/Debug/FnordBotService.exe">
     <Modules>
@@ -116,22 +109,13 @@
         <Types>
          <Type Name="BotHandler">
           <Members>
-           <Member Name=".ctor()">
+           <Member Name="#.ctor()">
             <Messages>
              <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2008-02-09 13:47:25Z">
               <Issue>
-               <Item>BotHandler.BotHandler()</Item>
-               <Item>AppDomain.add_UnhandledException(UnhandledExceptionEventHandler):Void</Item>
-               <Item>&#xD;&#xA;-&gt;System.AppDomain.add_UnhandledException(System.UnhandledExceptionEventHandler) : Void&#xD;&#xA;-&gt;NielsRask.FnordBotService.BotHandler.#ctor : Void</Item>
-              </Issue>
-             </Message>
-            </Messages>
-           </Member>
-           <Member Name="swlog">
-            <Messages>
-             <Message TypeName="AvoidUnusedPrivateFields" Category="Microsoft.Performance" CheckId="CA1823" Created="2008-02-09 13:47:25Z">
-              <Issue>
-               <Item>BotHandler.swlog</Item>
+               <Item>'BotHandler.BotHandler()'</Item>
+               <Item>'AppDomain.UnhandledException.add(UnhandledExceptionEventHandler)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'BotHandler.BotHandler()'&#xD;&#xA;   -&gt;'BotHandler.BotHandler()'</Item>
               </Issue>
              </Message>
             </Messages>
@@ -152,11 +136,11 @@
         <Types>
          <Type Name="FnordBot">
           <Members>
-           <Member Name="irc_OnPrivateAction(System.String,System.String,System.String,System.String):System.Void">
+           <Member Name="#irc_OnPrivateAction(System.String,System.String,System.String,System.String)">
             <Messages>
              <Message TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811" Created="2008-02-09 13:42:57Z">
               <Issue>
-               <Item>FnordBot.irc_OnPrivateAction(String, String, String, String):Void</Item>
+               <Item>'FnordBot.irc_OnPrivateAction(string, string, string, string)'</Item>
               </Issue>
              </Message>
             </Messages>
@@ -179,21 +163,21 @@
           <Messages>
            <Message TypeName="OverrideEqualsAndOperatorEqualsOnValueTypes" Category="Microsoft.Performance" CheckId="CA1815" Created="2007-02-17 13:12:27Z">
             <Issue Name="Equals">
-             <Item>NielsRask.LibIrc.ReplyData</Item>
+             <Item>'ReplyData'</Item>
             </Issue>
             <Issue Name="op_Equality">
-             <Item>NielsRask.LibIrc.ReplyData</Item>
+             <Item>'ReplyData'</Item>
             </Issue>
            </Message>
           </Messages>
          </Type>
          <Type Name="User">
           <Members>
-           <Member Name="SetHostmask(System.String):System.Void">
+           <Member Name="#SetHostmask(System.String)">
             <Messages>
              <Message TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811" Status="Excluded" Created="2007-02-17 13:12:27Z">
               <Issue>
-               <Item>User.SetHostmask(String):Void</Item>
+               <Item>'User.SetHostmask(string)'</Item>
               </Issue>
               <Notes>
                <User Name="Niels">
@@ -220,13 +204,13 @@
         <Types>
          <Type Name="DelegateCaller">
           <Members>
-           <Member Name="Execute():System.Void">
+           <Member Name="#Execute()">
             <Messages>
              <Message Id="t" TypeName="RemoveUnusedLocals" Category="Microsoft.Performance" CheckId="CA1804" Created="2008-02-09 13:42:57Z">
               <Issue>
-               <Item>DelegateCaller.Execute():Void</Item>
-               <Item>t</Item>
-               <Item>System.Threading.Thread</Item>
+               <Item>'DelegateCaller.Execute()'</Item>
+               <Item>'t'</Item>
+               <Item>'Thread'</Item>
               </Issue>
              </Message>
             </Messages>
@@ -245,31 +229,13 @@
       <Namespaces>
        <Namespace Name="NielsRask.SortSnak">
         <Types>
-         <Type Name="Fragment">
-          <Members>
-           <Member Name=".ctor(NielsRask.SortSnak.Word,NielsRask.SortSnak.Word,NielsRask.SortSnak.Word,System.Boolean,System.Boolean)">
-            <Messages>
-             <Message TypeName="DoNotConcatenateStringsInsideLoops" Category="Microsoft.Performance" CheckId="CA1818" Status="Excluded" Created="2007-02-17 15:21:26Z">
-              <Issue>
-               <Item>Fragment.Fragment(Word, Word, Word, Boolean, Boolean)</Item>
-              </Issue>
-              <Notes>
-               <User Name="Niels">
-                <Note Id="2" />
-               </User>
-              </Notes>
-             </Message>
-            </Messages>
-           </Member>
-          </Members>
-         </Type>
          <Type Name="Vocabulary">
           <Members>
-           <Member Name="AddFragment(NielsRask.SortSnak.Fragment):System.Void">
+           <Member Name="#AddFragment(NielsRask.SortSnak.Fragment)">
             <Messages>
              <Message TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811" Created="2007-02-17 15:21:26Z">
               <Issue>
-               <Item>Vocabulary.AddFragment(Fragment):Void</Item>
+               <Item>'Vocabulary.AddFragment(Fragment)'</Item>
               </Issue>
              </Message>
             </Messages>
@@ -287,28 +253,21 @@
    <User Name="Niels">
     <Note Id="0" Modified="2007-02-17 13:23:55Z">method will be used later</Note>
     <Note Id="1" Modified="2007-02-17 13:24:38Z">Method will be used later on</Note>
-    <Note Id="2" Modified="2007-02-17 15:51:24Z">really doesnt need optimizing</Note>
    </User>
   </Notes>
   <Rules>
    <Rule TypeName="AvoidUncalledPrivateCode" Category="Microsoft.Performance" CheckId="CA1811">
-    <Resolution Name="Default">'{0}' appears to have no upstream public or protected callers.</Resolution>
-   </Rule>
-   <Rule TypeName="AvoidUnusedPrivateFields" Category="Microsoft.Performance" CheckId="CA1823">
-    <Resolution Name="Default">It appears that field '{0}' is never used or is only ever assigned to. Use this field or remove it.</Resolution>
-   </Rule>
-   <Rule TypeName="DoNotConcatenateStringsInsideLoops" Category="Microsoft.Performance" CheckId="CA1818">
-    <Resolution Name="Default">Change {0} to use StringBuilder instead of String.Concat or +=</Resolution>
+    <Resolution Name="Default">{0} appears to have no upstream public or protected callers.</Resolution>
    </Rule>
    <Rule TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122">
     <Resolution Name="Default">{0} calls into {1} which has a LinkDemand. By making this call, {1} is indirectly exposed to user code. Review the following call stack that might expose a way to circumvent security protection: {2}</Resolution>
    </Rule>
    <Rule TypeName="OverrideEqualsAndOperatorEqualsOnValueTypes" Category="Microsoft.Performance" CheckId="CA1815">
-    <Resolution Name="Equals">'{0}' should override Equals.</Resolution>
-    <Resolution Name="op_Equality">'{0}' should override the equality (==) and inequality (!=) operators.</Resolution>
+    <Resolution Name="Equals">{0} should override Equals.</Resolution>
+    <Resolution Name="op_Equality">{0} should override the equality (==) and inequality (!=) operators.</Resolution>
    </Rule>
    <Rule TypeName="RemoveUnusedLocals" Category="Microsoft.Performance" CheckId="CA1804">
-    <Resolution Name="Default">{0} declares a local, '{1}', of type {2}, which is never used or is only assigned to. Use this local or remove it.</Resolution>
+    <Resolution Name="Default">{0} declares a variable, {1}, of type {2}, which is never used or is only assigned to. Use this variable or remove it.</Resolution>
    </Rule>
   </Rules>
  </FxCopReport>

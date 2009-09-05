@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading;
 using log4net;
 
 namespace NielsRask.LibIrc
@@ -9,21 +10,21 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class Client
 	{
-		Protocol protocol;
-		ChannelCollection channels;
+	    readonly Protocol protocol;
+	    readonly ChannelCollection channels;
 		string server = "irc.droso.net";
 		int port = 6667;
 		string nickname = "Bimsebot";
 		string username = "bimse";
 		string realname = "B. Imse";
-		string altNick = "";
+		string altNick = "Bimmer";
 		string fingerInfo = "fnord";
 		string versionInfo = "LibIrc "+System.Reflection.Assembly.GetCallingAssembly().GetName().Version;
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
 		// majic numbaz
 		// truncate any message longer than this
-		int maxMessageLength = 250;
+	    readonly int maxMessageLength = 250;
 
 		/// <summary>
 		/// Gets or sets the server.
@@ -120,34 +121,58 @@ namespace NielsRask.LibIrc
 		public Protocol Protocol 
 		{
 			get { return protocol; }
-		}
+        }
 
-		/// <summary>
+        #region forwards from protocol
+        /// <summary>
 		/// Occurs when a public message is received
 		/// </summary>
-		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicMessage;
+		public event Protocol.MessageHandler OnPublicMessage;
 
 		/// <summary>
 		/// Occurs when a private message is received
 		/// </summary>
-		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateMessage;
+        public event Protocol.MessageHandler OnPrivateMessage;
 
 		/// <summary>
 		/// Occurs when a public notice is received
 		/// </summary>
-		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicNotice;
+        public event Protocol.MessageHandler OnPublicNotice;
 
 		/// <summary>
 		/// Occurs when a private notice is received
 		/// </summary>
-		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateNotice;
+        public event Protocol.MessageHandler OnPrivateNotice;
 
 		/// <summary>
 		/// Occurs when we receive MOTD from server. we are then ready to join channels
 		/// </summary>
-		public event NielsRask.LibIrc.Protocol.ServerDataHandler OnMotd;
+        public event Protocol.ServerDataHandler OnMotd;
 
+        /// <summary>
+        /// Occurs when a public action is received
+        /// </summary>
+        public event Protocol.MessageHandler OnPublicAction;
+
+        /// <summary>
+        /// Occurs when a private action is received
+        /// </summary>
+        public event Protocol.MessageHandler OnPrivateAction;
+
+        /// <summary>
+        /// Occurs when a topic change is received
+        /// </summary>
+        public event Protocol.ChannelTopicHandler OnTopicChange;
+        #endregion
+
+        #region forwards from network
 		/// <summary>
+		/// Occurs when the server sends us a message
+		/// </summary>
+        public event Network.ServerMessageHandler OnServerMessage;
+        #endregion
+
+        /// <summary>
 		/// Occurs when a user changes nickname
 		/// </summary>
 		public event NickChangeHandler OnNickChange;
@@ -172,10 +197,6 @@ namespace NielsRask.LibIrc
 		/// Occurs when we set the mode of a channel
 		/// </summary>
 		public event BotMessageHandler OnSetMode;
-
-		public event NielsRask.LibIrc.Protocol.MessageHandler OnPublicAction;
-		public event NielsRask.LibIrc.Protocol.MessageHandler OnPrivateAction;
-		public event NielsRask.LibIrc.Protocol.ChannelTopicHandler OnTopicChange;
 			
 		/// <summary>
 		/// Delegate for nickname changes
@@ -195,25 +216,27 @@ namespace NielsRask.LibIrc
 			protocol = new Protocol();
 			protocol.AlternativeNick = altNick;
 			channels = new ChannelCollection( protocol );
-			protocol.OnChannelUserList += new Protocol.ChannelUserListHandler(OnChannelUserList);
-//			protocol.OnTopicChange += new Protocol.ChannelTopicHandler(OnTopicChange);
-			protocol.OnPrivateMessage += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPrivateMessage);
-			protocol.OnPublicMessage += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPublicMessage);
-			protocol.OnPublicNotice += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPublicNotice);
-			protocol.OnPrivateNotice += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPrivateNotice);
+			protocol.OnChannelUserList += OnChannelUserList;
+			protocol.OnPrivateMessage += protocol_OnPrivateMessage;
+			protocol.OnPublicMessage += protocol_OnPublicMessage;
+			protocol.OnPublicNotice += protocol_OnPublicNotice;
+			protocol.OnPrivateNotice += protocol_OnPrivateNotice;
 
-			protocol.OnSendToUser += new NielsRask.LibIrc.Protocol.BotMessageHandler(protocol_OnSendToUser);
-			protocol.OnSendToChannel += new NielsRask.LibIrc.Protocol.BotMessageHandler(protocol_OnSendToChannel);
-			protocol.OnSetMode += new NielsRask.LibIrc.Protocol.BotMessageHandler(protocol_OnSetMode);
-			protocol.OnSendNotice += new NielsRask.LibIrc.Protocol.BotMessageHandler(protocol_OnSendNotice);
-			protocol.OnNickChange += new NielsRask.LibIrc.Protocol.NickChangeHandler(protocol_OnNickChange);
-			protocol.Network.OnDisconnect +=new NielsRask.LibIrc.Network.ServerStateHandler(Network_OnDisconnect);
-			protocol.OnMotd += new NielsRask.LibIrc.Protocol.ServerDataHandler(protocol_OnMotd);
+			protocol.OnSendToUser += protocol_OnSendToUser;
+			protocol.OnSendToChannel += protocol_OnSendToChannel;
+			protocol.OnSetMode += protocol_OnSetMode;
+			protocol.OnSendNotice += protocol_OnSendNotice;
+			protocol.OnNickChange += protocol_OnNickChange;
+			protocol.Network.OnDisconnect += Network_OnDisconnect;
+            protocol.Network.OnServerMessage += Network_OnServerMessage;
+			protocol.OnMotd += protocol_OnMotd;
 
-			protocol.OnTopicChange += new NielsRask.LibIrc.Protocol.ChannelTopicHandler(protocol_OnTopicChange);
-			protocol.OnPublicAction +=new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPublicAction);
-			protocol.OnPrivateAction += new NielsRask.LibIrc.Protocol.MessageHandler(protocol_OnPrivateAction);
+			protocol.OnTopicChange += protocol_OnTopicChange;
+			protocol.OnPublicAction += protocol_OnPublicAction;
+			protocol.OnPrivateAction += protocol_OnPrivateAction;
 		}
+
+
 
 		#region control
 
@@ -223,9 +246,13 @@ namespace NielsRask.LibIrc
 		public void Connect() 
 		{
 			log.Info("Client: connecting to "+server+":"+port+"");
+			Console.WriteLine( "Client.connect" );
 			protocol.FingerInfo = fingerInfo;
 			protocol.VersionInfo = versionInfo;
 			protocol.Connect( server, port );
+		
+			// Det skal vi imkke gøre endnu, først når vi har fået MOTD tror jeg
+			Thread.Sleep(1500);
 			protocol.Register( nickname, username, realname );
 		}
 
@@ -300,7 +327,32 @@ namespace NielsRask.LibIrc
 			return chn;
 		}
 
-		private void protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
+        // this is called when the network layer detects a disconnect
+        private void Network_OnDisconnect()
+        {
+            log.Warn("Got disconnected event - Starting reconnect loop");
+            bool connected = false;
+            while (!connected)
+            {
+                Thread.Sleep(30 * 1000);   // sleep for a bit before trying to reconnect
+                try
+                {
+                    log.Info("Reconnecting ...");
+					Console.WriteLine( "Network_OnDisconnect: reconnecting" );
+					Connect();                       // try reconnecting
+                    log.Warn("Reconnected to server");
+                    connected = true;                // this will break the while-block
+                }
+                catch (ConnectionRefusedException)
+                {}
+            }
+	    }
+
+	    #endregion
+
+        #region event forwards
+
+        private void protocol_OnPrivateMessage(string message, string target, string senderNick, string senderHost)
 		{
 			if (OnPrivateMessage != null) 
 				OnPrivateMessage( message, target, senderNick, senderHost );
@@ -354,23 +406,13 @@ namespace NielsRask.LibIrc
 				OnNickChange( newname, oldname, hostmask );
 		}
 
-		private void Network_OnDisconnect()
-		{
-			log.Warn("Got disconnected event - taking a wee nap");
-			System.Threading.Thread.Sleep(30*1000);
-			try 
-			{
-				log.Info("Reconnecting ...");
-				Connect();
-				log.Warn("Reconnected to server");
 
-			} 
-			catch (Exception e) 
-			{
-				log.Error("Reconnect failed, re-calling Network_OnDisconnect()", e);
-				Network_OnDisconnect();	// holder det?
-			}
-		}
+        private void Network_OnServerMessage(string message)
+        {
+            if (OnServerMessage != null)
+                OnServerMessage(message);
+        }
+
 
 		private void protocol_OnMotd(string data)
 		{
@@ -404,10 +446,10 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class Channel 
 	{
-		string name;
+	    readonly string name;
 		string topic;
-		Protocol protocol;
-		UserCollection users;
+	    readonly Protocol protocol;
+	    readonly UserCollection users;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Channel"/> class.
@@ -482,10 +524,10 @@ namespace NielsRask.LibIrc
 		/// Sets the topic.
 		/// </summary>
 		/// <param name="channel">The channel.</param>
-		/// <param name="topic">The topic.</param>
-		public void SetTopic(string channel, string topic) 
+        /// <param name="newtopic">The topic.</param>
+		public void SetTopic(string channel, string newtopic) 
 		{
-			protocol.SetTopic( channel, topic );
+			protocol.SetTopic( channel, newtopic );
 		}
 
 		/// <summary>
@@ -526,7 +568,7 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class ChannelCollection : CollectionBase 
 	{
-		Protocol protocol;
+	    readonly Protocol protocol;
 
 		/// <summary>
 		/// Occurs when the channel list changes
@@ -642,10 +684,10 @@ namespace NielsRask.LibIrc
 	/// </summary>
 	public class User 
 	{
-		string nickName;
-		string hostmask;
-		bool isOperator;
-		bool hasVoice;
+        readonly string nickName;
+        string hostmask;
+	    readonly bool isOperator;
+        readonly bool hasVoice;
 
 		/// <summary>
 		/// Gets the name of the nick.
@@ -824,7 +866,7 @@ namespace NielsRask.LibIrc
 		}
 
 		//compare med wildcards, til brug i hostname matching
-		private bool wildcmp(string wild, string str, bool case_sensitive)
+		private static bool wildcmp(string wild, string str, bool case_sensitive)
 		{
 			int cp=0, mp=0;
 	

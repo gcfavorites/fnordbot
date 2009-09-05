@@ -10,7 +10,7 @@ namespace NielsRask.FnordBot
 	/// </summary>
 	public class Hostmask 
 	{
-		string mask;
+		readonly string mask;
 
 		/// <summary>
 		/// Gets the mask.
@@ -66,7 +66,7 @@ namespace NielsRask.FnordBot
 		}
 
 
-		private bool wildcmp(string wild, string str, bool case_sensitive)
+		private static bool wildcmp(string wild, string str, bool case_sensitive)
 		{
 			int cp=0, mp=0;
 	
@@ -126,11 +126,6 @@ namespace NielsRask.FnordBot
 	/// </summary>
 	public class HostmaskCollection : CollectionBase
 	{
-		/// <summary>
-		/// Initializes a new instance of the <see cref="HostmaskCollection"/> class.
-		/// </summary>
-		public HostmaskCollection() {}
-
 		internal static HostmaskCollection UnpackHostmasks( XmlNodeList masks ) 
 		{
 			HostmaskCollection mskcol = new HostmaskCollection();
