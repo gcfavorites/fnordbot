@@ -16,7 +16,6 @@ namespace NielsRask.LibIrc
 		private string fingerReply = "";
 		private string altNick = "";
 		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		private readonly PingListener pingListener;
 
 		#region events and delegates
 		/// <summary>
@@ -210,15 +209,6 @@ namespace NielsRask.LibIrc
 		{
 			network = new Network();
 			network.OnServerMessage += ProcessMessage;
-//			network.OnLogMessage += new Network.LogMessageHandler( WriteLogMessage );
-
-			// pinglistener skal opdage når vi ikke har fået pings længe
-			pingListener = new PingListener(network);
-			Thread tPingListen = new Thread( pingListener.Start );
-			tPingListen.Name = "PingListenerThread";
-			tPingListen.IsBackground = true;
-			tPingListen.Start();
-			network.OnServerMessage += pingListener.ProcessMessage;
 		} 
 
 		/// <summary>
@@ -787,7 +777,7 @@ namespace NielsRask.LibIrc
 		public string Command;
 
 		/// <summary>
-		/// parse a string
+		/// parse a string 
 		/// </summary>
 		/// <param name="line"></param>
 		/// <returns></returns>
@@ -821,45 +811,6 @@ namespace NielsRask.LibIrc
 			rd.Command = parts[1];
 
 			return rd;
-		}
-	}
-
-	/// <exclude />
-	public class PingListener 
-	{
-		private DateTime lastPing = DateTime.Now;
-		private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-		private readonly Network network;
-
-		/// <exclude />
-		public PingListener(Network network)
-		{
-			this.network = network;
-		}
-
-		/// <exclude />
-		public void Start() 
-		{
-			log.Info("PingListener was started ...");
-			bool alive = true;
-			while (alive) 
-			{
-				if ( lastPing < DateTime.Now.AddMinutes(-5) ) 
-				{
-					log.Warn("Last ping was recieved at "+lastPing+" - connection might be lost!");
-					network.CallOnDisconnect();
-					alive = false;
-				}
-				else
-					Thread.Sleep( new TimeSpan(0, 1, 0) );
-			}
-		}
-	
-		/// <exclude />
-		public void ProcessMessage(string line) 
-		{
-			if ( line.StartsWith("PING") ) 
-				lastPing = DateTime.Now;
 		}
 	}
 }
